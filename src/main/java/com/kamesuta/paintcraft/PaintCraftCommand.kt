@@ -18,15 +18,17 @@ class GiveCanvasCommand : Command("give") {
             executes {
                 val entities = typedArgs[0] as List<*>
                 entities.filterIsInstance<Player>().forEach {
-                    val stack = MapDrawer.genNew(it.world)
-                    it.inventory.addItem(stack.first)
-                    plugin.server.scheduler.runTaskLater(plugin, Runnable {
-                        stack.second.draw { g ->
-                            g.color = Color.RED
-                            g.fillRect(0,0,128,128)
-                            g.dispose()
-                        }
-                    },2)
+                    val (mapItemStack, mapDrawer) = MapDrawer.genNew(it.world)
+                    it.inventory.addItem(mapItemStack)
+
+                    mapDrawer.draw { g ->
+                        g.color = Color.RED
+                        g.fillRect(0, 0, 128, 128)
+                        g.color = Color.WHITE
+                        g.drawLine(0, 0, 128, 128)
+                        g.drawRect(10, 10, 100, 100)
+                        g.dispose()
+                    }
                 }
             }
         }
