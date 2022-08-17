@@ -9,4 +9,8 @@ class PaintCraft : JavaPlugin() {
             command(PaintCraftCommand())
         }
     }
+
+    override fun onEnable() {
+        server.pluginManager.registerEvents(DrawListener(), this)
+    }
 }
