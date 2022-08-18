@@ -11,6 +11,12 @@ class PaintCraft : JavaPlugin() {
     }
 
     override fun onEnable() {
+        instance = this
         server.pluginManager.registerEvents(DrawListener(), this)
+    }
+
+    companion object {
+        lateinit var instance: PaintCraft
+            private set
     }
 }
