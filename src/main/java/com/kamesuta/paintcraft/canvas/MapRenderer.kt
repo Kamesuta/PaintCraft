@@ -1,6 +1,5 @@
 package com.kamesuta.paintcraft.canvas
 
-import com.kamesuta.paintcraft.readData
 import org.bukkit.entity.Player
 import org.bukkit.map.MapCanvas
 import org.bukkit.map.MapPalette
@@ -21,6 +20,10 @@ class MapRenderer : MapRenderer() {
 
             canvas.drawImage(0, 0, img)
 
+            val colours: ByteArray = map.readData()
+            val bytes = MapPalette.imageToBytes(img)
+            System.arraycopy(bytes, 0, colours, 0, colours.size)
+
             markDirty = false
         }
     }
@@ -33,6 +36,7 @@ class MapRenderer : MapRenderer() {
                 img.setRGB(x, y, MapPalette.getColor(colour).rgb)
             }
         }
+        markDirty = true
     }
 
     fun flush(f: (Graphics2D) -> Unit) {

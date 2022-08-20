@@ -7,7 +7,7 @@ import java.awt.Color
 
 class PaintCraftCommand : Command("paintcraft") {
     init {
-        children(GiveCanvasCommand(), DrawCanvasCommand())
+        children(GiveCanvasCommand(), DrawCanvasCommand(), LoadCanvasCommand())
     }
 }
 
@@ -47,6 +47,22 @@ class DrawCanvasCommand : Command("draw") {
                         g.color = Color.BLUE
                         g.drawLine(128, 0, 0, 128)
                     }
+                }
+            }
+        }
+    }
+}
+
+class LoadCanvasCommand : Command("load") {
+    init {
+        usage {
+            entityArgument("player")
+            executes {
+                val entities = typedArgs[0] as List<*>
+                entities.filterIsInstance<Player>().forEach {
+                    val mapDrawer = MapItem.get(it.inventory.itemInMainHand)
+
+                    mapDrawer?.renderer?.loadMap(mapDrawer.mapView)
                 }
             }
         }

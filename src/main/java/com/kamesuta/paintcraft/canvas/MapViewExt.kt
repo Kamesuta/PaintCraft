@@ -1,5 +1,6 @@
-package com.kamesuta.paintcraft
+package com.kamesuta.paintcraft.canvas
 
+import com.kamesuta.paintcraft.PaintCraft
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import org.bukkit.map.MapRenderer
@@ -7,7 +8,7 @@ import org.bukkit.map.MapView
 import java.util.function.Consumer
 
 fun MapView.readData(): ByteArray {
-    return Reflection.getMapCache(this)
+    return MapReflection.getMap(this)
 }
 
 fun MapView.setRenderer(renderer: MapRenderer?) {
