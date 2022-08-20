@@ -1,11 +1,20 @@
 package com.kamesuta.paintcraft.canvas
 
 import com.kamesuta.paintcraft.ReflectionAccessor
+import org.bukkit.map.MapCanvas
 import org.bukkit.map.MapView
 
 object MapReflection {
-    fun getMap(mapView: MapView): ByteArray {
-        val colors: ByteArray? = try {
+    fun getCanvasBuffer(mapCanvas: MapCanvas): MapBuffer? {
+        return try {
+            ReflectionAccessor.getField(mapCanvas, "buffer") as ByteArray?
+        } catch (e: ReflectiveOperationException) {
+            null
+        }
+    }
+
+    fun getMapBuffer(mapView: MapView): MapBuffer? {
+        return try {
             val worldMap: Any = ReflectionAccessor.getField(mapView, "worldMap")
             try {
                 ReflectionAccessor.getField(worldMap, "colors") as ByteArray?
@@ -16,11 +25,10 @@ object MapReflection {
         } catch (e: ReflectiveOperationException) {
             null
         }
-        return colors ?: ByteArray(128 * 128)
     }
 
-    fun getMapCache(mapView: MapView): ByteArray {
-        val colors: ByteArray? = try {
+    fun getMapCacheBuffer(mapView: MapView): MapBuffer? {
+        return try {
             val worldMap = ReflectionAccessor.getField(mapView, "renderCache") as HashMap<*, *>
             val renderCache = worldMap[null]
                 ?: worldMap.values.firstOrNull()
@@ -32,6 +40,5 @@ object MapReflection {
         } catch (e: ReflectiveOperationException) {
             null
         }
-        return colors ?: ByteArray(128 * 128)
     }
 }

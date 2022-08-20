@@ -1,13 +1,17 @@
 package com.kamesuta.paintcraft
 
 import com.kamesuta.paintcraft.canvas.MapItem
+import com.kamesuta.paintcraft.canvas.draw.DrawFill
+import com.kamesuta.paintcraft.canvas.draw.DrawLine
+import com.kamesuta.paintcraft.canvas.draw.DrawRect
 import dev.kotx.flylib.command.Command
 import org.bukkit.entity.Player
+import org.bukkit.map.MapPalette
 import java.awt.Color
 
 class PaintCraftCommand : Command("paintcraft") {
     init {
-        children(GiveCanvasCommand(), DrawCanvasCommand(), LoadCanvasCommand())
+        children(GiveCanvasCommand(), DrawCanvasCommand(), FillCanvasCommand())
     }
 }
 
@@ -22,11 +26,9 @@ class GiveCanvasCommand : Command("give") {
                     it.inventory.addItem(mapDrawer.itemStack)
 
                     mapDrawer.draw { g ->
-                        g.color = Color.RED
-                        g.fillRect(0, 0, 128, 128)
-                        g.color = Color.WHITE
-                        g.drawLine(0, 0, 128, 128)
-                        g.drawRect(10, 10, 100, 100)
+                        g(DrawRect(0, 0, 128, 128, MapPalette.matchColor(Color.RED), true))
+                        g(DrawLine(0, 0, 128, 128, MapPalette.matchColor(Color.WHITE)))
+                        g(DrawRect(10, 10, 110, 110, MapPalette.matchColor(Color.WHITE), false))
                     }
                 }
             }
@@ -44,8 +46,7 @@ class DrawCanvasCommand : Command("draw") {
                     val mapDrawer = MapItem.get(it.inventory.itemInMainHand)
 
                     mapDrawer?.draw { g ->
-                        g.color = Color.BLUE
-                        g.drawLine(128, 0, 0, 128)
+                        g(DrawLine(128, 0, 0, 128, MapPalette.matchColor(Color.BLUE)))
                     }
                 }
             }
@@ -53,7 +54,7 @@ class DrawCanvasCommand : Command("draw") {
     }
 }
 
-class LoadCanvasCommand : Command("load") {
+class FillCanvasCommand : Command("fill") {
     init {
         usage {
             entityArgument("player")
@@ -62,7 +63,9 @@ class LoadCanvasCommand : Command("load") {
                 entities.filterIsInstance<Player>().forEach {
                     val mapDrawer = MapItem.get(it.inventory.itemInMainHand)
 
-                    mapDrawer?.renderer?.loadMap(mapDrawer.mapView)
+                    mapDrawer?.draw { g ->
+                        g(DrawFill(64, 32, MapPalette.matchColor(Color.RED), MapPalette.matchColor(Color.YELLOW)))
+                    }
                 }
             }
         }

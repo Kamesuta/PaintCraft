@@ -1,48 +1,36 @@
 package com.kamesuta.paintcraft.canvas
 
+import com.kamesuta.paintcraft.canvas.draw.Draw
 import org.bukkit.entity.Player
 import org.bukkit.map.MapCanvas
-import org.bukkit.map.MapPalette
 import org.bukkit.map.MapRenderer
 import org.bukkit.map.MapView
-import java.awt.Graphics2D
-import java.awt.image.BufferedImage
+import java.util.concurrent.ConcurrentLinkedQueue
 
 class MapRenderer : MapRenderer() {
-    private val img: BufferedImage = BufferedImage(128, 128, BufferedImage.TYPE_INT_ARGB)
-    var markDirty: Boolean = false
+    private var loaded = false
+    private val draws = ConcurrentLinkedQueue<Draw>()
 
     override fun render(map: MapView, canvas: MapCanvas, player: Player) {
-        if (markDirty) {
+        if (!loaded) {
+            canvas.loadFromMapView()
+            loaded = true
+        }
+
+        if (!draws.isEmpty()) {
             repeat(canvas.cursors.size()) {
                 canvas.cursors.removeCursor(canvas.cursors.getCursor(0))
             }
 
-            canvas.drawImage(0, 0, img)
-
-            val colours: ByteArray = map.readData()
-            val bytes = MapPalette.imageToBytes(img)
-            System.arraycopy(bytes, 0, colours, 0, colours.size)
-
-            markDirty = false
-        }
-    }
-
-    fun loadMap(map: MapView) {
-        val colours: ByteArray = map.readData()
-        repeat(128) { y ->
-            repeat(128) { x ->
-                val colour: Byte = colours[y * 128 + x]
-                img.setRGB(x, y, MapPalette.getColor(colour).rgb)
+            while (!draws.isEmpty()) {
+                draws.poll().draw(canvas)
             }
+
+            canvas.saveToMapView()
         }
-        markDirty = true
     }
 
-    fun flush(f: (Graphics2D) -> Unit) {
-        val g = img.createGraphics()
-        f(g)
-        g.dispose()
-        markDirty = true
+    fun draw(draw: Draw) {
+        draws.add(draw)
     }
 }

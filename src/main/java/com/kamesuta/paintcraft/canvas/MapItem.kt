@@ -1,6 +1,7 @@
 package com.kamesuta.paintcraft.canvas
 
 import com.kamesuta.paintcraft.PaintCraft
+import com.kamesuta.paintcraft.canvas.draw.Draw
 import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.NamespacedKey
@@ -10,11 +11,10 @@ import org.bukkit.inventory.meta.ItemMeta
 import org.bukkit.inventory.meta.MapMeta
 import org.bukkit.map.MapView
 import org.bukkit.persistence.PersistentDataType
-import java.awt.Graphics2D
 
 class MapItem(val itemStack: ItemStack, val mapView: MapView, val renderer: MapRenderer) {
-    fun draw(f: (Graphics2D) -> Unit) {
-        renderer.flush(f)
+    fun draw(f: (g: (draw: Draw) -> Unit) -> Unit) {
+        f(renderer::draw)
     }
 
     companion object {
@@ -61,7 +61,6 @@ class MapItem(val itemStack: ItemStack, val mapView: MapView, val renderer: MapR
 
                 val renderer = MapRenderer()
                 mapView.setRenderer(renderer)
-                renderer.loadMap(mapView)
                 renderer
             }
             return MapItem(item, mapView, renderer)
