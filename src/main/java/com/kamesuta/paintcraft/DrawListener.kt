@@ -7,8 +7,10 @@ import com.kamesuta.paintcraft.canvas.CanvasSessionManager
 import com.kamesuta.paintcraft.map.MapItem
 import com.kamesuta.paintcraft.map.mapSize
 import com.kamesuta.paintcraft.util.UV
+import com.kamesuta.paintcraft.util.UVInt
 import org.bukkit.Location
 import org.bukkit.Material
+import org.bukkit.Rotation
 import org.bukkit.entity.ItemFrame
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
@@ -120,30 +122,31 @@ class DrawListener : Listener {
     ): Boolean {
         // Calculate looking direction.
         val itemFrame = itemFrameEntity.location
-        val uv = calculateUV(player.eyeLocation, itemFrame)
-
-        // transform uv.
-        val rotation: CanvasRotation = CanvasRotation.fromRotation(itemFrameEntity.rotation)
-        val up: Double = rotation.u(uv)
-        val vp: Double = rotation.v(uv)
-        val uq = up + 0.5
-        val vq = vp + 0.5
-        val x = (uq * mapSize).toInt()
-        if (x >= mapSize || x < 0) return false
-        val y = (vq * mapSize).toInt()
-        if (y >= mapSize || y < 0) return false
+        val uv = transformUV(itemFrameEntity.rotation, calculateUV(player.eyeLocation, itemFrame))
+            ?: return false
 
         // Calculate block location
         val blockLocation = itemFrame.clone().add(
             -0.5 * itemFrameEntity.facing.modX,
-            0.0, -0.5 * itemFrameEntity.facing.modZ
+            -0.5 * itemFrameEntity.facing.modY,
+            -0.5 * itemFrameEntity.facing.modZ,
         )
-        val interact = CanvasInteraction(x, y, player, blockLocation, itemFrame, actionType)
+        val interact = CanvasInteraction(uv, player, blockLocation, itemFrame, actionType)
 
         // Paint on canvas.
         val session = CanvasSessionManager.getSession(player)
         session.tool.paint(player.inventory.itemInMainHand, mapItem, interact, session)
         return true
+    }
+
+    private fun transformUV(rotation: Rotation, uv: UV): UVInt? {
+        val rot: CanvasRotation = CanvasRotation.fromRotation(rotation)
+        val q = UV(rot.u(uv) + 0.5, rot.v(uv) + 0.5)
+        val x = (q.u * mapSize).toInt()
+        if (x >= mapSize || x < 0) return null
+        val y = (q.v * mapSize).toInt()
+        if (y >= mapSize || y < 0) return null
+        return UVInt(x, y)
     }
 
     private fun calculateUV(playerEyePos: Location, itemFrame: Location): UV {
