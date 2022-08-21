@@ -1,8 +1,14 @@
 package com.kamesuta.paintcraft.canvas
 
+import com.kamesuta.paintcraft.util.UV
 import org.bukkit.Rotation
 
-enum class CanvasRotation(val x1: Double, val y1: Double, val x2: Double, val y2: Double) {
+enum class CanvasRotation(
+    private val x1: Double,
+    private val y1: Double,
+    private val x2: Double,
+    private val y2: Double
+) {
     // @formatter:off
     NONE					(+1.0,  0.0,  0.0, +1.0),
     CLOCKWISE_45            ( 0.0, +1.0, -1.0,  0.0),
@@ -14,16 +20,16 @@ enum class CanvasRotation(val x1: Double, val y1: Double, val x2: Double, val y2
     COUNTER_CLOCKWISE_45    ( 0.0, -1.0, +1.0,  0.0);
     // @formatter:on
 
-    fun u(u: Double, v: Double): Double {
-        return x1 * u + y1 * v
+    fun u(uv: UV): Double {
+        return x1 * uv.u + y1 * uv.v
     }
 
-    fun v(u: Double, v: Double): Double {
-        return x2 * u + y2 * v
+    fun v(uv: UV): Double {
+        return x2 * uv.u + y2 * uv.v
     }
 
     companion object {
-        fun fromRotation(rotation: Rotation) : CanvasRotation {
+        fun fromRotation(rotation: Rotation): CanvasRotation {
             return when (rotation) {
                 Rotation.NONE -> NONE
                 Rotation.CLOCKWISE_45 -> CLOCKWISE_45

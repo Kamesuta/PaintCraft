@@ -1,4 +1,4 @@
-package com.kamesuta.paintcraft
+package com.kamesuta.paintcraft.util
 
 import org.bukkit.Bukkit
 import java.lang.reflect.Field

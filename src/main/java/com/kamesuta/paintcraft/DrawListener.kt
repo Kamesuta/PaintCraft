@@ -6,6 +6,7 @@ import com.kamesuta.paintcraft.canvas.CanvasRotation
 import com.kamesuta.paintcraft.canvas.CanvasSessionManager
 import com.kamesuta.paintcraft.map.MapItem
 import com.kamesuta.paintcraft.map.mapSize
+import com.kamesuta.paintcraft.util.UV
 import org.bukkit.Location
 import org.bukkit.Material
 import org.bukkit.entity.ItemFrame
@@ -119,33 +120,33 @@ class DrawListener : Listener {
     ): Boolean {
         // Calculate looking direction.
         val itemFrame = itemFrameEntity.location
-        return calculateUV(player.eyeLocation, itemFrame) { u: Double, v: Double ->
-            // transform uv.
-            val rotation: CanvasRotation = CanvasRotation.fromRotation(itemFrameEntity.rotation)
-            val up: Double = rotation.u(u, v)
-            val vp: Double = rotation.v(u, v)
-            val uq = up + 0.5
-            val vq = vp + 0.5
-            val x = (uq * mapSize).toInt()
-            if (x >= mapSize || x < 0) return@calculateUV false
-            val y = (vq * mapSize).toInt()
-            if (y >= mapSize || y < 0) return@calculateUV false
+        val uv = calculateUV(player.eyeLocation, itemFrame)
 
-            // Calculate block location
-            val blockLocation = itemFrame.clone().add(
-                -0.5 * itemFrameEntity.facing.modX,
-                0.0, -0.5 * itemFrameEntity.facing.modZ
-            )
-            val interact = CanvasInteraction(x, y, player, blockLocation, itemFrame, actionType)
+        // transform uv.
+        val rotation: CanvasRotation = CanvasRotation.fromRotation(itemFrameEntity.rotation)
+        val up: Double = rotation.u(uv)
+        val vp: Double = rotation.v(uv)
+        val uq = up + 0.5
+        val vq = vp + 0.5
+        val x = (uq * mapSize).toInt()
+        if (x >= mapSize || x < 0) return false
+        val y = (vq * mapSize).toInt()
+        if (y >= mapSize || y < 0) return false
 
-            // Paint on canvas.
-            val session = CanvasSessionManager.getSession(player)
-            session.tool.paint(player.inventory.itemInMainHand, mapItem, interact, session)
-            true
-        }
+        // Calculate block location
+        val blockLocation = itemFrame.clone().add(
+            -0.5 * itemFrameEntity.facing.modX,
+            0.0, -0.5 * itemFrameEntity.facing.modZ
+        )
+        val interact = CanvasInteraction(x, y, player, blockLocation, itemFrame, actionType)
+
+        // Paint on canvas.
+        val session = CanvasSessionManager.getSession(player)
+        session.tool.paint(player.inventory.itemInMainHand, mapItem, interact, session)
+        return true
     }
 
-    private fun <T> calculateUV(playerEyePos: Location, itemFrame: Location, function: (Double, Double) -> T): T {
+    private fun calculateUV(playerEyePos: Location, itemFrame: Location): UV {
         val playerDirection = playerEyePos.direction
         val itemFrameDirection = itemFrame.direction
 
@@ -188,6 +189,6 @@ class DrawListener : Listener {
         } else {
             -look.y // 横向き
         }
-        return function(u, v)
+        return UV(u, v)
     }
 }

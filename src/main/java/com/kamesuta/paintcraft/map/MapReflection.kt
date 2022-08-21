@@ -1,6 +1,6 @@
 package com.kamesuta.paintcraft.map
 
-import com.kamesuta.paintcraft.ReflectionAccessor
+import com.kamesuta.paintcraft.util.ReflectionAccessor
 import org.bukkit.map.MapCanvas
 import org.bukkit.map.MapView
 
