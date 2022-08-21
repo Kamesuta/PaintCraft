@@ -73,8 +73,9 @@ class DrawListener : Listener {
 
                 // Check vector.
                 val vecFrameX = itemFrame.facing.modX
+                val vecFrameY = itemFrame.facing.modY
                 val vecFrameZ = itemFrame.facing.modZ
-                if (vecFrameX * a + vecFrameZ * c > 0) continue
+                if (vecFrameX * a + vecFrameY * b + vecFrameZ * c > 0) continue
                 val mapItem = MapItem.get(itemFrame.item)
                     ?: continue
                 if (manipulate(
@@ -118,8 +119,7 @@ class DrawListener : Listener {
     ): Boolean {
         // Calculate looking direction.
         val itemFrame = itemFrameEntity.location
-        val playerEyePos = player.location.add(0.0, player.eyeHeight, 0.0)
-        return calculateUV(playerEyePos, itemFrame) { u: Double, v: Double ->
+        return calculateUV(player.eyeLocation, itemFrame) { u: Double, v: Double ->
             // transform uv.
             val rotation: CanvasRotation = CanvasRotation.fromRotation(itemFrameEntity.rotation)
             val up: Double = rotation.u(u, v)
@@ -153,9 +153,11 @@ class DrawListener : Listener {
         val c = sin(yaw) * cos(pitch)
 
         // Calculate canvas direction.
-        val dir = Math.toRadians(itemFrame.yaw + 90.0)
-        val A = cos(dir).roundToLong().toDouble()
-        val C = sin(dir).roundToLong().toDouble()
+        val dirYaw = Math.toRadians(itemFrame.yaw + 90.0)
+        val dirPitch = Math.toRadians(itemFrame.pitch + 0.0)
+        val A = cos(dirYaw).roundToLong().toDouble() * cos(dirPitch).roundToLong().toDouble()
+        val B = sin(dirPitch).roundToLong().toDouble()
+        val C = sin(dirYaw).roundToLong().toDouble() * cos(dirPitch).roundToLong().toDouble()
 
 
         // Calculate bias vector.
@@ -164,19 +166,34 @@ class DrawListener : Listener {
         val z0 = playerEyePos.z - itemFrame.z
 
         // Do intersection.
-        val v1 = A * x0 + C * z0
-        val v0 = A * a + C * c
+        val v1 = A * x0 + B * y0 + C * z0
+        val v0 = A * a + B * b + C * c
         val miu = -v1 / v0 - 0.04
         val xLook = x0 + miu * a
         val yLook = y0 + miu * b
         val zLook = z0 + miu * c
 
         // Calculate uv coordination.
-        val v = -yLook
-        val u: Double = if (abs(A) > abs(C)) {
-            if (A > 0) -zLook else zLook
+        val u = if (abs(A) > abs(C)) {
+            if (A > 0)
+                -zLook // 西向き
+            else
+                zLook // 東向き
         } else {
-            if (C > 0) xLook else -xLook
+            if (abs(B) > 0)
+                xLook // 上向き, 下向き
+            else if (C > 0)
+                xLook // 北向き
+            else
+                -xLook // 南向き
+        }
+        val v = if (abs(B) > 0) {
+            if (B > 0)
+                -zLook // 上向き
+            else
+                zLook // 下向き
+        } else {
+            -yLook // 横向き
         }
         return function(u, v)
     }
