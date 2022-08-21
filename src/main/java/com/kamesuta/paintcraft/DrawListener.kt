@@ -49,17 +49,21 @@ class DrawListener : Listener {
         val playerDirection = playerEyePos.direction
 
         val clickedBlock = interact.clickedBlock
-        val interactionPoint = interact.interactionPoint
+        val clickedBlockHitLocation = interact.interactionPoint
 
         val center: Location
-        val boxSize: Location
-        if (clickedBlock != null && interactionPoint != null) {
+        val boxSize: Vector
+        val hitLocation: Location?
+        if (clickedBlock != null && clickedBlockHitLocation != null) {
             val blockCenter = clickedBlock.location.add(0.5, 0.5, 0.5).clone()
             center = playerEyePos.clone().add(blockCenter).multiply(0.5)
-            boxSize = playerEyePos.clone().multiply(-1.0).add(blockCenter)
+            boxSize = blockCenter.clone().subtract(playerEyePos).toVector()
+            hitLocation = interact.interactionPoint
         } else {
             center = playerEyePos.clone().add(playerDirection.clone().multiply(2.0))
-            boxSize = playerDirection.clone().multiply(4.0).toLocation(playerEyePos.world)
+            boxSize = playerDirection.clone().multiply(4.0)
+            val ray = playerEyePos.world.rayTraceBlocks(playerEyePos, playerEyePos.direction, 4.0)
+            hitLocation = ray?.hitPosition?.toLocation(playerEyePos.world)
         }
         val entities = center.world.getNearbyEntities(
             center, abs(boxSize.x) + 1, abs(boxSize.y) + 1, abs(boxSize.z) + 1
