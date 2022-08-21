@@ -1,4 +1,4 @@
-package com.kamesuta.paintcraft.canvas.draw
+package com.kamesuta.paintcraft.map.draw
 
 import org.bukkit.map.MapCanvas
 

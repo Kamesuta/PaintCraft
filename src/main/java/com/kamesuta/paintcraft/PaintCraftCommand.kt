@@ -1,9 +1,9 @@
 package com.kamesuta.paintcraft
 
-import com.kamesuta.paintcraft.canvas.MapItem
-import com.kamesuta.paintcraft.canvas.draw.DrawFill
-import com.kamesuta.paintcraft.canvas.draw.DrawLine
-import com.kamesuta.paintcraft.canvas.draw.DrawRect
+import com.kamesuta.paintcraft.map.MapItem
+import com.kamesuta.paintcraft.map.draw.DrawFill
+import com.kamesuta.paintcraft.map.draw.DrawLine
+import com.kamesuta.paintcraft.map.draw.DrawRect
 import dev.kotx.flylib.command.Command
 import org.bukkit.entity.Player
 import org.bukkit.map.MapPalette

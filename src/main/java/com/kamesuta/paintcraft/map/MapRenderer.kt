@@ -1,6 +1,6 @@
-package com.kamesuta.paintcraft.canvas
+package com.kamesuta.paintcraft.map
 
-import com.kamesuta.paintcraft.canvas.draw.Draw
+import com.kamesuta.paintcraft.map.draw.Draw
 import org.bukkit.entity.Player
 import org.bukkit.map.MapCanvas
 import org.bukkit.map.MapRenderer

@@ -1,4 +1,4 @@
-package com.kamesuta.paintcraft.canvas
+package com.kamesuta.paintcraft.map
 
 import com.kamesuta.paintcraft.ReflectionAccessor
 import org.bukkit.map.MapCanvas

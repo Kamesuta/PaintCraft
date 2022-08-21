@@ -1,7 +1,7 @@
-package com.kamesuta.paintcraft.canvas
+package com.kamesuta.paintcraft.map
 
 import com.kamesuta.paintcraft.PaintCraft
-import com.kamesuta.paintcraft.canvas.draw.Draw
+import com.kamesuta.paintcraft.map.draw.Draw
 import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.NamespacedKey

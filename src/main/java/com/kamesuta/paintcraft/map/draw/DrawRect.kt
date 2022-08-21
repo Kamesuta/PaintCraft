@@ -1,6 +1,6 @@
-package com.kamesuta.paintcraft.canvas.draw
+package com.kamesuta.paintcraft.map.draw
 
-import com.kamesuta.paintcraft.canvas.MapDye
+import com.kamesuta.paintcraft.map.MapDye
 import org.bukkit.map.MapCanvas
 import kotlin.math.max
 import kotlin.math.min
