@@ -24,14 +24,17 @@ import kotlin.math.sin
 class DrawListener : Listener {
     @EventHandler
     fun onAttack(attack: EntityDamageByEntityEvent) {
-        if (attack.damager !is Player) return
-        val itemFrame = attack.entity as ItemFrame?
+        val player = attack.damager as? Player
+            ?: return
+        if (player.inventory.itemInMainHand.type != Material.INK_SAC) {
+            return
+        }
+        val itemFrame = attack.entity as? ItemFrame
             ?: return
         val item = itemFrame.item
         if (item.type != Material.FILLED_MAP) return
         val mapItem = MapItem.get(item)
             ?: return
-        val player = attack.damager as Player
         if (manipulate(itemFrame, mapItem, player, CanvasActionType.LEFT_CLICK)) {
             attack.isCancelled = true
         }
@@ -39,7 +42,11 @@ class DrawListener : Listener {
 
     @EventHandler
     fun onInteract(interact: PlayerInteractEvent) {
-        val playerEyePos = interact.player.location
+        val player = interact.player
+        if (player.inventory.itemInMainHand.type != Material.INK_SAC) {
+            return
+        }
+        val playerEyePos = player.location
         val yaw = (playerEyePos.yaw + 90) * Math.PI / 180
         val pitch = -playerEyePos.pitch * Math.PI / 180
         val a = cos(yaw) * cos(pitch)
@@ -71,7 +78,7 @@ class DrawListener : Listener {
                 val mapItem = MapItem.get(itemFrame.item)
                     ?: continue
                 if (manipulate(
-                        itemFrame, mapItem, interact.player,
+                        itemFrame, mapItem, player,
                         when (interact.action) {
                             Action.RIGHT_CLICK_BLOCK -> CanvasActionType.RIGHT_CLICK
                             Action.RIGHT_CLICK_AIR -> CanvasActionType.RIGHT_CLICK
@@ -89,12 +96,17 @@ class DrawListener : Listener {
 
     @EventHandler
     fun onInteractEntity(interact: PlayerInteractEntityEvent) {
-        if (interact.rightClicked is ItemFrame) {
-            val itemFrame = interact.rightClicked as ItemFrame
-            if (itemFrame.item.type != Material.FILLED_MAP) return
-            val mapItem = MapItem.get(itemFrame.item)
-                ?: return
-            if (manipulate(itemFrame, mapItem, interact.player, CanvasActionType.RIGHT_CLICK)) interact.isCancelled = true
+        val itemFrame = interact.rightClicked as? ItemFrame
+            ?: return
+        val player = interact.player
+        if (player.inventory.itemInMainHand.type != Material.INK_SAC) {
+            return
+        }
+        if (itemFrame.item.type != Material.FILLED_MAP) return
+        val mapItem = MapItem.get(itemFrame.item)
+            ?: return
+        if (manipulate(itemFrame, mapItem, player, CanvasActionType.RIGHT_CLICK)) {
+            interact.isCancelled = true
         }
     }
 

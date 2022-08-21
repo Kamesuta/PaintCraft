@@ -5,13 +5,13 @@ import org.bukkit.Rotation
 enum class CanvasRotation(val x1: Double, val y1: Double, val x2: Double, val y2: Double) {
     // @formatter:off
     NONE					(+1.0,  0.0,  0.0, +1.0),
-    CLOCKWISE_45            ( 0.0, -1.0, +1.0,  0.0),
+    CLOCKWISE_45            ( 0.0, +1.0, -1.0,  0.0),
     CLOCKWISE               (-1.0,  0.0,  0.0, -1.0),
-    CLOCKWISE_135           ( 0.0, +1.0, -1.0,  0.0),
+    CLOCKWISE_135           ( 0.0, -1.0, +1.0,  0.0),
     FLIPPED                 (+1.0,  0.0,  0.0, +1.0),
-    FLIPPED_45              ( 0.0, -1.0, +1.0,  0.0),
+    FLIPPED_45              ( 0.0, +1.0, -1.0,  0.0),
     COUNTER_CLOCKWISE       (-1.0,  0.0,  0.0, -1.0),
-    COUNTER_CLOCKWISE_45    ( 0.0, +1.0, -1.0,  0.0);
+    COUNTER_CLOCKWISE_45    ( 0.0, -1.0, +1.0,  0.0);
     // @formatter:on
 
     fun u(u: Double, v: Double): Double {

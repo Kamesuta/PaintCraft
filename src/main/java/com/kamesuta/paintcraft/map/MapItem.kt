@@ -50,7 +50,7 @@ class MapItem(val itemStack: ItemStack, val mapView: MapView, val renderer: MapR
         fun get(item: ItemStack): MapItem? {
             if (item.type != Material.FILLED_MAP)
                 return null
-            val mapView = (item.itemMeta as MapMeta?)?.mapView
+            val mapView = (item.itemMeta as? MapMeta)?.mapView
                 ?: return null
             val mapRenderer = mapView.getRenderer<MapRenderer>()
             val renderer = if (mapRenderer != null) {
