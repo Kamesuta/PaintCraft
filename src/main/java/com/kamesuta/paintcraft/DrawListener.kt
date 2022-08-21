@@ -16,10 +16,9 @@ import org.bukkit.event.block.Action
 import org.bukkit.event.entity.EntityDamageByEntityEvent
 import org.bukkit.event.player.PlayerInteractEntityEvent
 import org.bukkit.event.player.PlayerInteractEvent
+import org.bukkit.util.Vector
 import kotlin.math.abs
-import kotlin.math.cos
 import kotlin.math.roundToLong
-import kotlin.math.sin
 
 class DrawListener : Listener {
     @EventHandler
@@ -46,51 +45,48 @@ class DrawListener : Listener {
         if (player.inventory.itemInMainHand.type != Material.INK_SAC) {
             return
         }
-        val playerEyePos = player.location
-        val yaw = (playerEyePos.yaw + 90) * Math.PI / 180
-        val pitch = -playerEyePos.pitch * Math.PI / 180
-        val a = cos(yaw) * cos(pitch)
-        val b = sin(pitch)
-        val c = sin(yaw) * cos(pitch)
+        val playerEyePos = player.eyeLocation
+        val playerDirection = playerEyePos.direction
+
         val clickedBlock = interact.clickedBlock
-        val (center, boxSize) = if (clickedBlock != null) {
+        val interactionPoint = interact.interactionPoint
+
+        val center: Location
+        val boxSize: Location
+        if (clickedBlock != null && interactionPoint != null) {
             val blockCenter = clickedBlock.location.add(0.5, 0.5, 0.5).clone()
-            val center = playerEyePos.clone().add(blockCenter).multiply(0.5)
-            val boxSize = playerEyePos.clone().multiply(-1.0).add(blockCenter)
-            center to boxSize
+            center = playerEyePos.clone().add(blockCenter).multiply(0.5)
+            boxSize = playerEyePos.clone().multiply(-1.0).add(blockCenter)
         } else {
-            val center = playerEyePos.clone().add(a * 2, b * 2, c * 2)
-            val boxSize = Location(playerEyePos.world, a * 4, b * 4, c * 4)
-            center to boxSize
+            center = playerEyePos.clone().add(playerDirection.clone().multiply(2.0))
+            boxSize = playerDirection.clone().multiply(4.0).toLocation(playerEyePos.world)
         }
         val entities = center.world.getNearbyEntities(
             center, abs(boxSize.x) + 1, abs(boxSize.y) + 1, abs(boxSize.z) + 1
         )
-        for (itemFrame in entities) {
             // Check containing map.
-            if (itemFrame is ItemFrame) {
-                if (itemFrame.item.type != Material.FILLED_MAP) continue
+            .filterIsInstance<ItemFrame>()
+            .filter { it.item.type == Material.FILLED_MAP }
+            .sortedBy { it.location.distance(playerEyePos) }
 
-                // Check vector.
-                val vecFrameX = itemFrame.facing.modX
-                val vecFrameY = itemFrame.facing.modY
-                val vecFrameZ = itemFrame.facing.modZ
-                if (vecFrameX * a + vecFrameY * b + vecFrameZ * c > 0) continue
-                val mapItem = MapItem.get(itemFrame.item)
-                    ?: continue
-                if (manipulate(
-                        itemFrame, mapItem, player,
-                        when (interact.action) {
-                            Action.RIGHT_CLICK_BLOCK -> CanvasActionType.RIGHT_CLICK
-                            Action.RIGHT_CLICK_AIR -> CanvasActionType.RIGHT_CLICK
-                            Action.PHYSICAL -> continue
-                            else -> CanvasActionType.LEFT_CLICK
-                        }
-                    )
-                ) {
-                    interact.isCancelled = true
-                    break
-                }
+        for (itemFrame in entities) {
+            // Check vector.
+            if (playerDirection.dot(Vector(itemFrame.facing.modX, itemFrame.facing.modY, itemFrame.facing.modZ)) > 0)
+                continue
+            val mapItem = MapItem.get(itemFrame.item)
+                ?: continue
+            if (manipulate(
+                    itemFrame, mapItem, player,
+                    when (interact.action) {
+                        Action.RIGHT_CLICK_BLOCK -> CanvasActionType.RIGHT_CLICK
+                        Action.RIGHT_CLICK_AIR -> CanvasActionType.RIGHT_CLICK
+                        Action.PHYSICAL -> continue
+                        else -> CanvasActionType.LEFT_CLICK
+                    }
+                )
+            ) {
+                interact.isCancelled = true
+                break
             }
         }
     }
@@ -146,54 +142,47 @@ class DrawListener : Listener {
     }
 
     private fun <T> calculateUV(playerEyePos: Location, itemFrame: Location, function: (Double, Double) -> T): T {
-        val yaw = (playerEyePos.yaw + 90) * Math.PI / 180
-        val pitch = -playerEyePos.pitch * Math.PI / 180
-        val a = cos(yaw) * cos(pitch)
-        val b = sin(pitch)
-        val c = sin(yaw) * cos(pitch)
+        val playerDirection = playerEyePos.direction
+        val itemFrameDirection = itemFrame.direction
 
         // Calculate canvas direction.
-        val dirYaw = Math.toRadians(itemFrame.yaw + 90.0)
-        val dirPitch = Math.toRadians(itemFrame.pitch + 0.0)
-        val A = cos(dirYaw).roundToLong().toDouble() * cos(dirPitch).roundToLong().toDouble()
-        val B = sin(dirPitch).roundToLong().toDouble()
-        val C = sin(dirYaw).roundToLong().toDouble() * cos(dirPitch).roundToLong().toDouble()
-
+        val frameDirection = itemFrameDirection.let {
+            val x = it.x.roundToLong().toDouble()
+            val y = it.y.roundToLong().toDouble()
+            val z = it.z.roundToLong().toDouble()
+            Vector(x, y, z)
+        }
 
         // Calculate bias vector.
-        val x0 = playerEyePos.x - itemFrame.x
-        val y0 = playerEyePos.y - itemFrame.y
-        val z0 = playerEyePos.z - itemFrame.z
+        val bias = playerEyePos.toVector().subtract(itemFrame.toVector())
 
         // Do intersection.
-        val v1 = A * x0 + B * y0 + C * z0
-        val v0 = A * a + B * b + C * c
+        val v1 = frameDirection.clone().dot(bias)
+        val v0 = frameDirection.clone().dot(playerDirection)
         val miu = -v1 / v0 - 0.04
-        val xLook = x0 + miu * a
-        val yLook = y0 + miu * b
-        val zLook = z0 + miu * c
+        val look = bias.clone().add(playerDirection.clone().multiply(miu))
 
         // Calculate uv coordination.
-        val u = if (abs(A) > abs(C)) {
-            if (A > 0)
-                -zLook // 西向き
+        val u = if (abs(frameDirection.x) > abs(frameDirection.z)) {
+            if (frameDirection.x > 0)
+                -look.z // 西向き
             else
-                zLook // 東向き
+                look.z // 東向き
         } else {
-            if (abs(B) > 0)
-                xLook // 上向き, 下向き
-            else if (C > 0)
-                xLook // 北向き
+            if (abs(frameDirection.y) > 0)
+                look.x // 上向き, 下向き
+            else if (frameDirection.z > 0)
+                look.x // 北向き
             else
-                -xLook // 南向き
+                -look.x // 南向き
         }
-        val v = if (abs(B) > 0) {
-            if (B > 0)
-                -zLook // 上向き
+        val v = if (abs(frameDirection.y) > 0) {
+            if (frameDirection.y > 0)
+                look.z // 上向き
             else
-                zLook // 下向き
+                -look.z // 下向き
         } else {
-            -yLook // 横向き
+            -look.y // 横向き
         }
         return function(u, v)
     }
