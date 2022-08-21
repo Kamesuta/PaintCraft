@@ -37,9 +37,11 @@ class DrawListener : Listener {
         if (item.type != Material.FILLED_MAP) return
         val mapItem = MapItem.get(item)
             ?: return
-        if (manipulate(itemFrame, mapItem, player, CanvasActionType.LEFT_CLICK)) {
-            attack.isCancelled = true
-        }
+        val (rawUV, _) = calculateUV(player.eyeLocation, itemFrame.location)
+        val uv = transformUV(itemFrame.rotation, rawUV)
+            ?: return
+        manipulate(itemFrame, mapItem, uv, player, CanvasActionType.LEFT_CLICK)
+        attack.isCancelled = true
     }
 
     @EventHandler
@@ -65,7 +67,7 @@ class DrawListener : Listener {
         } else {
             center = playerEyePos.clone().add(playerDirection.clone().multiply(2.0))
             boxSize = playerDirection.clone().multiply(4.0)
-            val ray = playerEyePos.world.rayTraceBlocks(playerEyePos, playerEyePos.direction, 4.0)
+            val ray = playerEyePos.world.rayTraceBlocks(playerEyePos, playerEyePos.direction, boxSize.length() * 2.0 + 1.0)
             hitLocation = ray?.hitPosition?.toLocation(playerEyePos.world)
         }
         val entities = center.world.getNearbyEntities(
@@ -78,23 +80,30 @@ class DrawListener : Listener {
 
         for (itemFrame in entities) {
             // Check vector.
-            if (playerDirection.dot(Vector(itemFrame.facing.modX, itemFrame.facing.modY, itemFrame.facing.modZ)) > 0)
+            if (playerDirection.dot(Vector(itemFrame.facing.modX, itemFrame.facing.modY, itemFrame.facing.modZ)) > 0) {
                 continue
+            }
             val mapItem = MapItem.get(itemFrame.item)
                 ?: continue
-            if (manipulate(
-                    itemFrame, mapItem, player,
-                    when (interact.action) {
-                        Action.RIGHT_CLICK_BLOCK -> CanvasActionType.RIGHT_CLICK
-                        Action.RIGHT_CLICK_AIR -> CanvasActionType.RIGHT_CLICK
-                        Action.PHYSICAL -> continue
-                        else -> CanvasActionType.LEFT_CLICK
-                    }
-                )
+            val (rawUV, look) = calculateUV(player.eyeLocation, itemFrame.location)
+            val uv = transformUV(itemFrame.rotation, rawUV)
+                ?: continue
+            if (hitLocation != null
+                && hitLocation.distance(playerEyePos) < itemFrame.location.clone().add(look).distance(playerEyePos)
             ) {
-                interact.isCancelled = true
-                break
+                continue
             }
+            manipulate(
+                itemFrame, mapItem, uv, player,
+                when (interact.action) {
+                    Action.RIGHT_CLICK_BLOCK -> CanvasActionType.RIGHT_CLICK
+                    Action.RIGHT_CLICK_AIR -> CanvasActionType.RIGHT_CLICK
+                    Action.PHYSICAL -> continue
+                    else -> CanvasActionType.LEFT_CLICK
+                }
+            )
+            interact.isCancelled = true
+            break
         }
     }
 
@@ -106,26 +115,27 @@ class DrawListener : Listener {
         if (player.inventory.itemInMainHand.type != Material.INK_SAC) {
             return
         }
-        if (itemFrame.item.type != Material.FILLED_MAP) return
+        if (itemFrame.item.type != Material.FILLED_MAP) {
+            return
+        }
         val mapItem = MapItem.get(itemFrame.item)
             ?: return
-        if (manipulate(itemFrame, mapItem, player, CanvasActionType.RIGHT_CLICK)) {
-            interact.isCancelled = true
-        }
+        val (rawUV, _) = calculateUV(player.eyeLocation, itemFrame.location)
+        val uv = transformUV(itemFrame.rotation, rawUV)
+            ?: return
+        manipulate(itemFrame, mapItem, uv, player, CanvasActionType.RIGHT_CLICK)
+        interact.isCancelled = true
     }
 
     private fun manipulate(
         itemFrameEntity: ItemFrame,
         mapItem: MapItem,
+        uv: UVInt,
         player: Player,
         actionType: CanvasActionType
-    ): Boolean {
-        // Calculate looking direction.
-        val itemFrame = itemFrameEntity.location
-        val uv = transformUV(itemFrameEntity.rotation, calculateUV(player.eyeLocation, itemFrame))
-            ?: return false
-
+    ) {
         // Calculate block location
+        val itemFrame = itemFrameEntity.location
         val blockLocation = itemFrame.clone().add(
             -0.5 * itemFrameEntity.facing.modX,
             -0.5 * itemFrameEntity.facing.modY,
@@ -136,7 +146,6 @@ class DrawListener : Listener {
         // Paint on canvas.
         val session = CanvasSessionManager.getSession(player)
         session.tool.paint(player.inventory.itemInMainHand, mapItem, interact, session)
-        return true
     }
 
     private fun transformUV(rotation: Rotation, uv: UV): UVInt? {
@@ -149,7 +158,7 @@ class DrawListener : Listener {
         return UVInt(x, y)
     }
 
-    private fun calculateUV(playerEyePos: Location, itemFrame: Location): UV {
+    private fun calculateUV(playerEyePos: Location, itemFrame: Location): Pair<UV, Vector> {
         val playerDirection = playerEyePos.direction
         val itemFrameDirection = itemFrame.direction
 
@@ -167,8 +176,8 @@ class DrawListener : Listener {
         // Do intersection.
         val v1 = frameDirection.clone().dot(bias)
         val v0 = frameDirection.clone().dot(playerDirection)
-        val miu = -v1 / v0 - 0.04
-        val look = bias.clone().add(playerDirection.clone().multiply(miu))
+        val miu = v1 / v0 + 0.04
+        val look = bias.clone().subtract(playerDirection.clone().multiply(miu))
 
         // Calculate uv coordination.
         val u = if (abs(frameDirection.x) > abs(frameDirection.z)) {
@@ -192,6 +201,6 @@ class DrawListener : Listener {
         } else {
             -look.y // 横向き
         }
-        return UV(u, v)
+        return UV(u, v) to look
     }
 }
