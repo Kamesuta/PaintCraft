@@ -3,7 +3,7 @@ package com.kamesuta.paintcraft
 import com.kamesuta.paintcraft.map.MapItem
 import com.kamesuta.paintcraft.map.draw.DrawFill
 import com.kamesuta.paintcraft.map.draw.DrawLine
-import com.kamesuta.paintcraft.map.draw.DrawRect
+import com.kamesuta.paintcraft.util.DebugLocationVisualizer
 import dev.kotx.flylib.command.Command
 import org.bukkit.entity.Player
 import org.bukkit.map.MapPalette
@@ -11,7 +11,12 @@ import java.awt.Color
 
 class PaintCraftCommand : Command("paintcraft") {
     init {
-        children(GiveCanvasCommand(), DrawCanvasCommand(), FillCanvasCommand())
+        children(
+            DebugLocationVisualizer.DebugLocationCommand(),
+            GiveCanvasCommand(),
+            DrawCanvasCommand(),
+            FillCanvasCommand()
+        )
     }
 }
 
@@ -26,9 +31,9 @@ class GiveCanvasCommand : Command("give") {
                     it.inventory.addItem(mapDrawer.itemStack)
 
                     mapDrawer.draw { g ->
-                        g(DrawRect(0, 0, 128, 128, MapPalette.matchColor(Color.RED), true))
-                        g(DrawLine(0, 0, 128, 128, MapPalette.matchColor(Color.WHITE)))
-                        g(DrawRect(10, 10, 110, 110, MapPalette.matchColor(Color.WHITE), false))
+//                        g(DrawRect(0, 0, 128, 128, MapPalette.matchColor(Color.RED), true))
+//                        g(DrawLine(0, 0, 128, 128, MapPalette.matchColor(Color.WHITE)))
+//                        g(DrawRect(10, 10, 110, 110, MapPalette.matchColor(Color.WHITE), false))
                     }
                 }
             }

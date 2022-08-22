@@ -10,7 +10,7 @@ import org.bukkit.command.CommandSender
  * @param sender インタラクションを行ったプレイヤー
  * @param blockLocation インタラクションを行ったキャンバスが貼り付いているブロックの位置
  * @param frameLocation インタラクションを行ったキャンバスフレームの位置
- * @param rightHanded プレイヤーが右手を使っているかどうか
+ * @param actionType プレイヤーが右手を使っているかどうか
  */
 class CanvasInteraction(
     val uv: UVInt,

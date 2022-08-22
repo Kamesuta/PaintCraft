@@ -8,29 +8,47 @@ import org.bukkit.map.MapView
 import java.util.concurrent.ConcurrentLinkedQueue
 
 class MapRenderer : MapRenderer() {
-    private var loaded = false
-    private val draws = ConcurrentLinkedQueue<Draw>()
+    /** 初期化フラグ */
+    private var initialized = false
+    /** マップビュー */
+    private lateinit var mapView: MapView
+    /** マップキャンバス */
+    private lateinit var mapCanvas: MapCanvas
+    /** 変更フラグ */
+    private var dirty = false
 
     override fun render(map: MapView, canvas: MapCanvas, player: Player) {
-        if (!loaded) {
+        // マップが初期化されていない場合は初期化する
+        if (!initialized) {
+            // マップをキャンバスに読み込む
             canvas.loadFromMapView()
-            loaded = true
-        }
-
-        if (!draws.isEmpty()) {
+            // 地図上のプレイヤーカーソルをすべて削除する
             repeat(canvas.cursors.size()) {
                 canvas.cursors.removeCursor(canvas.cursors.getCursor(0))
             }
+            // キャンバスとビューをいつでも使えるようにする
+            mapView = map
+            mapCanvas = canvas
+            // 初期化が完了したことを記録する
+            initialized = true
+        }
 
-            while (!draws.isEmpty()) {
-                draws.poll().draw(canvas)
-            }
-
+        // 変更がある場合保存する
+        if (dirty) {
             canvas.saveToMapView()
+            dirty = false
         }
     }
 
     fun draw(draw: Draw) {
-        draws.add(draw)
+        // 初期化チェック
+        if (!initialized) {
+            return
+        }
+
+        // 描画
+        draw.draw(mapCanvas)
+        // 変更フラグを設定する
+        dirty = true
     }
 }

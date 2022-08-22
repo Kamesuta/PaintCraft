@@ -1,5 +1,6 @@
 package com.kamesuta.paintcraft.map
 
+import org.bukkit.entity.Player
 import org.bukkit.map.MapCanvas
 import org.bukkit.map.MapRenderer
 import org.bukkit.map.MapView
@@ -14,6 +15,10 @@ fun MapView.setRenderer(renderer: MapRenderer?) {
 
 inline fun <reified Renderer : MapRenderer> MapView.getRenderer(): Renderer? {
     return renderers.filterIsInstance<Renderer>().firstOrNull()
+}
+
+fun MapView.update(player: Player) {
+    player.sendMap(this)
 }
 
 fun MapCanvas.saveToMapView() {

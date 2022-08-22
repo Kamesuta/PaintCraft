@@ -2,6 +2,10 @@ package com.kamesuta.paintcraft.canvas
 
 import com.kamesuta.paintcraft.map.MapItem
 import com.kamesuta.paintcraft.map.mapSize
+import com.kamesuta.paintcraft.map.update
+import com.kamesuta.paintcraft.util.DebugLocationType
+import com.kamesuta.paintcraft.util.DebugLocationVisualizer.clearDebugLocation
+import com.kamesuta.paintcraft.util.DebugLocationVisualizer.debugLocation
 import com.kamesuta.paintcraft.util.UV
 import com.kamesuta.paintcraft.util.UVInt
 import org.bukkit.Location
@@ -32,6 +36,7 @@ class CanvasDrawListener : Listener {
         // 左クリックしたプレイヤー
         val player = event.damager as? Player
             ?: return
+        player.clearDebugLocation(DebugLocationType.DebugLocationGroup.CANVAS_DRAW)
         // プレイヤーの右手にインクがあるか
         if (player.inventory.itemInMainHand.type != Material.INK_SAC) {
             return
@@ -64,6 +69,7 @@ class CanvasDrawListener : Listener {
     fun onInteractEntity(event: PlayerInteractEntityEvent) {
         // 右クリックしたプレイヤー
         val player = event.player
+        player.clearDebugLocation(DebugLocationType.DebugLocationGroup.CANVAS_DRAW)
         // プレイヤーの右手にインクがあるか
         if (player.inventory.itemInMainHand.type != Material.INK_SAC) {
             return
@@ -96,6 +102,7 @@ class CanvasDrawListener : Listener {
     fun onInteract(event: PlayerInteractEvent) {
         // 左右クリックしたプレイヤー
         val player = event.player
+        player.clearDebugLocation(DebugLocationType.DebugLocationGroup.CANVAS_DRAW)
         // プレイヤーの右手にインクがあるか
         if (player.inventory.itemInMainHand.type != Material.INK_SAC) {
             return
@@ -104,12 +111,14 @@ class CanvasDrawListener : Listener {
         // まず目線の位置と向きを取得
         val playerEyePos = player.eyeLocation
         val playerDirection = playerEyePos.direction
+        player.debugLocation(DebugLocationType.EYE_LOCATION, playerEyePos)
+        player.debugLocation(DebugLocationType.EYE_DIRECTION, playerEyePos.add(playerDirection))
 
         // エンティティを取得する範囲の中心座標とサイズ
         val center: Location
         val boxSize: Vector
         // クリックがヒットした座標
-        val hitLocation: Location?
+        val blockHitLocation: Location?
         // クリックしたブロックが取得できるなら使用し、そうでなければレイキャストして取得する
         val clickedBlock = event.clickedBlock
         if (clickedBlock != null) {
@@ -118,7 +127,7 @@ class CanvasDrawListener : Listener {
             val blockCenter = clickedBlock.location.add(0.5, 0.5, 0.5).clone()
             center = playerEyePos.clone().add(blockCenter).multiply(0.5)
             boxSize = blockCenter.clone().subtract(playerEyePos).toVector()
-            hitLocation = event.interactionPoint
+            blockHitLocation = event.interactionPoint
         } else {
             // ブロックが取得できなかったら前方8m(半径4)を範囲にする
             center = playerEyePos.clone().add(playerDirection.clone().multiply(2.0))
@@ -126,8 +135,10 @@ class CanvasDrawListener : Listener {
             // レイキャストを行い、ヒットしたブロックがあればそのブロック座標と目線の位置から範囲の中心座標とサイズを計算する
             val ray =
                 playerEyePos.world.rayTraceBlocks(playerEyePos, playerEyePos.direction, boxSize.length() * 2.0 + 1.0)
-            hitLocation = ray?.hitPosition?.toLocation(playerEyePos.world)
+            blockHitLocation = ray?.hitPosition?.toLocation(playerEyePos.world)
         }
+        player.debugLocation(DebugLocationType.BLOCK_HIT_LOCATION, blockHitLocation)
+
         // 範囲内にあるすべてのアイテムフレームを取得する
         val entities = center.world.getNearbyEntitiesByType(
             ItemFrame::class.java, center, abs(boxSize.x) + 1, abs(boxSize.y) + 1, abs(boxSize.z) + 1
@@ -150,9 +161,11 @@ class CanvasDrawListener : Listener {
             val uv = transformUV(itemFrame.rotation, rawUV)
                 ?: continue
             // キャンバスよりも手前にブロックがあるならばスキップ
-            if (hitLocation != null) {
-                val blockDistance = hitLocation.distance(playerEyePos)
-                val canvasDistance = itemFrame.location.clone().add(canvasOffset).distance(playerEyePos)
+            if (blockHitLocation != null) {
+                val blockDistance = blockHitLocation.distance(playerEyePos)
+                val canvasHitLocation = itemFrame.location.clone().add(canvasOffset)
+                player.debugLocation(DebugLocationType.CANVAS_HIT_LOCATION, canvasHitLocation)
+                val canvasDistance = canvasHitLocation.distance(playerEyePos)
                 if (blockDistance < canvasDistance) {
                     continue
                 }
@@ -204,6 +217,8 @@ class CanvasDrawListener : Listener {
         val session = CanvasSessionManager.getSession(player)
         // キャンバスに描画する
         session.tool.paint(player.inventory.itemInMainHand, mapItem, interact, session)
+        // プレイヤーに描画を通知する
+        mapItem.mapView.update(player)
     }
 
     /**
