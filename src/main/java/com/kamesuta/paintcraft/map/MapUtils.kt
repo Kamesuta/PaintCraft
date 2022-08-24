@@ -1,5 +1,6 @@
 package com.kamesuta.paintcraft.map
 
+import com.kamesuta.paintcraft.canvas.CanvasUpdater
 import org.bukkit.entity.Player
 import org.bukkit.map.MapCanvas
 import org.bukkit.map.MapRenderer
@@ -23,8 +24,8 @@ fun MapCanvas.updatePlayer(player: Player) {
     val buffer = MapReflection.getCanvasBuffer(this)
         ?: return
 
-    MapReflection.sendMap(player, mapView, buffer, dirty)
-    //MapReflection.sendMap(player, mapView, MapBuffer(mapSize * mapSize) { 74 }, dirty)
+    // プレイヤーに地図を送信する
+    CanvasUpdater.sendMap(player, mapView, buffer, dirty)
 }
 
 fun MapCanvas.saveToMapView() {
