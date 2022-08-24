@@ -1,5 +1,6 @@
 package com.kamesuta.paintcraft.canvas
 
+import com.kamesuta.paintcraft.PaintCraft
 import com.kamesuta.paintcraft.map.MapItem
 import com.kamesuta.paintcraft.map.mapSize
 import com.kamesuta.paintcraft.util.DebugLocationType
@@ -7,6 +8,7 @@ import com.kamesuta.paintcraft.util.DebugLocationVisualizer.clearDebugLocation
 import com.kamesuta.paintcraft.util.DebugLocationVisualizer.debugLocation
 import com.kamesuta.paintcraft.util.UV
 import com.kamesuta.paintcraft.util.UVInt
+import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.Material
 import org.bukkit.Rotation
@@ -110,7 +112,7 @@ class CanvasDrawListener : Listener {
         }
 
         // レイを飛ばしてアイテムフレームを取得
-        val ray = rayTraceCanvas(player, null)
+        val ray = rayTraceCanvas(player.eyeLocation, event.interactionPoint, player)
             ?: return
 
         // キャンバスに描画
@@ -128,6 +130,47 @@ class CanvasDrawListener : Listener {
     }
 
     /**
+     * 動いたとき (描いている最中のみ)
+     * @param event イベント
+     */
+    @EventHandler
+    fun onMove(event: PlayerMoveEvent) {
+        // ムーブイベントなしのほうが書きやすいかもしれないため、コメントアウト
+        //event.player.clearDebugLocation(DebugLocationType.DebugLocationGroup.CANVAS_DRAW)
+        //drawOnTick(event.player, event.player.eyeLocation)
+    }
+
+    init {
+        // 毎ティック描く
+        Bukkit.getScheduler().runTaskTimer(PaintCraft.instance, { ->
+            Bukkit.getOnlinePlayers().forEach { player ->
+                drawOnTick(player, player.eyeLocation)
+            }
+        }, 0, 0)
+    }
+
+    private fun drawOnTick(player: Player, playerEyePos: Location) {
+        // プレイヤーの右手にインクがあるか
+        if (player.inventory.itemInMainHand.type != Material.INK_SAC) {
+            return
+        }
+        // キャンバスのセッションを取得
+        val session = CanvasSessionManager.getSession(player)
+
+        // キャンバスが描画中かどうかを確認
+        if (!session.tool.isDrawing) {
+            return
+        }
+
+        // レイを飛ばしてアイテムフレームを取得
+        val ray = rayTraceCanvas(playerEyePos, null, player)
+            ?: return
+
+        // キャンバスに描画
+        manipulate(ray.itemFrame, ray.mapItem, ray.uv, player, CanvasActionType.MOUSE_MOVE)
+    }
+
+    /**
      * キャンバス上のヒットした位置情報
      * @param itemFrame アイテムフレーム
      * @param mapItem 地図アイテム
@@ -141,16 +184,20 @@ class CanvasDrawListener : Listener {
 
     /**
      * レイを飛ばしてアイテムフレームを取得
-     * @param player プレイヤー
+     * @param playerEyePos プレイヤーの目線の位置
      * @param interactionPoint カーソルをのせている場所の座標
+     * @param debugPlayer プレイヤー
      */
-    private fun rayTraceCanvas(player: Player, interactionPoint: Location?): CanvasRayTraceResult? {
+    private fun rayTraceCanvas(
+        playerEyePos: Location,
+        interactionPoint: Location?,
+        debugPlayer: Player
+    ): CanvasRayTraceResult? {
         // 目線と向きからエンティティを取得し、アイテムフレームかどうかを確認する
         // まず目線の位置と向きを取得
-        val playerEyePos = player.eyeLocation
         val playerDirection = playerEyePos.direction
-        player.debugLocation(DebugLocationType.EYE_LOCATION, playerEyePos)
-        player.debugLocation(DebugLocationType.EYE_DIRECTION, playerEyePos.add(playerDirection))
+        debugPlayer.debugLocation(DebugLocationType.EYE_LOCATION, playerEyePos)
+        debugPlayer.debugLocation(DebugLocationType.EYE_DIRECTION, playerEyePos.clone().add(playerDirection))
 
         // エンティティを取得する範囲のバウンディングボックス
         val box: BoundingBox
@@ -172,7 +219,7 @@ class CanvasDrawListener : Listener {
                 playerEyePos.world.rayTraceBlocks(playerEyePos, playerEyePos.direction, distance + margin)
             blockHitLocation = ray?.hitPosition?.toLocation(playerEyePos.world)
         }
-        player.debugLocation(DebugLocationType.BLOCK_HIT_LOCATION, blockHitLocation)
+        debugPlayer.debugLocation(DebugLocationType.BLOCK_HIT_LOCATION, blockHitLocation)
 
         // 範囲内にあるすべてのアイテムフレームを取得する
         val entities = playerEyePos.world.getNearbyEntities(box.clone().expand(margin)) { it is ItemFrame }
@@ -190,7 +237,7 @@ class CanvasDrawListener : Listener {
             val mapItem = MapItem.get(itemFrame.item)
                 ?: continue
             // UVとキャンバスのオフセットを計算
-            val (rawUV, canvasOffset) = calculateUV(player.eyeLocation, itemFrame.location, itemFrame.isVisible)
+            val (rawUV, canvasOffset) = calculateUV(playerEyePos, itemFrame.location, itemFrame.isVisible)
             // キャンバス内UVを計算、キャンバス範囲外ならばスキップ
             val uv = transformUV(itemFrame.rotation, rawUV)
                 ?: continue
@@ -198,7 +245,7 @@ class CanvasDrawListener : Listener {
             if (blockHitLocation != null) {
                 val blockDistance = blockHitLocation.distance(playerEyePos)
                 val canvasHitLocation = itemFrame.location.clone().add(canvasOffset)
-                player.debugLocation(DebugLocationType.CANVAS_HIT_LOCATION, canvasHitLocation)
+                debugPlayer.debugLocation(DebugLocationType.CANVAS_HIT_LOCATION, canvasHitLocation)
                 val canvasDistance = canvasHitLocation.distance(playerEyePos)
                 if (blockDistance + 0.5 < canvasDistance) {
                     continue
@@ -238,7 +285,7 @@ class CanvasDrawListener : Listener {
         // キャンバスのセッションを取得
         val session = CanvasSessionManager.getSession(player)
         // キャンバスに描画する
-        session.tool.paint(player.inventory.itemInMainHand, mapItem, interact, session)
+        session.tool.paint(player.inventory.itemInMainHand, mapItem, interact)
         // プレイヤーに描画を通知する
         mapItem.renderer.updatePlayer(player)
     }
