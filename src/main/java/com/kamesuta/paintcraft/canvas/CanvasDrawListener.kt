@@ -58,12 +58,14 @@ class CanvasDrawListener : Listener {
         // キャンバスか判定し取得
         val mapItem = MapItem.get(itemFrame.item)
             ?: return
+        // キャンバスのセッションを取得
+        val session = CanvasSessionManager.getSession(player)
         // UVを計算
-        val (rawUV, _) = calculateUV(player.eyeLocation, itemFrame.location, itemFrame.isVisible)
+        val (rawUV, _) = calculateUV(session.eyeLocation, itemFrame.location, itemFrame.isVisible)
         val uv = transformUV(itemFrame.rotation, rawUV)
             ?: return
         // キャンバスに描画
-        manipulate(itemFrame, mapItem, uv, player, CanvasActionType.LEFT_CLICK)
+        manipulate(itemFrame, mapItem, uv, player, session, CanvasActionType.LEFT_CLICK)
         // イベントをキャンセル
         event.isCancelled = true
     }
@@ -91,12 +93,14 @@ class CanvasDrawListener : Listener {
         // キャンバスか判定し取得
         val mapItem = MapItem.get(itemFrame.item)
             ?: return
+        // キャンバスのセッションを取得
+        val session = CanvasSessionManager.getSession(player)
         // UVを計算
-        val (rawUV, _) = calculateUV(player.eyeLocation, itemFrame.location, itemFrame.isVisible)
+        val (rawUV, _) = calculateUV(session.eyeLocation, itemFrame.location, itemFrame.isVisible)
         val uv = transformUV(itemFrame.rotation, rawUV)
             ?: return
         // キャンバスに描画
-        manipulate(itemFrame, mapItem, uv, player, CanvasActionType.RIGHT_CLICK)
+        manipulate(itemFrame, mapItem, uv, player, session, CanvasActionType.RIGHT_CLICK)
         // イベントをキャンセル
         event.isCancelled = true
     }
@@ -115,13 +119,16 @@ class CanvasDrawListener : Listener {
             return
         }
 
+        // キャンバスのセッションを取得
+        val session = CanvasSessionManager.getSession(player)
+
         // レイを飛ばしてアイテムフレームを取得
-        val ray = rayTraceCanvas(player.eyeLocation, event.interactionPoint, player)
+        val ray = rayTraceCanvas(session.eyeLocation, event.interactionPoint, player)
             ?: return
 
         // キャンバスに描画
         manipulate(
-            ray.itemFrame, ray.mapItem, ray.uv, player,
+            ray.itemFrame, ray.mapItem, ray.uv, player, session,
             when (event.action) {
                 Action.RIGHT_CLICK_BLOCK -> CanvasActionType.RIGHT_CLICK
                 Action.RIGHT_CLICK_AIR -> CanvasActionType.RIGHT_CLICK
@@ -184,15 +191,15 @@ class CanvasDrawListener : Listener {
         // キャンバスのセッションを取得
         val session = CanvasSessionManager.getSession(player)
 
-        // キャンバスが描画中かどうかを確認
-        if (!session.tool.isDrawing) {
-            return
-        }
-
         // パケットの座標を合成しプレイヤーの座標と目線を計算
         val playerEyePos = locationOperation.operation(session.eyeLocation, eyeLocation)
         // 目線の座標を更新
         session.eyeLocation = playerEyePos
+
+        // キャンバスが描画中かどうかを確認
+        if (!session.tool.isDrawing) {
+            return
+        }
 
         // メインスレッド以外でエンティティを取得できないため、メインスレッドで処理
         Bukkit.getScheduler().runTask(PaintCraft.instance) { ->
@@ -204,7 +211,7 @@ class CanvasDrawListener : Listener {
                 ?: return@runTask
 
             // キャンバスに描画
-            manipulate(ray.itemFrame, ray.mapItem, ray.uv, player, CanvasActionType.MOUSE_MOVE)
+            manipulate(ray.itemFrame, ray.mapItem, ray.uv, player, session, CanvasActionType.MOUSE_MOVE)
         }
     }
 
@@ -307,6 +314,7 @@ class CanvasDrawListener : Listener {
         mapItem: MapItem,
         uv: UVInt,
         player: Player,
+        session: CanvasSession,
         actionType: CanvasActionType
     ) {
         // アイテムフレームの位置を取得
@@ -320,8 +328,6 @@ class CanvasDrawListener : Listener {
         // インタラクトオブジェクトを作成
         val interact = CanvasInteraction(uv, player, blockLocation, itemFrameLocation, actionType)
 
-        // キャンバスのセッションを取得
-        val session = CanvasSessionManager.getSession(player)
         // キャンバスに描画する
         session.tool.paint(player.inventory.itemInMainHand, mapItem, interact)
         // プレイヤーに描画を通知する
