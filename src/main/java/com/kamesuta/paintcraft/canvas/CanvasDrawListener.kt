@@ -48,6 +48,7 @@ class CanvasDrawListener : Listener {
         if (player.inventory.itemInMainHand.type != Material.INK_SAC) {
             return
         }
+
         // アイテムフレームを取得
         val itemFrame = event.entity as? ItemFrame
             ?: return
@@ -58,6 +59,9 @@ class CanvasDrawListener : Listener {
         // キャンバスか判定し取得
         val mapItem = MapItem.get(itemFrame.item)
             ?: return
+        // イベントをキャンセル (ここに来た時点でキャンバスを左クリックしているので額縁が破壊されないようにキャンセルする)
+        event.isCancelled = true
+
         // キャンバスのセッションを取得
         val session = CanvasSessionManager.getSession(player)
         // UVを計算
@@ -66,8 +70,6 @@ class CanvasDrawListener : Listener {
             ?: return
         // キャンバスに描画
         manipulate(itemFrame, mapItem, uv, player, session, CanvasActionType.LEFT_CLICK)
-        // イベントをキャンセル
-        event.isCancelled = true
     }
 
     /**
@@ -83,6 +85,7 @@ class CanvasDrawListener : Listener {
         if (player.inventory.itemInMainHand.type != Material.INK_SAC) {
             return
         }
+
         // アイテムフレームを取得
         val itemFrame = event.rightClicked as? ItemFrame
             ?: return
@@ -93,16 +96,18 @@ class CanvasDrawListener : Listener {
         // キャンバスか判定し取得
         val mapItem = MapItem.get(itemFrame.item)
             ?: return
+        // イベントをキャンセル (ここに来た時点でキャンバスを右クリックしているので額縁が回転しないようにキャンセルする)
+        event.isCancelled = true
+
         // キャンバスのセッションを取得
         val session = CanvasSessionManager.getSession(player)
+
         // UVを計算
         val (rawUV, _) = calculateUV(session.eyeLocation, itemFrame.location, itemFrame.isVisible)
         val uv = transformUV(itemFrame.rotation, rawUV)
             ?: return
         // キャンバスに描画
         manipulate(itemFrame, mapItem, uv, player, session, CanvasActionType.RIGHT_CLICK)
-        // イベントをキャンセル
-        event.isCancelled = true
     }
 
     /**
