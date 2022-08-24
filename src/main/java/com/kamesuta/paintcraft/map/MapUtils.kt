@@ -17,8 +17,14 @@ inline fun <reified Renderer : MapRenderer> MapView.getRenderer(): Renderer? {
     return renderers.filterIsInstance<Renderer>().firstOrNull()
 }
 
-fun MapView.update(player: Player) {
-    player.sendMap(this)
+fun MapCanvas.updatePlayer(player: Player) {
+    val dirty = MapReflection.getMapDirtyArea(player, mapView)
+        ?: return
+    val buffer = MapReflection.getCanvasBuffer(this)
+        ?: return
+
+    MapReflection.sendMap(player, mapView, buffer, dirty)
+    //MapReflection.sendMap(player, mapView, MapBuffer(mapSize * mapSize) { 74 }, dirty)
 }
 
 fun MapCanvas.saveToMapView() {

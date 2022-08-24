@@ -5,15 +5,17 @@ import org.bukkit.entity.Player
 import org.bukkit.map.MapCanvas
 import org.bukkit.map.MapRenderer
 import org.bukkit.map.MapView
-import java.util.concurrent.ConcurrentLinkedQueue
 
 class MapRenderer : MapRenderer() {
     /** 初期化フラグ */
     private var initialized = false
+
     /** マップビュー */
     private lateinit var mapView: MapView
+
     /** マップキャンバス */
     private lateinit var mapCanvas: MapCanvas
+
     /** 変更フラグ */
     private var dirty = false
 
@@ -50,5 +52,15 @@ class MapRenderer : MapRenderer() {
         draw.draw(mapCanvas)
         // 変更フラグを設定する
         dirty = true
+    }
+
+    fun updatePlayer(player: Player) {
+        // 初期化チェック
+        if (!initialized) {
+            return
+        }
+
+        // プレイヤーカーソルを更新する
+        mapCanvas.updatePlayer(player)
     }
 }

@@ -2,7 +2,6 @@ package com.kamesuta.paintcraft.canvas
 
 import com.kamesuta.paintcraft.map.MapItem
 import com.kamesuta.paintcraft.map.mapSize
-import com.kamesuta.paintcraft.map.update
 import com.kamesuta.paintcraft.util.DebugLocationType
 import com.kamesuta.paintcraft.util.DebugLocationVisualizer.clearDebugLocation
 import com.kamesuta.paintcraft.util.DebugLocationVisualizer.debugLocation
@@ -218,7 +217,7 @@ class CanvasDrawListener : Listener {
         // キャンバスに描画する
         session.tool.paint(player.inventory.itemInMainHand, mapItem, interact, session)
         // プレイヤーに描画を通知する
-        mapItem.mapView.update(player)
+        mapItem.renderer.updatePlayer(player)
     }
 
     /**
