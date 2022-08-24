@@ -64,6 +64,10 @@ class CanvasDrawListener : Listener {
 
         // キャンバスのセッションを取得
         val session = CanvasSessionManager.getSession(player)
+        // 裏からのクリックは無視
+        if (session.eyeLocation.direction.dot(itemFrame.facing.direction) > 0) {
+            return
+        }
         // UVを計算
         val (rawUV, _) = calculateUV(session.eyeLocation, itemFrame.location, itemFrame.isVisible)
         val uv = transformUV(itemFrame.rotation, rawUV)
@@ -101,7 +105,10 @@ class CanvasDrawListener : Listener {
 
         // キャンバスのセッションを取得
         val session = CanvasSessionManager.getSession(player)
-
+        // 裏からのクリックは無視
+        if (session.eyeLocation.direction.dot(itemFrame.facing.direction) > 0) {
+            return
+        }
         // UVを計算
         val (rawUV, _) = calculateUV(session.eyeLocation, itemFrame.location, itemFrame.isVisible)
         val uv = transformUV(itemFrame.rotation, rawUV)
@@ -265,7 +272,7 @@ class CanvasDrawListener : Listener {
             // その中からアイテムフレームを取得する
             .filter { it.item.type == Material.FILLED_MAP }
             // 正面に向いているアイテムフレームのみを取得する
-            .filter { playerDirection.dot(Vector(it.facing.modX, it.facing.modY, it.facing.modZ)) <= 0 }
+            .filter { playerDirection.dot(it.facing.direction) <= 0 }
             // 最も近いエンティティを取得するために距離順にソートする
             .sortedBy { it.location.distance(playerEyePos) }
 
