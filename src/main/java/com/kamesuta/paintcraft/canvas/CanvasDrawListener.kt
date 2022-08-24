@@ -166,7 +166,7 @@ class CanvasDrawListener : Listener {
                 val canvasHitLocation = itemFrame.location.clone().add(canvasOffset)
                 player.debugLocation(DebugLocationType.CANVAS_HIT_LOCATION, canvasHitLocation)
                 val canvasDistance = canvasHitLocation.distance(playerEyePos)
-                if (blockDistance < canvasDistance) {
+                if (blockDistance + 0.5 < canvasDistance) {
                     continue
                 }
             }
