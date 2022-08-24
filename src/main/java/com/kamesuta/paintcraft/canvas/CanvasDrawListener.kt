@@ -125,8 +125,9 @@ class CanvasDrawListener : Listener {
             when (event.action) {
                 Action.RIGHT_CLICK_BLOCK -> CanvasActionType.RIGHT_CLICK
                 Action.RIGHT_CLICK_AIR -> CanvasActionType.RIGHT_CLICK
-                Action.PHYSICAL -> return
-                else -> CanvasActionType.LEFT_CLICK
+                Action.LEFT_CLICK_BLOCK -> CanvasActionType.LEFT_CLICK
+                Action.LEFT_CLICK_AIR -> return // 右クリックを誤検知することがあるため無視
+                else -> return
             }
         )
         // イベントをキャンセル
