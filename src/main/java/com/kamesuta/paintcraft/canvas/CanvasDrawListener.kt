@@ -123,7 +123,7 @@ class CanvasDrawListener : Listener {
         val session = CanvasSessionManager.getSession(player)
 
         // レイを飛ばしてアイテムフレームを取得
-        val ray = rayTraceCanvas(session.eyeLocation, event.interactionPoint, player)
+        val ray = rayTraceCanvas(session.eyeLocation, player)
             ?: return
 
         // キャンバスに描画
@@ -207,7 +207,7 @@ class CanvasDrawListener : Listener {
             player.clearDebugLocation(DebugLocationType.DebugLocationGroup.CANVAS_DRAW)
 
             // レイを飛ばしてアイテムフレームを取得
-            val ray = rayTraceCanvas(playerEyePos, null, player)
+            val ray = rayTraceCanvas(playerEyePos, player)
                 ?: return@runTask
 
             // キャンバスに描画
@@ -230,12 +230,10 @@ class CanvasDrawListener : Listener {
     /**
      * レイを飛ばしてアイテムフレームを取得
      * @param playerEyePos プレイヤーの目線の位置
-     * @param interactionPoint カーソルをのせている場所の座標
      * @param debugPlayer プレイヤー
      */
     private fun rayTraceCanvas(
         playerEyePos: Location,
-        interactionPoint: Location?,
         debugPlayer: Player
     ): CanvasRayTraceResult? {
         // 目線と向きからエンティティを取得し、アイテムフレームかどうかを確認する
@@ -244,26 +242,16 @@ class CanvasDrawListener : Listener {
         debugPlayer.debugLocation(DebugLocationType.EYE_LOCATION, playerEyePos)
         debugPlayer.debugLocation(DebugLocationType.EYE_DIRECTION, playerEyePos.clone().add(playerDirection))
 
-        // エンティティを取得する範囲のバウンディングボックス
-        val box: BoundingBox
+        // 距離は前方8m(半径4)を範囲にする
+        val distance = 8.0
+        // 範囲を全方向にmarginずつ拡張
         val margin = 1.0
+        // エンティティを取得する範囲のバウンディングボックス
+        val box = BoundingBox.of(playerEyePos, 0.0, 0.0, 0.0).expand(playerDirection, distance)
+        // レイキャストを行い、ヒットしたブロックがあればそのブロック座標と目線の位置から範囲の中心座標とサイズを計算する
+        val ray = playerEyePos.world.rayTraceBlocks(playerEyePos, playerEyePos.direction, distance + margin)
         // クリックがヒットした座標
-        val blockHitLocation: Location?
-        // クリックしたブロックが取得できるなら使用し、そうでなければレイキャストして取得する
-        if (interactionPoint != null) {
-            // ブロックとプレイヤーが十分近い場合クリック位置が取得できる
-            // クリック位置と目線の座標を含むバウンディングボックスを作成
-            box = BoundingBox.of(playerEyePos, interactionPoint)
-            blockHitLocation = interactionPoint
-        } else {
-            // ブロックが取得できなかったら前方8m(半径4)を範囲にする
-            val distance = 8.0
-            box = BoundingBox.of(playerEyePos, 0.0, 0.0, 0.0).expand(playerDirection, distance)
-            // レイキャストを行い、ヒットしたブロックがあればそのブロック座標と目線の位置から範囲の中心座標とサイズを計算する
-            val ray =
-                playerEyePos.world.rayTraceBlocks(playerEyePos, playerEyePos.direction, distance + margin)
-            blockHitLocation = ray?.hitPosition?.toLocation(playerEyePos.world)
-        }
+        val blockHitLocation = ray?.hitPosition?.toLocation(playerEyePos.world)
         debugPlayer.debugLocation(DebugLocationType.BLOCK_HIT_LOCATION, blockHitLocation)
 
         // 範囲内にあるすべてのアイテムフレームを取得する
@@ -298,7 +286,7 @@ class CanvasDrawListener : Listener {
             }
             return CanvasRayTraceResult(itemFrame, mapItem, uv)
         }
-        return null;
+        return null
     }
 
     /**

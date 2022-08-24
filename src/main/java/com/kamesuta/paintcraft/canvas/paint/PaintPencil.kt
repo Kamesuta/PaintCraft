@@ -61,10 +61,8 @@ class PaintPencil(override val session: CanvasSession) : PaintTool {
                 }
                 // 描くモードが右クリックの場合
                 CanvasActionType.RIGHT_CLICK -> {
-                    if (interact.actionType == CanvasActionType.MOUSE_MOVE) {
-                        lastEvent?.let { ev ->
-                            g(DrawLine(ev.interact.uv.u, ev.interact.uv.v, interact.uv.u, interact.uv.v, color))
-                        }
+                    lastEvent?.let { ev ->
+                        g(DrawLine(ev.interact.uv.u, ev.interact.uv.v, interact.uv.u, interact.uv.v, color))
                     }
                 }
                 // その他 (想定外)
@@ -75,9 +73,7 @@ class PaintPencil(override val session: CanvasSession) : PaintTool {
         }
 
         // イベントを保存
-        if (lastEvent == null || interact.actionType == CanvasActionType.MOUSE_MOVE) {
-            lastEvent = PaintEvent(mapItem, interact)
-        }
+        lastEvent = PaintEvent(mapItem, interact)
     }
 
     override fun tick() {
