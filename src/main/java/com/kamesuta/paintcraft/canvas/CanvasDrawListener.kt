@@ -1,11 +1,16 @@
 package com.kamesuta.paintcraft.canvas
 
+import com.comphenix.protocol.PacketType
+import com.comphenix.protocol.events.ListenerPriority
+import com.comphenix.protocol.events.PacketAdapter
+import com.comphenix.protocol.events.PacketEvent
 import com.kamesuta.paintcraft.PaintCraft
 import com.kamesuta.paintcraft.map.MapItem
 import com.kamesuta.paintcraft.map.mapSize
 import com.kamesuta.paintcraft.util.DebugLocationType
 import com.kamesuta.paintcraft.util.DebugLocationVisualizer.clearDebugLocation
 import com.kamesuta.paintcraft.util.DebugLocationVisualizer.debugLocation
+import com.kamesuta.paintcraft.util.LocationOperation
 import com.kamesuta.paintcraft.util.UV
 import com.kamesuta.paintcraft.util.UVInt
 import org.bukkit.Bukkit
@@ -20,7 +25,6 @@ import org.bukkit.event.block.Action
 import org.bukkit.event.entity.EntityDamageByEntityEvent
 import org.bukkit.event.player.PlayerInteractEntityEvent
 import org.bukkit.event.player.PlayerInteractEvent
-import org.bukkit.event.player.PlayerMoveEvent
 import org.bukkit.util.BoundingBox
 import org.bukkit.util.Vector
 import kotlin.math.abs
@@ -130,26 +134,48 @@ class CanvasDrawListener : Listener {
     }
 
     /**
-     * 動いたとき (描いている最中のみ)
-     * @param event イベント
+     * プレイヤーの移動パケットリスナーを作成する
+     * @return プレイヤーの移動パケットリスナー
      */
-    @EventHandler
-    fun onMove(event: PlayerMoveEvent) {
-        // ムーブイベントなしのほうが書きやすいかもしれないため、コメントアウト
-        //event.player.clearDebugLocation(DebugLocationType.DebugLocationGroup.CANVAS_DRAW)
-        //drawOnTick(event.player, event.player.eyeLocation)
-    }
-
-    init {
-        // 毎ティック描く
-        Bukkit.getScheduler().runTaskTimer(PaintCraft.instance, { ->
-            Bukkit.getOnlinePlayers().forEach { player ->
-                drawOnTick(player, player.eyeLocation)
+    fun createMovePacketAdapter(): PacketAdapter {
+        return object : PacketAdapter(
+            PaintCraft.instance,
+            ListenerPriority.NORMAL,
+            PacketType.Play.Client.LOOK,
+            PacketType.Play.Client.POSITION,
+            PacketType.Play.Client.POSITION_LOOK,
+        ) {
+            override fun onPacketReceiving(event: PacketEvent) {
+                val player = event.player
+                val packet = event.packet
+                val x = packet.doubles.read(0)
+                val y = packet.doubles.read(1)
+                val z = packet.doubles.read(2)
+                val yaw = packet.float.read(0)
+                val pitch = packet.float.read(1)
+                val location = Location(player.world, x, y + player.eyeHeight, z, yaw, pitch)
+                onMovePacket(
+                    player,
+                    location,
+                    when (event.packetType) {
+                        PacketType.Play.Client.LOOK -> LocationOperation.LOOK
+                        PacketType.Play.Client.POSITION -> LocationOperation.POSITION
+                        PacketType.Play.Client.POSITION_LOOK -> LocationOperation.POSITION_LOOK
+                        else -> LocationOperation.NONE
+                    }
+                )
             }
-        }, 0, 0)
+        }
     }
 
-    private fun drawOnTick(player: Player, playerEyePos: Location) {
+    /**
+     * 動いたとき (描いている最中のみ)
+     * PaintCraftクラス(ProtocolLib)から呼ばれる
+     * @param player プレイヤー
+     * @param eyeLocation 移動先の位置
+     * @param locationOperation 移動先の位置における操作
+     */
+    private fun onMovePacket(player: Player, eyeLocation: Location, locationOperation: LocationOperation) {
         // プレイヤーの右手にインクがあるか
         if (player.inventory.itemInMainHand.type != Material.INK_SAC) {
             return
@@ -162,12 +188,23 @@ class CanvasDrawListener : Listener {
             return
         }
 
-        // レイを飛ばしてアイテムフレームを取得
-        val ray = rayTraceCanvas(playerEyePos, null, player)
-            ?: return
+        // パケットの座標を合成しプレイヤーの座標と目線を計算
+        val playerEyePos = locationOperation.operation(session.eyeLocation, eyeLocation)
+        // 目線の座標を更新
+        session.eyeLocation = playerEyePos
 
-        // キャンバスに描画
-        manipulate(ray.itemFrame, ray.mapItem, ray.uv, player, CanvasActionType.MOUSE_MOVE)
+        // メインスレッド以外でエンティティを取得できないため、メインスレッドで処理
+        Bukkit.getScheduler().runTask(PaintCraft.instance) { ->
+            // スレッドが違うと問題が起こるためここでclear
+            player.clearDebugLocation(DebugLocationType.DebugLocationGroup.CANVAS_DRAW)
+
+            // レイを飛ばしてアイテムフレームを取得
+            val ray = rayTraceCanvas(playerEyePos, null, player)
+                ?: return@runTask
+
+            // キャンバスに描画
+            manipulate(ray.itemFrame, ray.mapItem, ray.uv, player, CanvasActionType.MOUSE_MOVE)
+        }
     }
 
     /**

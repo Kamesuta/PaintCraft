@@ -5,5 +5,6 @@ import com.kamesuta.paintcraft.canvas.paint.PaintTool
 import org.bukkit.entity.Player
 
 class CanvasSession(val player: Player) {
+    var eyeLocation = player.eyeLocation
     var tool: PaintTool = PaintPencil(this)
 }

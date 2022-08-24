@@ -3,3 +3,4 @@ version: '${project.version}'
 main: com.kamesuta.paintcraft.PaintCraft
 api-version: 1.16
 authors: [ Kamesuta ]
+depend: [ProtocolLib]

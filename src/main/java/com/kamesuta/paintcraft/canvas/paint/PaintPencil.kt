@@ -67,7 +67,7 @@ class PaintPencil(override val session: CanvasSession) : PaintTool {
                         }
                     }
                 }
-
+                // その他 (想定外)
                 else -> {
                     // 何もしない
                 }
