@@ -1,6 +1,5 @@
 package com.kamesuta.paintcraft.util
 
-import org.bukkit.Bukkit
 import java.lang.reflect.Constructor
 import java.lang.reflect.Field
 import java.lang.reflect.InvocationTargetException
@@ -10,15 +9,6 @@ import java.lang.reflect.Method
  * リフレクションを使用して、NMSにアクセスするクラス
  */
 object ReflectionAccessor {
-    /** NMSクラス名 */
-    private val NMS: String
-
-    init {
-        // Bukkitクラスのパッケージ名からNMSのパッケージ名を取得する
-        val version = Bukkit.getServer().javaClass.getPackage().name
-        NMS = version.replace("org.bukkit.craftbukkit", "net.minecraft.server")
-    }
-
     /**
      * フィールドの値を取得する
      * @param obj 対象のオブジェクト
@@ -119,27 +109,26 @@ object ReflectionAccessor {
     }
 
     /**
-     * NMSクラスの静的メソッドを実行する
-     * @param className クラス名(NMSパッケージ名は含まない)
+     * 静的メソッドを実行する
+     * @param clazz クラス (クラスはProtocolLibのMinecraftReflectionクラスから取得できる)
      * @param methodName メソッド名
      * @param params 引数 (Class型が指定された場合、次の引数の型として使用される。詳しくは {@link #getParamTypes(Object...)} を参照)
      * @return メソッドの戻り値
      */
     @Throws(ReflectiveOperationException::class)
-    fun invokeStaticMethod(className: String, methodName: String, vararg params: Any): Any? {
-        val obj = forName(className)
+    fun invokeStaticMethod(clazz: Class<*>, methodName: String, vararg params: Any): Any? {
         val paramTypes = getParamTypes(*params)
         val paramValues = getParamValues(*params)
         val method: Method
         try {
-            method = obj.getDeclaredMethod(methodName, *paramTypes)
+            method = clazz.getDeclaredMethod(methodName, *paramTypes)
             method.isAccessible = true
         } catch (e: NoSuchMethodException) {
             // 指定したメソッドが見つからない
             throw ReflectiveOperationException(
                 String.format(
                     "Method '%s' could not be found in '%s'. Methods found: [%s]",
-                    methodName, obj.name, listOf(*obj.methods)
+                    methodName, clazz.name, listOf(*clazz.methods)
                 ), e
             )
         }
@@ -147,40 +136,29 @@ object ReflectionAccessor {
     }
 
     /**
-     * NMSクラスのインスタンスを作成する
-     * @param className クラス名(NMSパッケージ名は含まない)
+     * クラスのインスタンスを作成する
+     * @param clazz クラス (クラスはProtocolLibのMinecraftReflectionクラスから取得できる)
      * @param params 引数 (Class型が指定された場合、次の引数の型として使用される。詳しくは {@link #getParamTypes(Object...)} を参照)
      * @return インスタンス
      */
     @Throws(ReflectiveOperationException::class)
-    fun newInstance(className: String, vararg params: Any): Any? {
-        val obj = forName(className)
+    fun newInstance(clazz: Class<*>, vararg params: Any): Any? {
         val paramTypes = getParamTypes(*params)
         val paramValues = getParamValues(*params)
         val constructor: Constructor<*>
         try {
-            constructor = obj.getDeclaredConstructor(*paramTypes)
+            constructor = clazz.getDeclaredConstructor(*paramTypes)
             constructor.isAccessible = true
         } catch (e: NoSuchMethodException) {
             // 指定したコンストラクターが見つからない
             throw ReflectiveOperationException(
                 String.format(
                     "Constructor could not be found in '%s'. Constructors found: [%s]",
-                    obj.name, listOf(*obj.constructors)
+                    clazz.name, listOf(*clazz.constructors)
                 ), e
             )
         }
         return constructor.newInstance(*paramValues)
-    }
-
-    /**
-     * NMSクラスを取得する
-     * @param className クラス名(NMSパッケージ名は含まない)
-     * @return NMSクラス
-     */
-    @Throws(ClassNotFoundException::class)
-    fun forName(className: String): Class<*> {
-        return Class.forName("$NMS.$className")
     }
 
     /**
