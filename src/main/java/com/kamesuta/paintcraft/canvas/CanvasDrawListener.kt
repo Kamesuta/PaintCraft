@@ -18,6 +18,8 @@ import org.bukkit.event.block.Action
 import org.bukkit.event.entity.EntityDamageByEntityEvent
 import org.bukkit.event.player.PlayerInteractEntityEvent
 import org.bukkit.event.player.PlayerInteractEvent
+import org.bukkit.event.player.PlayerMoveEvent
+import org.bukkit.util.BoundingBox
 import org.bukkit.util.Vector
 import kotlin.math.abs
 import kotlin.math.roundToLong
@@ -106,6 +108,43 @@ class CanvasDrawListener : Listener {
         if (player.inventory.itemInMainHand.type != Material.INK_SAC) {
             return
         }
+
+        // レイを飛ばしてアイテムフレームを取得
+        val ray = rayTraceCanvas(player, null)
+            ?: return
+
+        // キャンバスに描画
+        manipulate(
+            ray.itemFrame, ray.mapItem, ray.uv, player,
+            when (event.action) {
+                Action.RIGHT_CLICK_BLOCK -> CanvasActionType.RIGHT_CLICK
+                Action.RIGHT_CLICK_AIR -> CanvasActionType.RIGHT_CLICK
+                Action.PHYSICAL -> return
+                else -> CanvasActionType.LEFT_CLICK
+            }
+        )
+        // イベントをキャンセル
+        event.isCancelled = true
+    }
+
+    /**
+     * キャンバス上のヒットした位置情報
+     * @param itemFrame アイテムフレーム
+     * @param mapItem 地図アイテム
+     * @param uv UV
+     */
+    private data class CanvasRayTraceResult(
+        val itemFrame: ItemFrame,
+        val mapItem: MapItem,
+        val uv: UVInt,
+    )
+
+    /**
+     * レイを飛ばしてアイテムフレームを取得
+     * @param player プレイヤー
+     * @param interactionPoint カーソルをのせている場所の座標
+     */
+    private fun rayTraceCanvas(player: Player, interactionPoint: Location?): CanvasRayTraceResult? {
         // 目線と向きからエンティティを取得し、アイテムフレームかどうかを確認する
         // まず目線の位置と向きを取得
         val playerEyePos = player.eyeLocation
@@ -113,35 +152,31 @@ class CanvasDrawListener : Listener {
         player.debugLocation(DebugLocationType.EYE_LOCATION, playerEyePos)
         player.debugLocation(DebugLocationType.EYE_DIRECTION, playerEyePos.add(playerDirection))
 
-        // エンティティを取得する範囲の中心座標とサイズ
-        val center: Location
-        val boxSize: Vector
+        // エンティティを取得する範囲のバウンディングボックス
+        val box: BoundingBox
+        val margin = 1.0
         // クリックがヒットした座標
         val blockHitLocation: Location?
         // クリックしたブロックが取得できるなら使用し、そうでなければレイキャストして取得する
-        val clickedBlock = event.clickedBlock
-        if (clickedBlock != null) {
-            // ブロックとプレイヤーが十分近い場合クリックしたブロックが取得できる
-            // ブロックが取得できたらブロック座標と目線の位置から範囲の中心座標とサイズを計算する
-            val blockCenter = clickedBlock.location.add(0.5, 0.5, 0.5).clone()
-            center = playerEyePos.clone().add(blockCenter).multiply(0.5)
-            boxSize = blockCenter.clone().subtract(playerEyePos).toVector()
-            blockHitLocation = event.interactionPoint
+        if (interactionPoint != null) {
+            // ブロックとプレイヤーが十分近い場合クリック位置が取得できる
+            // クリック位置と目線の座標を含むバウンディングボックスを作成
+            box = BoundingBox.of(playerEyePos, interactionPoint)
+            blockHitLocation = interactionPoint
         } else {
             // ブロックが取得できなかったら前方8m(半径4)を範囲にする
-            center = playerEyePos.clone().add(playerDirection.clone().multiply(2.0))
-            boxSize = playerDirection.clone().multiply(4.0)
+            val distance = 8.0
+            box = BoundingBox.of(playerEyePos, 0.0, 0.0, 0.0).expand(playerDirection, distance)
             // レイキャストを行い、ヒットしたブロックがあればそのブロック座標と目線の位置から範囲の中心座標とサイズを計算する
             val ray =
-                playerEyePos.world.rayTraceBlocks(playerEyePos, playerEyePos.direction, boxSize.length() * 2.0 + 1.0)
+                playerEyePos.world.rayTraceBlocks(playerEyePos, playerEyePos.direction, distance + margin)
             blockHitLocation = ray?.hitPosition?.toLocation(playerEyePos.world)
         }
         player.debugLocation(DebugLocationType.BLOCK_HIT_LOCATION, blockHitLocation)
 
         // 範囲内にあるすべてのアイテムフレームを取得する
-        val entities = center.world.getNearbyEntitiesByType(
-            ItemFrame::class.java, center, abs(boxSize.x) + 1, abs(boxSize.y) + 1, abs(boxSize.z) + 1
-        )
+        val entities = playerEyePos.world.getNearbyEntities(box.clone().expand(margin)) { it is ItemFrame }
+            .map { it as ItemFrame }
             // その中からアイテムフレームを取得する
             .filter { it.item.type == Material.FILLED_MAP }
             // 正面に向いているアイテムフレームのみを取得する
@@ -169,21 +204,9 @@ class CanvasDrawListener : Listener {
                     continue
                 }
             }
-            // キャンバスに描画
-            manipulate(
-                itemFrame, mapItem, uv, player,
-                when (event.action) {
-                    Action.RIGHT_CLICK_BLOCK -> CanvasActionType.RIGHT_CLICK
-                    Action.RIGHT_CLICK_AIR -> CanvasActionType.RIGHT_CLICK
-                    Action.PHYSICAL -> continue
-                    else -> CanvasActionType.LEFT_CLICK
-                }
-            )
-            // イベントをキャンセル
-            event.isCancelled = true
-            // 一つでも描画したらループを抜ける
-            break
+            return CanvasRayTraceResult(itemFrame, mapItem, uv)
         }
+        return null;
     }
 
     /**
