@@ -369,42 +369,46 @@ class CanvasDrawListener : Listener {
     ): Pair<UV, Vector> {
         // プレイヤーの目線の方向
         val playerDirection = playerEyePos.direction
-        // アイテムフレームの正面ベクトル
-        val itemFrameDirection = itemFrameLocation.direction
 
         // アイテムフレームの正面の整数ベクトル
-        val frameDirection = itemFrameDirection.let {
+        val itemFrameDirection = itemFrameLocation.direction.let {
             val x = it.x.roundToLong().toDouble()
             val y = it.y.roundToLong().toDouble()
             val z = it.z.roundToLong().toDouble()
             Vector(x, y, z)
         }
 
-        // アイテムフレームから目線へのベクトル
-        val itemFrameToEye = playerEyePos.toVector().subtract(itemFrameLocation.toVector())
+        // キャンバス平面とアイテムフレームの差 = 額縁の厚さ/2
+        val canvasOffset = if (isFrameVisible) 0.04 else -0.0225
+        // キャンバスの表面の平面の座標 = 額縁エンティティの中心から額縁の厚さ/2だけずらした位置
+        val canvasPlane = itemFrameLocation.clone().add(itemFrameDirection.clone().normalize().multiply(canvasOffset))
 
-        // 目線上のキャンバス座標のオフセットを計算
-        val v1 = frameDirection.clone().dot(itemFrameToEye)
-        val v0 = frameDirection.clone().dot(playerDirection)
-        val miu = v1 / v0 + if (isFrameVisible) 0.04 else -0.04
-        val lookOffset = itemFrameToEye.clone().subtract(playerDirection.clone().multiply(miu))
+        // アイテムフレームから目線へのベクトル
+        val canvasPlaneToEye = playerEyePos.toVector().subtract(canvasPlane.toVector())
+
+        // 目線上のキャンバス座標のオフセットを計算 (平面とベクトルとの交点)
+        // https://qiita.com/edo_m18/items/c8808f318f5abfa8af1e
+        // http://www.sousakuba.com/Programming/gs_plane_line_intersect.html
+        val v1 = itemFrameDirection.clone().dot(canvasPlaneToEye)
+        val v0 = itemFrameDirection.clone().dot(playerDirection)
+        val lookOffset = canvasPlaneToEye.clone().subtract(playerDirection.clone().multiply(v1 / v0))
 
         // 各向きについてUV座標を計算する
-        val u = if (abs(frameDirection.x) > abs(frameDirection.z)) {
-            if (frameDirection.x > 0)
+        val u = if (abs(itemFrameDirection.x) > abs(itemFrameDirection.z)) {
+            if (itemFrameDirection.x > 0)
                 -lookOffset.z // 西向き
             else
                 lookOffset.z // 東向き
         } else {
-            if (abs(frameDirection.y) > 0)
+            if (abs(itemFrameDirection.y) > 0)
                 lookOffset.x // 上向き, 下向き
-            else if (frameDirection.z > 0)
+            else if (itemFrameDirection.z > 0)
                 lookOffset.x // 北向き
             else
                 -lookOffset.x // 南向き
         }
-        val v = if (abs(frameDirection.y) > 0) {
-            if (frameDirection.y > 0)
+        val v = if (abs(itemFrameDirection.y) > 0) {
+            if (itemFrameDirection.y > 0)
                 lookOffset.z // 上向き
             else
                 -lookOffset.z // 下向き
