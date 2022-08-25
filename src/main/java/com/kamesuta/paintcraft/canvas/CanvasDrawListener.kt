@@ -27,7 +27,6 @@ import org.bukkit.event.player.PlayerInteractEntityEvent
 import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.util.BoundingBox
 import org.bukkit.util.Vector
-import kotlin.math.abs
 
 /**
  * 描画用のイベントリスナー
@@ -70,7 +69,7 @@ class CanvasDrawListener : Listener {
         // キャンバスのオフセットを計算
         val canvasOffset = intersectCanvas(session.eyeLocation, itemFrame.location, itemFrame.isVisible)
         // UVに変換
-        val rawUV = mapToBlockUV(itemFrame.location.direction, canvasOffset)
+        val rawUV = mapToBlockUV(itemFrame.location.yaw, itemFrame.location.pitch, canvasOffset)
         // キャンバス内UVを計算、キャンバス範囲外ならばスキップ
         val uv = transformUV(itemFrame.rotation, rawUV)
             ?: return
@@ -114,7 +113,7 @@ class CanvasDrawListener : Listener {
         // キャンバスのオフセットを計算
         val canvasOffset = intersectCanvas(session.eyeLocation, itemFrame.location, itemFrame.isVisible)
         // UVに変換
-        val rawUV = mapToBlockUV(itemFrame.location.direction, canvasOffset)
+        val rawUV = mapToBlockUV(itemFrame.location.yaw, itemFrame.location.pitch, canvasOffset)
         // キャンバス内UVを計算、キャンバス範囲外ならばスキップ
         val uv = transformUV(itemFrame.rotation, rawUV)
             ?: return
@@ -289,7 +288,7 @@ class CanvasDrawListener : Listener {
             // キャンバスのオフセットを計算
             val canvasOffset = intersectCanvas(playerEyePos, itemFrame.location, itemFrame.isVisible)
             // UVに変換
-            val rawUV = mapToBlockUV(itemFrame.location.direction, canvasOffset)
+            val rawUV = mapToBlockUV(itemFrame.location.yaw, itemFrame.location.pitch, canvasOffset)
             // キャンバス内UVを計算、キャンバス範囲外ならばスキップ
             val uv = transformUV(itemFrame.rotation, rawUV)
                 ?: continue
@@ -400,36 +399,22 @@ class CanvasDrawListener : Listener {
     /**
      * 交点座標をキャンバス上のUV座標に変換する
      * UV座標は中央が(0,0)になる
-     * @param itemFrameDirection アイテムフレームの正面ベクトル
+     * @param itemFrameYaw アイテムフレームのYaw角度
+     * @param itemFramePitch アイテムフレームのPitch角度
      * @param intersectPosition 交点座標
      * @return キャンバス上のUV座標
      */
     private fun mapToBlockUV(
-        itemFrameDirection: Vector,
+        itemFrameYaw: Float,
+        itemFramePitch: Float,
         intersectPosition: Vector
     ): UV {
-        // 各向きについてUV座標を計算する
-        val u = if (abs(itemFrameDirection.x) > abs(itemFrameDirection.z)) {
-            if (itemFrameDirection.x > 0)
-                -intersectPosition.z // 西向き
-            else
-                intersectPosition.z // 東向き
-        } else {
-            if (abs(itemFrameDirection.y) > 0)
-                intersectPosition.x // 上向き, 下向き
-            else if (itemFrameDirection.z > 0)
-                intersectPosition.x // 北向き
-            else
-                -intersectPosition.x // 南向き
-        }
-        val v = if (abs(itemFrameDirection.y) > 0) {
-            if (itemFrameDirection.y > 0)
-                intersectPosition.z // 上向き
-            else
-                -intersectPosition.z // 下向き
-        } else {
-            -intersectPosition.y // 横向き
-        }
-        return UV(u, v)
+        // アイテムフレーム回転をラジアンに変換する
+        val rotX: Double = Math.toRadians(itemFrameYaw.toDouble())
+        val rotY: Double = Math.toRadians(itemFramePitch.toDouble())
+        // 交点座標を(0,0)を中心に回転し、UV座標(x,-y)に対応するようにする
+        val unRotated = intersectPosition.rotateAroundX(-rotY).rotateAroundY(rotX)
+        // UV座標を返す (3D座標はYが上ほど大きく、UV座標はYが下ほど大きいため、Yを反転する)
+        return UV(unRotated.x, -unRotated.y)
     }
 }
