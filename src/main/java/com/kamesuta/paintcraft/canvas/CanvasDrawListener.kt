@@ -28,7 +28,6 @@ import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.util.BoundingBox
 import org.bukkit.util.Vector
 import kotlin.math.abs
-import kotlin.math.roundToLong
 
 /**
  * 描画用のイベントリスナー
@@ -68,8 +67,11 @@ class CanvasDrawListener : Listener {
         if (session.eyeLocation.direction.dot(itemFrame.facing.direction) > 0) {
             return
         }
-        // UVを計算
-        val (rawUV, _) = calculateUV(session.eyeLocation, itemFrame.location, itemFrame.isVisible)
+        // キャンバスのオフセットを計算
+        val canvasOffset = intersectCanvas(session.eyeLocation, itemFrame.location, itemFrame.isVisible)
+        // UVに変換
+        val rawUV = mapToBlockUV(itemFrame.location.direction, canvasOffset)
+        // キャンバス内UVを計算、キャンバス範囲外ならばスキップ
         val uv = transformUV(itemFrame.rotation, rawUV)
             ?: return
         // キャンバスに描画
@@ -109,8 +111,11 @@ class CanvasDrawListener : Listener {
         if (session.eyeLocation.direction.dot(itemFrame.facing.direction) > 0) {
             return
         }
-        // UVを計算
-        val (rawUV, _) = calculateUV(session.eyeLocation, itemFrame.location, itemFrame.isVisible)
+        // キャンバスのオフセットを計算
+        val canvasOffset = intersectCanvas(session.eyeLocation, itemFrame.location, itemFrame.isVisible)
+        // UVに変換
+        val rawUV = mapToBlockUV(itemFrame.location.direction, canvasOffset)
+        // キャンバス内UVを計算、キャンバス範囲外ならばスキップ
         val uv = transformUV(itemFrame.rotation, rawUV)
             ?: return
         // キャンバスに描画
@@ -281,8 +286,10 @@ class CanvasDrawListener : Listener {
             // マップデータを取得、ただの地図ならばスキップ
             val mapItem = MapItem.get(itemFrame.item)
                 ?: continue
-            // UVとキャンバスのオフセットを計算
-            val (rawUV, canvasOffset) = calculateUV(playerEyePos, itemFrame.location, itemFrame.isVisible)
+            // キャンバスのオフセットを計算
+            val canvasOffset = intersectCanvas(playerEyePos, itemFrame.location, itemFrame.isVisible)
+            // UVに変換
+            val rawUV = mapToBlockUV(itemFrame.location.direction, canvasOffset)
             // キャンバス内UVを計算、キャンバス範囲外ならばスキップ
             val uv = transformUV(itemFrame.rotation, rawUV)
                 ?: continue
@@ -356,27 +363,21 @@ class CanvasDrawListener : Listener {
     }
 
     /**
-     * プレイヤーの視点からキャンバス内のブロックUV座標を計算する
+     * プレイヤーの視点とアイテムフレームの位置から交点の座標を計算する
      * @param playerEyePos プレイヤーの目線位置
      * @param itemFrameLocation アイテムフレームの座標
      * @param isFrameVisible アイテムフレームが見えるかどうか
-     * @return UV座標とキャンバスのオフセット
+     * @return 交点座標
      */
-    private fun calculateUV(
+    private fun intersectCanvas(
         playerEyePos: Location,
         itemFrameLocation: Location,
         isFrameVisible: Boolean
-    ): Pair<UV, Vector> {
+    ): Vector {
         // プレイヤーの目線の方向
         val playerDirection = playerEyePos.direction
-
-        // アイテムフレームの正面の整数ベクトル
-        val itemFrameDirection = itemFrameLocation.direction.let {
-            val x = it.x.roundToLong().toDouble()
-            val y = it.y.roundToLong().toDouble()
-            val z = it.z.roundToLong().toDouble()
-            Vector(x, y, z)
-        }
+        // アイテムフレームの正面ベクトル
+        val itemFrameDirection = itemFrameLocation.direction
 
         // キャンバス平面とアイテムフレームの差 = 額縁の厚さ/2
         val canvasOffset = if (isFrameVisible) 0.04 else -0.0225
@@ -391,30 +392,44 @@ class CanvasDrawListener : Listener {
         // http://www.sousakuba.com/Programming/gs_plane_line_intersect.html
         val v1 = itemFrameDirection.clone().dot(canvasPlaneToEye)
         val v0 = itemFrameDirection.clone().dot(playerDirection)
-        val lookOffset = canvasPlaneToEye.clone().subtract(playerDirection.clone().multiply(v1 / v0))
 
+        // 交点の座標を求める
+        return canvasPlaneToEye.clone().subtract(playerDirection.clone().multiply(v1 / v0))
+    }
+
+    /**
+     * 交点座標をキャンバス上のUV座標に変換する
+     * UV座標は中央が(0,0)になる
+     * @param itemFrameDirection アイテムフレームの正面ベクトル
+     * @param intersectPosition 交点座標
+     * @return キャンバス上のUV座標
+     */
+    private fun mapToBlockUV(
+        itemFrameDirection: Vector,
+        intersectPosition: Vector
+    ): UV {
         // 各向きについてUV座標を計算する
         val u = if (abs(itemFrameDirection.x) > abs(itemFrameDirection.z)) {
             if (itemFrameDirection.x > 0)
-                -lookOffset.z // 西向き
+                -intersectPosition.z // 西向き
             else
-                lookOffset.z // 東向き
+                intersectPosition.z // 東向き
         } else {
             if (abs(itemFrameDirection.y) > 0)
-                lookOffset.x // 上向き, 下向き
+                intersectPosition.x // 上向き, 下向き
             else if (itemFrameDirection.z > 0)
-                lookOffset.x // 北向き
+                intersectPosition.x // 北向き
             else
-                -lookOffset.x // 南向き
+                -intersectPosition.x // 南向き
         }
         val v = if (abs(itemFrameDirection.y) > 0) {
             if (itemFrameDirection.y > 0)
-                lookOffset.z // 上向き
+                intersectPosition.z // 上向き
             else
-                -lookOffset.z // 下向き
+                -intersectPosition.z // 下向き
         } else {
-            -lookOffset.y // 横向き
+            -intersectPosition.y // 横向き
         }
-        return UV(u, v) to lookOffset
+        return UV(u, v)
     }
 }
