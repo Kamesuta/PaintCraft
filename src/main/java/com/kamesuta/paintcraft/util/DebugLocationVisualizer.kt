@@ -54,7 +54,7 @@ object DebugLocationVisualizer {
             if (location == null) {
                 locations.remove(type)
             } else {
-                locations[type] = location
+                locations[type] = location.clone()
             }
         }
 

@@ -5,6 +5,11 @@ enum class DebugLocationType(val group: DebugLocationGroup = DebugLocationGroup.
     EYE_DIRECTION,
     BLOCK_HIT_LOCATION,
     CANVAS_HIT_LOCATION,
+    FRAME_LOCATION,
+    FRAME_DIRECTION,
+    FRAME_FACING,
+    FRAME_FACING_BLOCK,
+    CANVAS_LOCATION,
     ;
 
     enum class DebugLocationGroup {
