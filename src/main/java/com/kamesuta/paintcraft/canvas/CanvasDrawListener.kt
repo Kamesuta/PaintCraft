@@ -342,24 +342,32 @@ class CanvasDrawListener : Listener {
     ) {
         // アイテムフレームの位置を取得
         val itemFrameLocation = itemFrame.location
+        player.debugLocation(DebugLocationType.FRAME_LOCATION, itemFrameLocation)
+        player.debugLocation(DebugLocationType.FRAME_DIRECTION, itemFrameLocation.clone().add(itemFrameLocation.direction))
+        player.debugLocation(DebugLocationType.FRAME_FACING, itemFrameLocation.clone().add(itemFrame.facing.direction))
+        player.debugLocation(DebugLocationType.FRAME_FACING_BLOCK, itemFrameLocation.toCenterLocation())
+
+        // アイテムフレームの位置を取得
+        val canvasLocation = itemFrameLocation.toCanvasLocation()
+        player.debugLocation(DebugLocationType.CANVAS_LOCATION, canvasLocation)
+        // アイテムフレームの正面ベクトル
+        player.debugLocation(
+            DebugLocationType.CANVAS_DIRECTION,
+            canvasLocation.clone().add(canvasLocation.canvasDirection)
+        )
+
+        // ヒット位置
+        val canvasHitLocation = canvasLocation.clone().add(canvasOffset)
+        player.debugLocation(DebugLocationType.CANVAS_HIT_LOCATION, canvasHitLocation)
+
         // アイテムフレームが貼り付いているブロックの位置を計算する
-        val blockLocation = itemFrameLocation.clone().add(
+        val blockLocation = canvasLocation.clone().add(
             -0.5 * itemFrame.facing.modX,
             -0.5 * itemFrame.facing.modY,
             -0.5 * itemFrame.facing.modZ,
         )
-        // ヒット位置
-        val canvasHitLocation = itemFrameLocation.clone().add(canvasOffset)
-        player.debugLocation(DebugLocationType.CANVAS_HIT_LOCATION, canvasHitLocation)
-        player.debugLocation(DebugLocationType.FRAME_LOCATION, itemFrameLocation)
-        player.debugLocation(
-            DebugLocationType.FRAME_DIRECTION,
-            itemFrameLocation.clone().add(itemFrameLocation.direction)
-        )
-        player.debugLocation(DebugLocationType.FRAME_FACING, itemFrameLocation.clone().add(itemFrame.facing.direction))
-        player.debugLocation(DebugLocationType.FRAME_FACING_BLOCK, itemFrameLocation.toCenterLocation())
         // インタラクトオブジェクトを作成
-        val interact = CanvasInteraction(uv, player, blockLocation, itemFrameLocation, actionType)
+        val interact = CanvasInteraction(uv, player, blockLocation, canvasLocation, actionType)
 
         // キャンバスに描画する
         session.tool.paint(player.inventory.itemInMainHand, mapItem, interact)
@@ -403,16 +411,16 @@ class CanvasDrawListener : Listener {
     ): Vector {
         // プレイヤーの目線の方向
         val playerDirection = playerEyePos.direction
-        // アイテムフレームの正面ベクトル
-        val itemFrameDirection = itemFrameLocation.direction
 
         // キャンバス平面の位置 (tpでアイテムフレームを回転したときにずれる)
         val canvasLocation = itemFrameLocation.toCanvasLocation()
-        debugPlayer.debugLocation(DebugLocationType.CANVAS_LOCATION, canvasLocation)
+        // アイテムフレームの正面ベクトル
+        val canvasDirection = canvasLocation.canvasDirection
+
         // キャンバス平面とアイテムフレームの差 = アイテムフレームの厚さ/2
-        val canvasOffset = if (isFrameVisible) 0.07 else 0.0075
+        val canvasOffsetZ = if (isFrameVisible) 0.07 else 0.0075
         // キャンバスの表面の平面の座標 = アイテムフレームエンティティの中心からアイテムフレームの厚さ/2だけずらした位置
-        val canvasPlane = canvasLocation.clone().add(itemFrameDirection.clone().multiply(canvasOffset))
+        val canvasPlane = canvasLocation.clone().add(canvasDirection.clone().multiply(canvasOffsetZ))
 
         // アイテムフレームから目線へのベクトル
         val canvasPlaneToEye = playerEyePos.toVector().subtract(canvasPlane.toVector())
@@ -420,8 +428,8 @@ class CanvasDrawListener : Listener {
         // 目線上のキャンバス座標のオフセットを計算 (平面とベクトルとの交点)
         // https://qiita.com/edo_m18/items/c8808f318f5abfa8af1e
         // http://www.sousakuba.com/Programming/gs_plane_line_intersect.html
-        val v1 = itemFrameDirection.clone().dot(canvasPlaneToEye)
-        val v0 = itemFrameDirection.clone().dot(playerDirection)
+        val v1 = canvasDirection.clone().dot(canvasPlaneToEye)
+        val v0 = canvasDirection.clone().dot(playerDirection)
 
         // 交点の座標を求める
         return canvasPlaneToEye.clone().subtract(playerDirection.clone().multiply(v1 / v0))
@@ -451,13 +459,18 @@ class CanvasDrawListener : Listener {
     /**
      * キャンバスフレームの平面の座標を求める
      * アイテムフレームの座標からキャンバス平面の座標を計算する
+     * @return キャンバスフレームの平面の座標
      */
     private fun Location.toCanvasLocation(): Location {
-        // キャンバスの向き。通常のdirectionとはpitchが反転していることに注意
-        val canvasDirection = Vector(0.0, 0.0, 1.0)
-            .rotateAroundY(Math.toRadians(-yaw.toDouble()))
-            .rotateAroundX(Math.toRadians(pitch.toDouble()))
         // 中心の座標ををキャンバスの向き方向にずらす
         return toCenterLocation().subtract(canvasDirection.multiply(0.5))
     }
+
+    /**
+     * キャンバスの向き。通常のdirectionとはpitchが反転していることに注意
+     */
+    private val Location.canvasDirection: Vector
+        get() = Vector(0.0, 0.0, 1.0)
+            .rotateAroundY(Math.toRadians(-yaw.toDouble()))
+            .rotateAroundX(Math.toRadians(pitch.toDouble()))
 }
