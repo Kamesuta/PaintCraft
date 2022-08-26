@@ -27,6 +27,8 @@ import org.bukkit.event.player.PlayerInteractEntityEvent
 import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.util.BoundingBox
 import org.bukkit.util.Vector
+import kotlin.math.asin
+import kotlin.math.atan2
 
 /**
  * 描画用のイベントリスナー
@@ -343,7 +345,10 @@ class CanvasDrawListener : Listener {
         // アイテムフレームの位置を取得
         val itemFrameLocation = itemFrame.location
         player.debugLocation(DebugLocationType.FRAME_LOCATION, itemFrameLocation)
-        player.debugLocation(DebugLocationType.FRAME_DIRECTION, itemFrameLocation.clone().add(itemFrameLocation.direction))
+        player.debugLocation(
+            DebugLocationType.FRAME_DIRECTION,
+            itemFrameLocation.clone().add(itemFrameLocation.direction)
+        )
         player.debugLocation(DebugLocationType.FRAME_FACING, itemFrameLocation.clone().add(itemFrame.facing.direction))
         player.debugLocation(DebugLocationType.FRAME_FACING_BLOCK, itemFrameLocation.toCenterLocation())
 
@@ -353,7 +358,7 @@ class CanvasDrawListener : Listener {
         // アイテムフレームの正面ベクトル
         player.debugLocation(
             DebugLocationType.CANVAS_DIRECTION,
-            canvasLocation.clone().add(canvasLocation.canvasDirection)
+            canvasLocation.clone().add(canvasLocation.direction)
         )
 
         // ヒット位置
@@ -415,7 +420,7 @@ class CanvasDrawListener : Listener {
         // キャンバス平面の位置 (tpでアイテムフレームを回転したときにずれる)
         val canvasLocation = itemFrameLocation.toCanvasLocation()
         // アイテムフレームの正面ベクトル
-        val canvasDirection = canvasLocation.canvasDirection
+        val canvasDirection = canvasLocation.direction
 
         // キャンバス平面とアイテムフレームの差 = アイテムフレームの厚さ/2
         val canvasOffsetZ = if (isFrameVisible) 0.07 else 0.0075
@@ -462,15 +467,18 @@ class CanvasDrawListener : Listener {
      * @return キャンバスフレームの平面の座標
      */
     private fun Location.toCanvasLocation(): Location {
-        // 中心の座標ををキャンバスの向き方向にずらす
-        return toCenterLocation().subtract(canvasDirection.multiply(0.5))
-    }
-
-    /**
-     * キャンバスの向き。通常のdirectionとはpitchが反転していることに注意
-     */
-    private val Location.canvasDirection: Vector
-        get() = Vector(0.0, 0.0, 1.0)
+        // キャンバスの向き。通常のdirectionとはpitchが反転していることに注意
+        // Y軸回転→X軸回転をX軸回転→Y軸回転にするために、一旦単位方向ベクトルに変換
+        val dir = Vector(0.0, 0.0, 1.0)
             .rotateAroundY(Math.toRadians(-yaw.toDouble()))
             .rotateAroundX(Math.toRadians(pitch.toDouble()))
+
+        // 方向ベクトルからyawとpitchを求める
+        val center = toCenterLocation()
+        center.yaw = Math.toDegrees(-atan2(dir.x, dir.z)).toFloat()
+        center.pitch = Math.toDegrees(asin(-dir.y)).toFloat()
+
+        // 中心の座標ををキャンバスの向き方向にずらす
+        return center.subtract(dir.multiply(0.5))
+    }
 }
