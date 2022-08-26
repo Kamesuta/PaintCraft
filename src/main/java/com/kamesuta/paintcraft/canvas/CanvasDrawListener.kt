@@ -455,9 +455,9 @@ class CanvasDrawListener : Listener {
     private fun Location.toCanvasLocation(): Location {
         // キャンバスの向き。通常のdirectionとはpitchが反転していることに注意
         val canvasDirection = Vector(0.0, 0.0, 1.0)
-            .rotateAroundX(Math.toRadians(pitch.toDouble()))
             .rotateAroundY(Math.toRadians(-yaw.toDouble()))
+            .rotateAroundX(Math.toRadians(pitch.toDouble()))
         // 中心の座標ををキャンバスの向き方向にずらす
-        return toCenterLocation().subtract(/*canvasDirection*/direction.multiply(0.5))
+        return toCenterLocation().subtract(canvasDirection.multiply(0.5))
     }
 }
