@@ -64,20 +64,19 @@ class CanvasDrawListener : Listener {
 
         // キャンバスのセッションを取得
         val session = CanvasSessionManager.getSession(player)
+
+        // レイを飛ばしてチェックしアイテムフレームを取得
+        // (イベントからエンティティが取れるが、前後関係でより近い額縁がある事があるのでレイを飛ばしてエンティティを取得する)
+        val ray = rayTraceCanvas(session.eyeLocation, player)
+            ?: return
+
         // 裏からのクリックは無視
-        if (session.eyeLocation.direction.dot(itemFrame.facing.direction) > 0) {
+        if (!isCanvasFrontSide(session.eyeLocation.direction, ray.itemFrame)) {
             return
         }
-        // キャンバスのオフセットを計算
-        val itemFrameLocation = itemFrame.location
-        val canvasOffset = intersectCanvas(session.eyeLocation, itemFrameLocation, itemFrame.isVisible, player)
-        // UVに変換
-        val rawUV = mapToBlockUV(itemFrameLocation.yaw, itemFrameLocation.pitch, canvasOffset)
-        // キャンバス内UVを計算、キャンバス範囲外ならばスキップ
-        val uv = transformUV(itemFrame.rotation, rawUV)
-            ?: return
+
         // キャンバスに描画
-        manipulate(itemFrame, mapItem, canvasOffset, uv, player, session, CanvasActionType.LEFT_CLICK)
+        manipulate(ray.itemFrame, ray.mapItem, ray.canvasOffset, ray.uv, player, session, CanvasActionType.LEFT_CLICK)
     }
 
     /**
@@ -109,20 +108,19 @@ class CanvasDrawListener : Listener {
 
         // キャンバスのセッションを取得
         val session = CanvasSessionManager.getSession(player)
+
+        // レイを飛ばしてチェックしアイテムフレームを取得
+        // (イベントからエンティティが取れるが、前後関係でより近い額縁がある事があるのでレイを飛ばしてエンティティを取得する)
+        val ray = rayTraceCanvas(session.eyeLocation, player)
+            ?: return
+
         // 裏からのクリックは無視
-        if (session.eyeLocation.direction.dot(itemFrame.facing.direction) > 0) {
+        if (!isCanvasFrontSide(session.eyeLocation.direction, ray.itemFrame)) {
             return
         }
-        // キャンバスのオフセットを計算
-        val itemFrameLocation = itemFrame.location
-        val canvasOffset = intersectCanvas(session.eyeLocation, itemFrameLocation, itemFrame.isVisible, player)
-        // UVに変換
-        val rawUV = mapToBlockUV(itemFrameLocation.yaw, itemFrameLocation.pitch, canvasOffset)
-        // キャンバス内UVを計算、キャンバス範囲外ならばスキップ
-        val uv = transformUV(itemFrame.rotation, rawUV)
-            ?: return
+
         // キャンバスに描画
-        manipulate(itemFrame, mapItem, canvasOffset, uv, player, session, CanvasActionType.RIGHT_CLICK)
+        manipulate(ray.itemFrame, ray.mapItem, ray.canvasOffset, ray.uv, player, session, CanvasActionType.RIGHT_CLICK)
     }
 
     /**
@@ -146,6 +144,14 @@ class CanvasDrawListener : Listener {
         val ray = rayTraceCanvas(session.eyeLocation, player)
             ?: return
 
+        // イベントをキャンセル
+        event.isCancelled = true
+
+        // 裏からのクリックは無視
+        if (!isCanvasFrontSide(session.eyeLocation.direction, ray.itemFrame)) {
+            return
+        }
+
         // キャンバスに描画
         manipulate(
             ray.itemFrame, ray.mapItem, ray.canvasOffset, ray.uv, player, session,
@@ -157,8 +163,6 @@ class CanvasDrawListener : Listener {
                 else -> return
             }
         )
-        // イベントをキャンセル
-        event.isCancelled = true
     }
 
     /**
@@ -230,6 +234,11 @@ class CanvasDrawListener : Listener {
             val ray = rayTraceCanvas(playerEyePos, player)
                 ?: return@runTask
 
+            // 裏からのクリックは無視
+            if (!isCanvasFrontSide(playerEyePos.direction, ray.itemFrame)) {
+                return@runTask
+            }
+
             // キャンバスに描画
             manipulate(
                 ray.itemFrame,
@@ -255,6 +264,42 @@ class CanvasDrawListener : Listener {
         val canvasOffset: Vector,
         val uv: UVInt,
     )
+
+    /**
+     * 指定されたアイテムフレームにレイを飛ばして一致する場合は取得
+     * @param playerEyePos プレイヤーの目線の位置
+     * @param debugPlayer プレイヤー
+     * @param itemFrame アイテムフレーム
+     */
+    private fun rayTraceCanvasByEntity(
+        playerEyePos: Location,
+        debugPlayer: Player,
+        itemFrame: ItemFrame,
+    ): CanvasRayTraceResult? {
+        // マップデータを取得、ただの地図ならばスキップ
+        val mapItem = MapItem.get(itemFrame.item)
+            ?: return null
+        // キャンバスのオフセットを計算
+        val itemFrameLocation = itemFrame.location
+        val canvasOffset = intersectCanvas(playerEyePos, itemFrameLocation, itemFrame.isVisible, debugPlayer)
+        // UVに変換
+        val rawUV = mapToBlockUV(itemFrameLocation.yaw, itemFrameLocation.pitch, canvasOffset)
+        // キャンバス内UVを計算、キャンバス範囲外ならばスキップ
+        val uv = transformUV(itemFrame.rotation, rawUV)
+            ?: return null
+        return CanvasRayTraceResult(itemFrame, mapItem, canvasOffset, uv)
+    }
+
+    /**
+     * キャンバスが表か判定する
+     * @param playerDirection プレイヤーの方向
+     * @param itemFrame アイテムフレーム
+     * @return キャンバスが表かどうか
+     */
+    private fun isCanvasFrontSide(playerDirection: Vector, itemFrame: ItemFrame): Boolean {
+        // 裏からのクリックを判定
+        return playerDirection.dot(itemFrame.location.toCanvasLocation().direction) <= 0
+    }
 
     /**
      * レイを飛ばしてアイテムフレームを取得
@@ -288,8 +333,6 @@ class CanvasDrawListener : Listener {
             .map { it as ItemFrame }
             // その中からアイテムフレームを取得する
             .filter { it.item.type == Material.FILLED_MAP }
-            // 正面に向いているアイテムフレームのみを取得する
-            .filter { playerDirection.dot(it.location.direction) <= 0 }
             // 最も近いエンティティを取得するために距離順にソートする
             .sortedBy {
                 // キャンバス平面の位置 (tpでアイテムフレームを回転したときにずれる)
@@ -311,13 +354,13 @@ class CanvasDrawListener : Listener {
             // キャンバス内UVを計算、キャンバス範囲外ならばスキップ
             val uv = transformUV(itemFrame.rotation, rawUV)
                 ?: continue
-            // キャンバスよりも手前にブロックがあるならばスキップ
+            // キャンバスよりも手前にブロックがあるならば探索終了
             if (blockHitLocation != null) {
                 val blockDistance = blockHitLocation.distance(playerEyePos)
                 val canvasHitLocation = itemFrameLocation.clone().add(canvasOffset)
                 val canvasDistance = canvasHitLocation.distance(playerEyePos)
                 if (blockDistance + 0.5 < canvasDistance) {
-                    continue
+                    break
                 }
             }
             return CanvasRayTraceResult(itemFrame, mapItem, canvasOffset, uv)
