@@ -12,6 +12,7 @@ import com.kamesuta.paintcraft.util.LocationOperation
 import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.Material
+import org.bukkit.entity.Entity
 import org.bukkit.entity.ItemFrame
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
@@ -41,16 +42,10 @@ class CanvasDrawListener : Listener {
         // デバッグ座標を初期化
         player.clearDebug()
 
-        // アイテムフレームを取得
-        val itemFrame = event.entity as? ItemFrame
-            ?: return
-        // アイテムが地図かどうかを確認
-        if (itemFrame.item.type != Material.FILLED_MAP) {
+        // キャンバス以外は無視
+        if (!event.entity.isCanvas()) {
             return
         }
-        // キャンバスか判定し取得
-        MapItem.get(itemFrame.item)
-            ?: return
         // イベントをキャンセル (ここに来た時点でキャンバスを左クリックしているのでアイテムフレームが破壊されないようにキャンセルする)
         event.isCancelled = true
 
@@ -92,16 +87,10 @@ class CanvasDrawListener : Listener {
         // デバッグ座標を初期化
         player.clearDebug()
 
-        // アイテムフレームを取得
-        val itemFrame = event.rightClicked as? ItemFrame
-            ?: return
-        // アイテムが地図かどうかを確認
-        if (itemFrame.item.type != Material.FILLED_MAP) {
+        // キャンバス以外は無視
+        if (!event.rightClicked.isCanvas()) {
             return
         }
-        // キャンバスか判定し取得
-        MapItem.get(itemFrame.item)
-            ?: return
         // イベントをキャンセル (ここに来た時点でキャンバスを右クリックしているのでアイテムフレームが回転しないようにキャンセルする)
         event.isCancelled = true
 
@@ -257,6 +246,23 @@ class CanvasDrawListener : Listener {
                 CanvasActionType.MOUSE_MOVE
             )
         }
+    }
+
+    /**
+     * キャンバスかどうか判定
+     */
+    private fun Entity.isCanvas(): Boolean {
+        // アイテムフレームを取得
+        val itemFrame = this as? ItemFrame
+            ?: return false
+        // アイテムが地図かどうかを確認
+        if (itemFrame.item.type != Material.FILLED_MAP) {
+            return false
+        }
+        // キャンバスか判定し取得
+        MapItem.get(itemFrame.item)
+            ?: return false
+        return true
     }
 
     /**
