@@ -4,6 +4,7 @@ import com.comphenix.protocol.PacketType
 import com.comphenix.protocol.events.ListenerPriority
 import com.comphenix.protocol.events.PacketAdapter
 import com.comphenix.protocol.events.PacketEvent
+import com.comphenix.protocol.utility.MinecraftReflection
 import com.kamesuta.paintcraft.PaintCraft
 import com.kamesuta.paintcraft.map.DrawableMapItem
 import com.kamesuta.paintcraft.util.DebugLocationType
@@ -16,170 +17,12 @@ import org.bukkit.Material
 import org.bukkit.entity.Entity
 import org.bukkit.entity.ItemFrame
 import org.bukkit.entity.Player
-import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
-import org.bukkit.event.block.Action
-import org.bukkit.event.entity.EntityDamageByEntityEvent
-import org.bukkit.event.player.PlayerInteractEntityEvent
-import org.bukkit.event.player.PlayerInteractEvent
 
 /**
  * 描画用のイベントリスナー
  */
 class CanvasDrawListener : Listener {
-    /**
-     * アイテムフレームを直接左クリックしたときに描画する
-     * @param event イベント
-     */
-    @EventHandler
-    fun onAttack(event: EntityDamageByEntityEvent) {
-        // 左クリックしたプレイヤー
-        val player = event.damager as? Player
-            ?: return
-        // プレイヤーの右手にインクがあるか
-        if (player.hasPencil()) {
-            return
-        }
-        // デバッグ座標を初期化
-        player.clearDebug()
-
-        // キャンバス以外は無視
-        if (!event.entity.isCanvas()) {
-            return
-        }
-        // イベントをキャンセル (ここに来た時点でキャンバスを左クリックしているのでアイテムフレームが破壊されないようにキャンセルする)
-        event.isCancelled = true
-
-        // キャンバスのセッションを取得
-        val session = CanvasSessionManager.getSession(player)
-
-        // レイツールを初期化
-        val rayTrace = CanvasRayTrace(player)
-        // レイを飛ばしてチェックしアイテムフレームを取得
-        // (イベントからエンティティが取れるが、前後関係でより近い額縁がある事があるのでレイを飛ばしてエンティティを取得する)
-        val ray = rayTrace.rayTraceCanvas(session.eyeLocation)
-            ?: return
-
-        // 裏からのクリックは無視
-        if (!rayTrace.isCanvasFrontSide(session.eyeLocation.direction, ray.itemFrame)) {
-            return
-        }
-
-        // キャンバスに描画
-        rayTrace.manipulate(
-            ray,
-            session,
-            CanvasActionType.LEFT_CLICK
-        )
-    }
-
-    /**
-     * アイテムフレームを直接右クリックしたときに描画する
-     * @param event イベント
-     */
-    @EventHandler
-    fun onInteractEntity(event: PlayerInteractEntityEvent) {
-        // 右クリックしたプレイヤー
-        val player = event.player
-        // プレイヤーの右手にインクがあるか
-        if (player.hasPencil()) {
-            return
-        }
-        // デバッグ座標を初期化
-        player.clearDebug()
-
-        // キャンバスのセッションを取得
-        val session = CanvasSessionManager.getSession(player)
-
-        // 最後の右クリック時間を取得
-        session.lastInteract = TimeWatcher.now
-
-        // キャンバス以外は無視
-        if (!event.rightClicked.isCanvas()) {
-            return
-        }
-        // イベントをキャンセル (ここに来た時点でキャンバスを右クリックしているのでアイテムフレームが回転しないようにキャンセルする)
-        event.isCancelled = true
-
-        // レイツールを初期化
-        val rayTrace = CanvasRayTrace(player)
-        // レイを飛ばしてチェックしアイテムフレームを取得
-        // (イベントからエンティティが取れるが、前後関係でより近い額縁がある事があるのでレイを飛ばしてエンティティを取得する)
-        val ray = rayTrace.rayTraceCanvas(session.eyeLocation)
-            ?: return
-
-        // 裏からのクリックは無視
-        if (!rayTrace.isCanvasFrontSide(session.eyeLocation.direction, ray.itemFrame)) {
-            return
-        }
-
-        // キャンバスに描画
-        rayTrace.manipulate(
-            ray,
-            session,
-            CanvasActionType.RIGHT_CLICK
-        )
-    }
-
-    /**
-     * アイテムフレームを遠くから左右クリックしたときに描画する
-     * @param event イベント
-     */
-    @EventHandler
-    fun onInteract(event: PlayerInteractEvent) {
-        // 左右クリックしたプレイヤー
-        val player = event.player
-        // プレイヤーの右手にインクがあるか
-        if (player.hasPencil()) {
-            return
-        }
-        // デバッグ座標を初期化
-        player.clearDebug()
-
-        // キャンバスのセッションを取得
-        val session = CanvasSessionManager.getSession(player)
-
-        // 最後の右クリック時間を取得
-        if (event.action == Action.RIGHT_CLICK_AIR || event.action == Action.RIGHT_CLICK_BLOCK) {
-            session.lastInteract = TimeWatcher.now
-        }
-
-        // レイツールを初期化
-        val rayTrace = CanvasRayTrace(player)
-        // レイを飛ばしてアイテムフレームを取得
-        val ray = rayTrace.rayTraceCanvas(session.eyeLocation)
-            ?: return
-
-        // イベントをキャンセル
-        event.isCancelled = true
-
-        // 裏からのクリックは無視
-        if (!rayTrace.isCanvasFrontSide(session.eyeLocation.direction, ray.itemFrame)) {
-            return
-        }
-
-        // キャンバスに描画
-        rayTrace.manipulate(
-            ray, session,
-            when (event.action) {
-                Action.RIGHT_CLICK_BLOCK -> CanvasActionType.RIGHT_CLICK
-                Action.RIGHT_CLICK_AIR -> CanvasActionType.RIGHT_CLICK
-                Action.LEFT_CLICK_BLOCK -> CanvasActionType.LEFT_CLICK
-                Action.LEFT_CLICK_AIR -> {
-                    // エンティティを右クリックすると左クリック判定になるので、
-                    // PlayerInteractEntityEvent直後にPlayerInteractEventで左クリック判定だった場合は誤検知であるため無視する
-                    if (CanvasSession.interactEntityDuration.isInTime(session.lastInteract)) {
-                        // エンティティを右クリック後から一定時間経過していなければ無視
-                        return
-                    }
-                    // 左クリック判定
-                    CanvasActionType.LEFT_CLICK
-                }
-                else -> return
-            }
-        )
-    }
-
     /**
      * プレイヤーの移動パケットリスナーを作成する
      * @return プレイヤーの移動パケットリスナー
@@ -188,45 +31,56 @@ class CanvasDrawListener : Listener {
         return object : PacketAdapter(
             PaintCraft.instance,
             ListenerPriority.NORMAL,
-            PacketType.Play.Client.LOOK,
-            PacketType.Play.Client.POSITION,
-            PacketType.Play.Client.POSITION_LOOK,
+            listOf(
+                PacketType.Play.Client.LOOK,
+                PacketType.Play.Client.POSITION,
+                PacketType.Play.Client.POSITION_LOOK,
+            ),
         ) {
             override fun onPacketReceiving(event: PacketEvent) {
+                // プレイヤーがいなければ無視
                 val player = event.player
+                    ?: return
+                // プレイヤーの右手にインクがあるか
+                if (player.hasPencil()) {
+                    return
+                }
+
+                // パケット解析
                 val packet = event.packet
+                // 座標を読み取る
                 val x = packet.doubles.read(0)
                 val y = packet.doubles.read(1)
                 val z = packet.doubles.read(2)
                 val yaw = packet.float.read(0)
                 val pitch = packet.float.read(1)
+
+                // 座標構築
                 val location = Location(player.world, x, y + player.eyeHeight, z, yaw, pitch)
-                onMovePacket(
-                    player,
-                    location,
-                    when (event.packetType) {
-                        PacketType.Play.Client.LOOK -> LocationOperation.LOOK
-                        PacketType.Play.Client.POSITION -> LocationOperation.POSITION
-                        PacketType.Play.Client.POSITION_LOOK -> LocationOperation.POSITION_LOOK
-                        else -> LocationOperation.NONE
-                    }
-                )
+                // 更新する部分の指定
+                val locationOperation = when (event.packetType) {
+                    PacketType.Play.Client.LOOK -> LocationOperation.LOOK
+                    PacketType.Play.Client.POSITION -> LocationOperation.POSITION
+                    PacketType.Play.Client.POSITION_LOOK -> LocationOperation.POSITION_LOOK
+                    else -> LocationOperation.NONE
+                }
+
+                // メインスレッド以外でエンティティを取得できないため、メインスレッドで処理
+                Bukkit.getScheduler().runTask(PaintCraft.instance) { ->
+                    onMovePacket(player, location, locationOperation)
+                }
             }
         }
     }
 
     /**
-     * 動いたとき (描いている最中のみ)
+     * 動いたとき
      * PaintCraftクラス(ProtocolLib)から呼ばれる
      * @param player プレイヤー
      * @param eyeLocation 移動先の位置
      * @param locationOperation 移動先の位置における操作
      */
     private fun onMovePacket(player: Player, eyeLocation: Location, locationOperation: LocationOperation) {
-        // プレイヤーの右手にインクがあるか
-        if (player.hasPencil()) {
-            return
-        }
         // キャンバスのセッションを取得
         val session = CanvasSessionManager.getSession(player)
 
@@ -240,30 +94,174 @@ class CanvasDrawListener : Listener {
             return
         }
 
-        // メインスレッド以外でエンティティを取得できないため、メインスレッドで処理
-        Bukkit.getScheduler().runTask(PaintCraft.instance) { ->
-            // スレッドが違うと問題が起こるためここでclear
-            // デバッグ座標を初期化
-            player.clearDebug()
+        // スレッドが違うと問題が起こるためここでclear
+        // デバッグ座標を初期化
+        player.clearDebug()
 
-            // レイツールを初期化
-            val rayTrace = CanvasRayTrace(player)
-            // レイを飛ばしてアイテムフレームを取得
-            val ray = rayTrace.rayTraceCanvas(playerEyePos)
-                ?: return@runTask
+        // レイツールを初期化
+        val rayTrace = CanvasRayTrace(player)
+        // レイを飛ばしてアイテムフレームを取得
+        val ray = rayTrace.rayTraceCanvas(playerEyePos)
+            ?: return
 
-            // 裏からのクリックは無視
-            if (!rayTrace.isCanvasFrontSide(playerEyePos.direction, ray.itemFrame)) {
-                return@runTask
+        // 裏からのクリックは無視
+        if (!rayTrace.isCanvasFrontSide(playerEyePos.direction, ray.itemFrame)) {
+            return
+        }
+
+        // キャンバスに描画
+        rayTrace.manipulate(
+            ray,
+            session,
+            CanvasActionType.MOUSE_MOVE
+        )
+    }
+
+    /**
+     * パケットのクリックの種類
+     */
+    private enum class PacketEnumEntityUseAction {
+        INTERACT,
+        ATTACK,
+        INTERACT_AT,
+    }
+
+    /**
+     * プレイヤーのクリックパケットリスナーを作成する
+     * @return プレイヤーのクリックパケットリスナー
+     */
+    fun createClickPacketAdapter(): PacketAdapter {
+        return object : PacketAdapter(
+            PaintCraft.instance,
+            ListenerPriority.NORMAL,
+            listOf(
+                PacketType.Play.Client.BLOCK_PLACE,
+                PacketType.Play.Client.ARM_ANIMATION,
+                PacketType.Play.Client.USE_ITEM,
+                PacketType.Play.Client.USE_ENTITY,
+            ),
+        ) {
+            override fun onPacketReceiving(event: PacketEvent) {
+                // プレイヤーがいなければ無視
+                val player = event.player
+                    ?: return
+                // プレイヤーの右手にインクがあるか
+                if (player.hasPencil()) {
+                    return
+                }
+
+                // パケット解析
+                val packet = event.packet
+                // クリックの種類を解析
+                var targetEntity: Entity? = null
+                val clickType = when (event.packetType) {
+                    PacketType.Play.Client.BLOCK_PLACE -> CanvasActionType.RIGHT_CLICK
+                    PacketType.Play.Client.USE_ITEM -> CanvasActionType.RIGHT_CLICK
+                    PacketType.Play.Client.ARM_ANIMATION -> null
+                    PacketType.Play.Client.USE_ENTITY -> {
+                        // アクションの種類を解析
+                        @Suppress("UNCHECKED_CAST")
+                        val enumAction =
+                            MinecraftReflection.getMinecraftClass("PacketPlayInUseEntity\$EnumEntityUseAction") as Class<Any>
+                        val actionType = packet
+                            .getEnumModifier(PacketEnumEntityUseAction::class.java, enumAction)
+                            .read(0)
+                            ?: return
+                        // エンティティを取得
+                        targetEntity = packet.getEntityModifier(event).read(0)
+                        // 右クリックか左クリックか判定
+                        when (actionType) {
+                            PacketEnumEntityUseAction.INTERACT -> CanvasActionType.RIGHT_CLICK
+                            PacketEnumEntityUseAction.INTERACT_AT -> CanvasActionType.RIGHT_CLICK
+                            PacketEnumEntityUseAction.ATTACK -> CanvasActionType.LEFT_CLICK
+                        }
+                    }
+
+                    else -> return
+                }
+
+                // setCancelの判断を待ってもらう
+                val marker = event.asyncMarker
+                marker.incrementProcessingDelay()
+                // メインスレッド以外でエンティティを取得できないため、メインスレッドで処理
+                Bukkit.getScheduler().runTask(PaintCraft.instance) { ->
+                    // パケットを処理し、キャンセルフラグをセット
+                    event.isCancelled = onClickPacket(player, clickType, targetEntity)
+
+                    // ロック
+                    synchronized(marker.processingLock) {
+                        // 待ってもらっていたsetCancelの判断を続行してもらう
+                        PaintCraft.instance.protocolManager.asynchronousManager.signalPacketTransmission(event)
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * クリックしたとき
+     * PaintCraftクラス(ProtocolLib)から呼ばれる
+     * @param player プレイヤー
+     * @param actionType クリックの種類
+     * @param targetEntity クリックしたエンティティ (イベントの種類によってはない)
+     * @return キャンセルしたかどうか
+     */
+    private fun onClickPacket(player: Player, actionType: CanvasActionType?, targetEntity: Entity?): Boolean {
+        // デバッグ座標を初期化
+        player.clearDebug()
+
+        // キャンバスだったら必ず後でキャンセルする (return trueする)
+        val isCanvas = targetEntity?.isCanvas() ?: false
+
+        // キャンバスのセッションを取得
+        val session = CanvasSessionManager.getSession(player)
+
+        // 目線の位置を取得
+        val playerEyePos = session.eyeLocation
+        // レイツールを初期化
+        val rayTrace = CanvasRayTrace(player)
+        // レイを飛ばしてアイテムフレームを取得
+        val ray = rayTrace.rayTraceCanvas(playerEyePos)
+            ?: return isCanvas
+
+        // 裏からのクリックは無視
+        if (!rayTrace.isCanvasFrontSide(playerEyePos.direction, ray.itemFrame)) {
+            return isCanvas
+        }
+
+        // クリックタイプに応じた処理、判定を行う
+        val actionTypeRightOrLeft = when (actionType) {
+            CanvasActionType.RIGHT_CLICK -> {
+                // 最後の右クリック時間を取得
+                session.lastInteract = TimeWatcher.now
+
+                CanvasActionType.RIGHT_CLICK
             }
 
-            // キャンバスに描画
-            rayTrace.manipulate(
-                ray,
-                session,
-                CanvasActionType.MOUSE_MOVE
-            )
+            null -> {
+                // PacketType.Play.Client.ARM_ANIMATIONの場合、エンティティを右クリックすると左クリック判定になることがある
+                // 対策として、直前で右クリックが行われていれば右クリックだと判定する
+                if (CanvasSession.interactEntityDuration.isInTime(session.lastInteract)) {
+                    // エンティティを右クリック後から一定時間経過していなければ右クリック
+                    CanvasActionType.RIGHT_CLICK
+                } else {
+                    // 通常は左クリック
+                    CanvasActionType.LEFT_CLICK
+                }
+            }
+
+            CanvasActionType.LEFT_CLICK -> CanvasActionType.LEFT_CLICK
+            else -> return isCanvas
         }
+
+        // キャンバスに描画
+        rayTrace.manipulate(
+            ray,
+            session,
+            actionTypeRightOrLeft,
+        )
+
+        return true
     }
 
     /**

@@ -15,7 +15,8 @@ import java.lang.reflect.Array
  */
 object CanvasUpdater {
     private val mapIconClass = MinecraftReflection.getMinecraftClass("MapIcon")
-    private val mapIconArrayClass = MinecraftReflection.getArrayClass(mapIconClass)
+    @Suppress("UNCHECKED_CAST")
+    private val mapIconArrayClass = MinecraftReflection.getArrayClass(mapIconClass) as Class<Any>
 
     /**
      * プレイヤーにマップを送信する
@@ -54,8 +55,7 @@ object CanvasUpdater {
         packet.booleans.write(1, mapView.isLocked)
 
         // アイコンの配列
-        @Suppress("UNCHECKED_CAST")
-        packet.getSpecificModifier(mapIconArrayClass as Class<Any>).write(0, Array.newInstance(mapIconClass, 0))
+        packet.getSpecificModifier(mapIconArrayClass).write(0, Array.newInstance(mapIconClass, 0))
 
         // 更新する領域を設定する
         packet.integers.write(1, dirty.p1.u)

@@ -32,7 +32,9 @@ class PaintCraft : JavaPlugin() {
         server.pluginManager.registerEvents(drawListener, this)
 
         // カーソルが動いたときのパケットハンドラーを登録する
-        protocolManager.addPacketListener(drawListener.createMovePacketAdapter())
+        protocolManager.asynchronousManager.registerAsyncHandler(drawListener.createMovePacketAdapter()).start()
+        // クリックしたときのパケットハンドラーを登録する
+        protocolManager.asynchronousManager.registerAsyncHandler(drawListener.createClickPacketAdapter()).start()
     }
 
     companion object {
