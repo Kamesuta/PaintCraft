@@ -12,25 +12,31 @@ import org.bukkit.inventory.meta.MapMeta
 import org.bukkit.map.MapView
 import org.bukkit.persistence.PersistentDataType
 
+/**
+ * 書き込み可能マップ
+ * @param itemStack アイテム
+ * @param mapView マップ
+ * @param renderer レンダラー
+ */
 class MapItem(val itemStack: ItemStack, val mapView: MapView, val renderer: MapRenderer) {
+    /**
+     * マップに描画する
+     * @param f 描画する関数
+     */
     fun draw(f: (g: (draw: Draw) -> Unit) -> Unit) {
         f(renderer::draw)
     }
 
     companion object {
+        /**
+         * アイテムをマップとして認識するためのキー
+         */
         private val PAINT_GROUP_ID = NamespacedKey(PaintCraft.instance, "paint_group_id")
-        private var ItemMeta.paintGroupId: Int?
-            get() {
-                return persistentDataContainer.get(PAINT_GROUP_ID, PersistentDataType.INTEGER)
-            }
-            set(value) {
-                if (value != null) {
-                    persistentDataContainer.set(PAINT_GROUP_ID, PersistentDataType.INTEGER, value)
-                } else {
-                    persistentDataContainer.remove(PAINT_GROUP_ID)
-                }
-            }
 
+        /**
+         * 書き込み可能マップを作成する
+         * @param world ワールド
+         */
         fun create(world: World): MapItem {
             val mapView = Bukkit.getServer().createMap(world)
             val renderer = MapRenderer()
@@ -47,12 +53,17 @@ class MapItem(val itemStack: ItemStack, val mapView: MapView, val renderer: MapR
             return MapItem(item, mapView, renderer)
         }
 
+        /**
+         * 書き込み可能マップであれば取得する
+         * @param item アイテム
+         * @return 書き込み可能マップ
+         */
         fun get(item: ItemStack): MapItem? {
             if (item.type != Material.FILLED_MAP)
                 return null
             val mapView = (item.itemMeta as? MapMeta)?.mapView
                 ?: return null
-            val mapRenderer = mapView.getRenderer<MapRenderer>()
+            val mapRenderer = mapView.getRenderer()
             val renderer = if (mapRenderer != null) {
                 mapRenderer
             } else {
@@ -64,6 +75,41 @@ class MapItem(val itemStack: ItemStack, val mapView: MapView, val renderer: MapR
                 renderer
             }
             return MapItem(item, mapView, renderer)
+        }
+
+        /**
+         * マップのグループID
+         * TODO オーナーとか権限とかをグループIDで管理する
+         */
+        private var ItemMeta.paintGroupId: Int?
+            get() {
+                return persistentDataContainer.get(PAINT_GROUP_ID, PersistentDataType.INTEGER)
+            }
+            set(value) {
+                if (value != null) {
+                    persistentDataContainer.set(PAINT_GROUP_ID, PersistentDataType.INTEGER, value)
+                } else {
+                    persistentDataContainer.remove(PAINT_GROUP_ID)
+                }
+            }
+
+        /**
+         * マップのレンダラーを書き込み可能レンダラー置き換える
+         * @param renderer レンダラー
+         */
+        private fun MapView.setRenderer(renderer: MapRenderer?) {
+            // ConcurrentModificationExceptionが起きないように一度toListする
+            renderers.toList().forEach { removeRenderer(it) }
+            if (renderer != null) {
+                addRenderer(renderer)
+            }
+        }
+
+        /**
+         * 書き込み可能レンダラーを取得する
+         */
+        private fun MapView.getRenderer(): MapRenderer? {
+            return renderers.filterIsInstance<MapRenderer>().firstOrNull()
         }
     }
 }

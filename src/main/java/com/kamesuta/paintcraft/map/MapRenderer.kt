@@ -1,11 +1,15 @@
 package com.kamesuta.paintcraft.map
 
+import com.kamesuta.paintcraft.canvas.CanvasUpdater
 import com.kamesuta.paintcraft.map.draw.Draw
 import org.bukkit.entity.Player
 import org.bukkit.map.MapCanvas
 import org.bukkit.map.MapRenderer
 import org.bukkit.map.MapView
 
+/**
+ * 書き込み可能レンダラー
+ */
 class MapRenderer : MapRenderer() {
     /** 初期化フラグ */
     private var initialized = false
@@ -19,6 +23,14 @@ class MapRenderer : MapRenderer() {
     /** 変更フラグ */
     private var dirty = false
 
+    /**
+     * レンダリングする
+     * Bukkitから一定間隔で呼ばれる
+     * 更新があれば書き込みを行う
+     * @param map マップビュー
+     * @param canvas マップキャンバス
+     * @param player プレイヤー
+     */
     override fun render(map: MapView, canvas: MapCanvas, player: Player) {
         // マップが初期化されていない場合は初期化する
         if (!initialized) {
@@ -42,6 +54,9 @@ class MapRenderer : MapRenderer() {
         }
     }
 
+    /**
+     * 書き込みを行う
+     */
     fun draw(draw: Draw) {
         // 初期化チェック
         if (!initialized) {
@@ -54,6 +69,10 @@ class MapRenderer : MapRenderer() {
         dirty = true
     }
 
+    /**
+     * プレイヤーに更新を通知する
+     * @param player プレイヤー
+     */
     fun updatePlayer(player: Player) {
         // 初期化チェック
         if (!initialized) {
@@ -62,5 +81,34 @@ class MapRenderer : MapRenderer() {
 
         // プレイヤーカーソルを更新する
         mapCanvas.updatePlayer(player)
+    }
+
+    /** プレイヤーに更新を通知する */
+    private fun MapCanvas.updatePlayer(player: Player) {
+        val dirty = MapReflection.getMapDirtyArea(player, mapView)
+            ?: return
+        val buffer = MapReflection.getCanvasBuffer(this)
+            ?: return
+
+        // プレイヤーに地図を送信する
+        CanvasUpdater.sendMap(player, mapView, buffer, dirty)
+    }
+
+    /** キャンバスの内容をマップビューに保存し永続化する */
+    private fun MapCanvas.saveToMapView() {
+        val src = MapReflection.getCanvasBuffer(this)
+        val dst = MapReflection.getMapBuffer(mapView)
+        if (src != null && dst != null) {
+            src.copyTo(dst)
+        }
+    }
+
+    /** 永続化されたマップビューのデータを読み込む */
+    private fun MapCanvas.loadFromMapView() {
+        val src = MapReflection.getMapBuffer(mapView)
+        val dst = MapReflection.getCanvasBuffer(this)
+        if (src != null && dst != null) {
+            src.copyTo(dst)
+        }
     }
 }
