@@ -3,12 +3,12 @@ package com.kamesuta.paintcraft.canvas.paint
 import com.kamesuta.paintcraft.canvas.CanvasActionType
 import com.kamesuta.paintcraft.canvas.CanvasInteraction
 import com.kamesuta.paintcraft.canvas.CanvasSession
-import com.kamesuta.paintcraft.canvas.paint.PaintTool.Companion.isDrawTime
-import com.kamesuta.paintcraft.canvas.paint.PaintTool.Companion.now
+import com.kamesuta.paintcraft.canvas.paint.PaintTool.Companion.drawDuration
 import com.kamesuta.paintcraft.map.DrawableMapBuffer.Companion.mapSize
 import com.kamesuta.paintcraft.map.DrawableMapItem
 import com.kamesuta.paintcraft.map.draw.DrawLine
 import com.kamesuta.paintcraft.map.draw.DrawRect
+import com.kamesuta.paintcraft.util.TimeWatcher
 import org.bukkit.Material
 import org.bukkit.inventory.ItemStack
 import org.bukkit.map.MapPalette
@@ -25,7 +25,7 @@ class PaintPencil(override val session: CanvasSession) : PaintTool {
     private var drawMode: CanvasActionType? = null
 
     override val isDrawing: Boolean
-        get() = isDrawTime(lastTime)
+        get() = drawDuration.isInTime(lastTime)
 
     override fun paint(
         itemStack: ItemStack,
@@ -42,7 +42,7 @@ class PaintPencil(override val session: CanvasSession) : PaintTool {
 
         // 左右クリックした場合は状態を更新する
         if (interact.actionType != CanvasActionType.MOUSE_MOVE) {
-            lastTime = now
+            lastTime = TimeWatcher.now
             // 現在描いているモードを保存
             drawMode = interact.actionType
         }

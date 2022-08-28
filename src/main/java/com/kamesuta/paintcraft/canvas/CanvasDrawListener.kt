@@ -9,6 +9,7 @@ import com.kamesuta.paintcraft.map.DrawableMapItem
 import com.kamesuta.paintcraft.util.DebugLocationType
 import com.kamesuta.paintcraft.util.DebugLocationVisualizer.clearDebugLocation
 import com.kamesuta.paintcraft.util.LocationOperation
+import com.kamesuta.paintcraft.util.TimeWatcher
 import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.Material
@@ -87,15 +88,18 @@ class CanvasDrawListener : Listener {
         // デバッグ座標を初期化
         player.clearDebug()
 
+        // キャンバスのセッションを取得
+        val session = CanvasSessionManager.getSession(player)
+
+        // 最後の右クリック時間を取得
+        session.lastInteract = TimeWatcher.now
+
         // キャンバス以外は無視
         if (!event.rightClicked.isCanvas()) {
             return
         }
         // イベントをキャンセル (ここに来た時点でキャンバスを右クリックしているのでアイテムフレームが回転しないようにキャンセルする)
         event.isCancelled = true
-
-        // キャンバスのセッションを取得
-        val session = CanvasSessionManager.getSession(player)
 
         // レイツールを初期化
         val rayTrace = CanvasRayTrace(player)
@@ -135,6 +139,11 @@ class CanvasDrawListener : Listener {
         // キャンバスのセッションを取得
         val session = CanvasSessionManager.getSession(player)
 
+        // 最後の右クリック時間を取得
+        if (event.action == Action.RIGHT_CLICK_AIR || event.action == Action.RIGHT_CLICK_BLOCK) {
+            session.lastInteract = TimeWatcher.now
+        }
+
         // レイツールを初期化
         val rayTrace = CanvasRayTrace(player)
         // レイを飛ばしてアイテムフレームを取得
@@ -156,7 +165,16 @@ class CanvasDrawListener : Listener {
                 Action.RIGHT_CLICK_BLOCK -> CanvasActionType.RIGHT_CLICK
                 Action.RIGHT_CLICK_AIR -> CanvasActionType.RIGHT_CLICK
                 Action.LEFT_CLICK_BLOCK -> CanvasActionType.LEFT_CLICK
-                Action.LEFT_CLICK_AIR -> return // 右クリックを誤検知することがあるため無視
+                Action.LEFT_CLICK_AIR -> {
+                    // エンティティを右クリックすると左クリック判定になるので、
+                    // PlayerInteractEntityEvent直後にPlayerInteractEventで左クリック判定だった場合は誤検知であるため無視する
+                    if (CanvasSession.interactEntityDuration.isInTime(session.lastInteract)) {
+                        // エンティティを右クリック後から一定時間経過していなければ無視
+                        return
+                    }
+                    // 左クリック判定
+                    CanvasActionType.LEFT_CLICK
+                }
                 else -> return
             }
         )
