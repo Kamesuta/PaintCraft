@@ -22,24 +22,6 @@ import kotlin.math.atan2
  */
 class CanvasRayTrace(private val player: Player) {
     /**
-     * キャンバス上のヒットした位置情報
-     * @param itemFrame アイテムフレーム
-     * @param mapItem 地図アイテム
-     * @param canvasLocation キャンバス上の位置
-     * @param canvasIntersectOffset キャンバス上の位置とアイテムフレーム上の位置の差分
-     * @param uv UV
-     */
-    data class CanvasRayTraceResult(
-        val itemFrame: ItemFrame,
-        val mapItem: MapItem,
-        val canvasLocation: Location,
-        val canvasIntersectOffset: Vector,
-        val uv: UVInt,
-    ) {
-        val canvasIntersectLocation: Location by lazy { canvasLocation.clone().add(canvasIntersectOffset) }
-    }
-
-    /**
      * キャンバスが表か判定する
      * @param playerDirection プレイヤーの方向
      * @param itemFrame アイテムフレーム
@@ -138,14 +120,8 @@ class CanvasRayTrace(private val player: Player) {
         // ヒット位置
         player.debugLocation(DebugLocationType.CANVAS_HIT_LOCATION, ray.canvasIntersectLocation)
 
-        // アイテムフレームが貼り付いているブロックの位置を計算する
-        val blockLocation = canvasLocation.clone().add(
-            -0.5 * ray.itemFrame.facing.modX,
-            -0.5 * ray.itemFrame.facing.modY,
-            -0.5 * ray.itemFrame.facing.modZ,
-        )
         // インタラクトオブジェクトを作成
-        val interact = CanvasInteraction(ray.uv, player, blockLocation, canvasLocation, actionType)
+        val interact = CanvasInteraction(ray, player, actionType)
 
         // キャンバスに描画する
         session.tool.paint(player.inventory.itemInMainHand, ray.mapItem, interact)

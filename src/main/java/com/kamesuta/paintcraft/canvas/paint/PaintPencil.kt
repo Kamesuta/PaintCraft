@@ -62,7 +62,15 @@ class PaintPencil(override val session: CanvasSession) : PaintTool {
                 // 描くモードが右クリックの場合
                 CanvasActionType.RIGHT_CLICK -> {
                     lastEvent?.let { ev ->
-                        g(DrawLine(ev.interact.uv.u, ev.interact.uv.v, interact.uv.u, interact.uv.v, color))
+                        g(
+                            DrawLine(
+                                ev.interact.ray.uv.u,
+                                ev.interact.ray.uv.v,
+                                interact.ray.uv.u,
+                                interact.ray.uv.v,
+                                color
+                            )
+                        )
                     }
                 }
                 // その他 (想定外)
