@@ -34,11 +34,12 @@ class CanvasDrawListener : Listener {
         // 左クリックしたプレイヤー
         val player = event.damager as? Player
             ?: return
-        player.clearDebugLocation(DebugLocationType.DebugLocationGroup.CANVAS_DRAW)
         // プレイヤーの右手にインクがあるか
-        if (player.inventory.itemInMainHand.type != Material.INK_SAC) {
+        if (player.hasPencil()) {
             return
         }
+        // デバッグ座標を初期化
+        player.clearDebug()
 
         // アイテムフレームを取得
         val itemFrame = event.entity as? ItemFrame
@@ -84,11 +85,12 @@ class CanvasDrawListener : Listener {
     fun onInteractEntity(event: PlayerInteractEntityEvent) {
         // 右クリックしたプレイヤー
         val player = event.player
-        player.clearDebugLocation(DebugLocationType.DebugLocationGroup.CANVAS_DRAW)
         // プレイヤーの右手にインクがあるか
-        if (player.inventory.itemInMainHand.type != Material.INK_SAC) {
+        if (player.hasPencil()) {
             return
         }
+        // デバッグ座標を初期化
+        player.clearDebug()
 
         // アイテムフレームを取得
         val itemFrame = event.rightClicked as? ItemFrame
@@ -134,11 +136,12 @@ class CanvasDrawListener : Listener {
     fun onInteract(event: PlayerInteractEvent) {
         // 左右クリックしたプレイヤー
         val player = event.player
-        player.clearDebugLocation(DebugLocationType.DebugLocationGroup.CANVAS_DRAW)
         // プレイヤーの右手にインクがあるか
-        if (player.inventory.itemInMainHand.type != Material.INK_SAC) {
+        if (player.hasPencil()) {
             return
         }
+        // デバッグ座標を初期化
+        player.clearDebug()
 
         // キャンバスのセッションを取得
         val session = CanvasSessionManager.getSession(player)
@@ -214,7 +217,7 @@ class CanvasDrawListener : Listener {
      */
     private fun onMovePacket(player: Player, eyeLocation: Location, locationOperation: LocationOperation) {
         // プレイヤーの右手にインクがあるか
-        if (player.inventory.itemInMainHand.type != Material.INK_SAC) {
+        if (player.hasPencil()) {
             return
         }
         // キャンバスのセッションを取得
@@ -233,7 +236,8 @@ class CanvasDrawListener : Listener {
         // メインスレッド以外でエンティティを取得できないため、メインスレッドで処理
         Bukkit.getScheduler().runTask(PaintCraft.instance) { ->
             // スレッドが違うと問題が起こるためここでclear
-            player.clearDebugLocation(DebugLocationType.DebugLocationGroup.CANVAS_DRAW)
+            // デバッグ座標を初期化
+            player.clearDebug()
 
             // レイツールを初期化
             val rayTrace = CanvasRayTrace(player)
@@ -254,4 +258,15 @@ class CanvasDrawListener : Listener {
             )
         }
     }
+
+    /**
+     * デバッグ座標を初期化
+     */
+    private fun Player.clearDebug() = clearDebugLocation(DebugLocationType.DebugLocationGroup.CANVAS_DRAW)
+
+    /**
+     * プレイヤーがペンを持っているかどうかを確認する
+     * @return ペンを持っているかどうか
+     */
+    private fun Player.hasPencil() = inventory.itemInMainHand.type != Material.INK_SAC
 }
