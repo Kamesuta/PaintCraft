@@ -19,7 +19,9 @@ object MapReflection {
      */
     fun getCanvasBuffer(mapCanvas: MapCanvas): MapBuffer? {
         return try {
-            ReflectionAccessor.getField(mapCanvas, "buffer") as ByteArray?
+            (ReflectionAccessor.getField(mapCanvas, "buffer") as ByteArray?)?.let {
+                MapBuffer(it)
+            }
         } catch (e: ReflectiveOperationException) {
             PaintCraft.instance.logger.warning("Failed to get MapCanvas buffer")
             null
@@ -35,11 +37,14 @@ object MapReflection {
         return try {
             val worldMap: Any = ReflectionAccessor.getField(mapView, "worldMap")
                 ?: return null
-            try {
+            val pixels = try {
                 ReflectionAccessor.getField(worldMap, "colors") as ByteArray?
             } catch (e: NoSuchFieldException) {
                 //Then we must be on 1.17
                 ReflectionAccessor.getField(worldMap, "g") as ByteArray?
+            }
+            pixels?.let {
+                MapBuffer(it)
             }
         } catch (e: ReflectiveOperationException) {
             PaintCraft.instance.logger.warning("Failed to get map buffer")

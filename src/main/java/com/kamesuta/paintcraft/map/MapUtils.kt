@@ -32,7 +32,7 @@ fun MapCanvas.saveToMapView() {
     val src = MapReflection.getCanvasBuffer(this)
     val dst = MapReflection.getMapBuffer(mapView)
     if (src != null && dst != null) {
-        System.arraycopy(src, 0, dst, 0, dst.size)
+        src.copyTo(dst)
     }
 }
 
@@ -40,36 +40,6 @@ fun MapCanvas.loadFromMapView() {
     val src = MapReflection.getMapBuffer(mapView)
     val dst = MapReflection.getCanvasBuffer(this)
     if (src != null && dst != null) {
-        System.arraycopy(src, 0, dst, 0, dst.size)
+        src.copyTo(dst)
     }
-}
-
-fun createMapBuffer(): ByteArray {
-    return ByteArray(mapSize * mapSize)
-}
-
-fun MapBuffer.setMapPixel(x: Int, y: Int, color: MapDye) {
-    if (x < 0 || x >= mapSize || y < 0 || y >= mapSize) {
-        return
-    }
-
-    val index = y * mapSize + x
-    if (index < 0 || index >= size) {
-        return
-    }
-
-    this[index] = color
-}
-
-fun MapBuffer.getMapPixel(x: Int, y: Int): MapDye {
-    if (x < 0 || x >= mapSize || y < 0 || y >= mapSize) {
-        return 0
-    }
-
-    val index = y * mapSize + x
-    if (index < 0 || index >= size) {
-        return 0
-    }
-
-    return this[index]
 }

@@ -1,7 +1,7 @@
 package com.kamesuta.paintcraft.canvas
 
+import com.kamesuta.paintcraft.map.MapBuffer.Companion.mapSize
 import com.kamesuta.paintcraft.map.MapItem
-import com.kamesuta.paintcraft.map.mapSize
 import com.kamesuta.paintcraft.util.DebugLocationType
 import com.kamesuta.paintcraft.util.DebugLocationVisualizer.debugLocation
 import com.kamesuta.paintcraft.util.UV

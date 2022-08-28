@@ -1,6 +1,5 @@
 package com.kamesuta.paintcraft.map.draw
 
-import com.kamesuta.paintcraft.map.MapDye
 import org.bukkit.map.MapCanvas
 import kotlin.math.abs
 
@@ -9,7 +8,7 @@ class DrawLine(
     private val y1: Int,
     private val x2: Int,
     private val y2: Int,
-    private val color: MapDye,
+    private val color: Byte,
 ) : Draw {
     override fun draw(canvas: MapCanvas) {
         val w: Int = x2 - x1

@@ -1,6 +1,5 @@
 package com.kamesuta.paintcraft.map.draw
 
-import com.kamesuta.paintcraft.map.MapDye
 import org.bukkit.map.MapCanvas
 import kotlin.math.max
 import kotlin.math.min
@@ -10,7 +9,7 @@ class DrawRect(
     private val y1: Int,
     private val x2: Int,
     private val y2: Int,
-    private val color: MapDye,
+    private val color: Byte,
     private val fill: Boolean,
 ) : Draw {
     override fun draw(canvas: MapCanvas) {

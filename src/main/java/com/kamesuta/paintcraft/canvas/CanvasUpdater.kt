@@ -5,7 +5,6 @@ import com.comphenix.protocol.events.PacketContainer
 import com.comphenix.protocol.utility.MinecraftReflection
 import com.kamesuta.paintcraft.PaintCraft
 import com.kamesuta.paintcraft.map.MapBuffer
-import com.kamesuta.paintcraft.map.mapSize
 import com.kamesuta.paintcraft.util.UVIntArea
 import org.bukkit.entity.Player
 import org.bukkit.map.MapView
@@ -25,29 +24,9 @@ object CanvasUpdater {
      * @param dirty 更新領域
      */
     fun sendMap(player: Player, mapView: MapView, buffer: MapBuffer, dirty: UVIntArea) {
-        val part = createSubImage(buffer, dirty)
+        val part = buffer.createSubImage(dirty)
         val packet = createPacket(mapView, part, dirty)
         PaintCraft.instance.protocolManager.sendServerPacket(player, packet)
-    }
-
-    /**
-     * 更新する領域を切り抜く
-     * @param buffer マップのピクセルデータ
-     * @param dirty 更新する領域
-     */
-    private fun createSubImage(
-        buffer: MapBuffer,
-        dirty: UVIntArea,
-    ): MapBuffer {
-        val width = dirty.width
-        val height = dirty.height
-        val part = MapBuffer(width * height)
-        for (y in 0 until height) {
-            for (x in 0 until width) {
-                part[x + y * width] = buffer[dirty.p1.u + x + (dirty.p1.v + y) * mapSize]
-            }
-        }
-        return part
     }
 
     /**
@@ -58,7 +37,7 @@ object CanvasUpdater {
      */
     private fun createPacket(
         mapView: MapView,
-        part: MapBuffer,
+        part: ByteArray,
         dirty: UVIntArea,
     ): PacketContainer {
         // パケットを作成する
@@ -67,6 +46,7 @@ object CanvasUpdater {
         // マップID
         packet.integers.write(0, mapView.id)
         // マップスケール
+        @Suppress("DEPRECATION")
         packet.bytes.write(0, mapView.scale.value)
         // 位置を追跡するか (trackingPosition)
         packet.booleans.write(0, true)

@@ -5,11 +5,10 @@ import com.kamesuta.paintcraft.canvas.CanvasInteraction
 import com.kamesuta.paintcraft.canvas.CanvasSession
 import com.kamesuta.paintcraft.canvas.paint.PaintTool.Companion.isDrawTime
 import com.kamesuta.paintcraft.canvas.paint.PaintTool.Companion.now
-import com.kamesuta.paintcraft.map.MapDye
+import com.kamesuta.paintcraft.map.MapBuffer.Companion.mapSize
 import com.kamesuta.paintcraft.map.MapItem
 import com.kamesuta.paintcraft.map.draw.DrawLine
 import com.kamesuta.paintcraft.map.draw.DrawRect
-import com.kamesuta.paintcraft.map.mapSize
 import org.bukkit.Material
 import org.bukkit.inventory.ItemStack
 import org.bukkit.map.MapPalette
@@ -49,7 +48,8 @@ class PaintPencil(override val session: CanvasSession) : PaintTool {
         }
 
         // 描く色
-        val color: MapDye = MapPalette.matchColor(Color.BLACK)
+        @Suppress("DEPRECATION")
+        val color = MapPalette.matchColor(Color.BLACK)
 
         // キャンバスに描く
         mapItem.draw { g ->
