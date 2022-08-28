@@ -76,7 +76,15 @@ class CanvasDrawListener : Listener {
         }
 
         // キャンバスに描画
-        manipulate(ray.itemFrame, ray.mapItem, ray.canvasOffset, ray.uv, player, session, CanvasActionType.LEFT_CLICK)
+        manipulate(
+            ray.itemFrame,
+            ray.mapItem,
+            ray.canvasIntersectOffset,
+            ray.uv,
+            player,
+            session,
+            CanvasActionType.LEFT_CLICK
+        )
     }
 
     /**
@@ -120,7 +128,15 @@ class CanvasDrawListener : Listener {
         }
 
         // キャンバスに描画
-        manipulate(ray.itemFrame, ray.mapItem, ray.canvasOffset, ray.uv, player, session, CanvasActionType.RIGHT_CLICK)
+        manipulate(
+            ray.itemFrame,
+            ray.mapItem,
+            ray.canvasIntersectOffset,
+            ray.uv,
+            player,
+            session,
+            CanvasActionType.RIGHT_CLICK
+        )
     }
 
     /**
@@ -154,7 +170,7 @@ class CanvasDrawListener : Listener {
 
         // キャンバスに描画
         manipulate(
-            ray.itemFrame, ray.mapItem, ray.canvasOffset, ray.uv, player, session,
+            ray.itemFrame, ray.mapItem, ray.canvasIntersectOffset, ray.uv, player, session,
             when (event.action) {
                 Action.RIGHT_CLICK_BLOCK -> CanvasActionType.RIGHT_CLICK
                 Action.RIGHT_CLICK_AIR -> CanvasActionType.RIGHT_CLICK
@@ -243,7 +259,7 @@ class CanvasDrawListener : Listener {
             manipulate(
                 ray.itemFrame,
                 ray.mapItem,
-                ray.canvasOffset,
+                ray.canvasIntersectOffset,
                 ray.uv,
                 player,
                 session,
@@ -256,14 +272,19 @@ class CanvasDrawListener : Listener {
      * キャンバス上のヒットした位置情報
      * @param itemFrame アイテムフレーム
      * @param mapItem 地図アイテム
+     * @param canvasLocation キャンバス上の位置
+     * @param canvasIntersectOffset キャンバス上の位置とアイテムフレーム上の位置の差分
      * @param uv UV
      */
     private data class CanvasRayTraceResult(
         val itemFrame: ItemFrame,
         val mapItem: MapItem,
-        val canvasOffset: Vector,
+        val canvasLocation: Location,
+        val canvasIntersectOffset: Vector,
         val uv: UVInt,
-    )
+    ) {
+        val canvasIntersectLocation: Location by lazy { canvasLocation.clone().add(canvasIntersectOffset) }
+    }
 
     /**
      * 指定されたアイテムフレームにレイを飛ばして一致する場合は取得
@@ -279,15 +300,18 @@ class CanvasDrawListener : Listener {
         // マップデータを取得、ただの地図ならばスキップ
         val mapItem = MapItem.get(itemFrame.item)
             ?: return null
-        // キャンバスのオフセットを計算
+        // アイテムフレームの位置
         val itemFrameLocation = itemFrame.location
-        val canvasOffset = intersectCanvas(playerEyePos, itemFrameLocation, itemFrame.isVisible, debugPlayer)
+        // キャンバス平面の位置
+        val canvasLocation = itemFrameLocation.toCanvasLocation()
+        // キャンバスのオフセットを計算
+        val canvasIntersectOffset = intersectCanvas(playerEyePos, canvasLocation, itemFrame.isVisible, debugPlayer)
         // UVに変換
-        val rawUV = mapToBlockUV(itemFrameLocation.yaw, itemFrameLocation.pitch, canvasOffset)
+        val rawUV = mapToBlockUV(itemFrameLocation.yaw, itemFrameLocation.pitch, canvasIntersectOffset)
         // キャンバス内UVを計算、キャンバス範囲外ならばスキップ
         val uv = transformUV(itemFrame.rotation, rawUV)
             ?: return null
-        return CanvasRayTraceResult(itemFrame, mapItem, canvasOffset, uv)
+        return CanvasRayTraceResult(itemFrame, mapItem, canvasLocation, canvasIntersectOffset, uv)
     }
 
     /**
@@ -323,49 +347,36 @@ class CanvasDrawListener : Listener {
         // エンティティを取得する範囲のバウンディングボックス
         val box = BoundingBox.of(playerEyePos, 0.0, 0.0, 0.0).expand(playerDirection, distance)
         // レイキャストを行い、ヒットしたブロックがあればそのブロック座標と目線の位置から範囲の中心座標とサイズを計算する
-        val ray = playerEyePos.world.rayTraceBlocks(playerEyePos, playerEyePos.direction, distance + margin)
+        val blockRay = playerEyePos.world.rayTraceBlocks(playerEyePos, playerEyePos.direction, distance + margin)
         // クリックがヒットした座標
-        val blockHitLocation = ray?.hitPosition?.toLocation(playerEyePos.world)
+        val blockHitLocation = blockRay?.hitPosition?.toLocation(playerEyePos.world)
         debugPlayer.debugLocation(DebugLocationType.BLOCK_HIT_LOCATION, blockHitLocation)
 
+        // キャンバスよりも手前にブロックがあるならば探索終了
+        val maxDistance = (blockHitLocation?.distance(playerEyePos) ?: distance)
+
         // 範囲内にあるすべてのアイテムフレームを取得する
-        val entities = playerEyePos.world.getNearbyEntities(box.clone().expand(margin)) { it is ItemFrame }
+        val result = playerEyePos.world.getNearbyEntities(box.clone().expand(margin)) { it is ItemFrame }
+            .asSequence()
             .map { it as ItemFrame }
             // その中からアイテムフレームを取得する
             .filter { it.item.type == Material.FILLED_MAP }
-            // 最も近いエンティティを取得するために距離順にソートする
-            .sortedBy {
-                // キャンバス平面の位置 (tpでアイテムフレームを回転したときにずれる)
-                val canvasLocation = it.location.toCanvasLocation()
+            // レイを飛ばす
+            .mapNotNull { rayTraceCanvasByEntity(playerEyePos, debugPlayer, it) }
+            .filter { it.canvasIntersectLocation.distanceSquared(playerEyePos) <= maxDistance * maxDistance }
+            // 一番近いヒットしたキャンバス
+            .minByOrNull {
                 // 距離の2条で比較する
-                canvasLocation.distanceSquared(playerEyePos)
+                it.canvasIntersectLocation.distanceSquared(playerEyePos)
             }
+            ?: return null
 
-        // 一番近いヒットしたキャンバスに描画する
-        for (itemFrame in entities) {
-            // マップデータを取得、ただの地図ならばスキップ
-            val mapItem = MapItem.get(itemFrame.item)
-                ?: continue
-            // キャンバスのオフセットを計算
-            val itemFrameLocation = itemFrame.location
-            val canvasOffset = intersectCanvas(playerEyePos, itemFrameLocation, itemFrame.isVisible, debugPlayer)
-            // UVに変換
-            val rawUV = mapToBlockUV(itemFrameLocation.yaw, itemFrameLocation.pitch, canvasOffset)
-            // キャンバス内UVを計算、キャンバス範囲外ならばスキップ
-            val uv = transformUV(itemFrame.rotation, rawUV)
-                ?: continue
-            // キャンバスよりも手前にブロックがあるならば探索終了
-            if (blockHitLocation != null) {
-                val blockDistance = blockHitLocation.distance(playerEyePos)
-                val canvasHitLocation = itemFrameLocation.clone().add(canvasOffset)
-                val canvasDistance = canvasHitLocation.distance(playerEyePos)
-                if (blockDistance + 0.5 < canvasDistance) {
-                    break
-                }
-            }
-            return CanvasRayTraceResult(itemFrame, mapItem, canvasOffset, uv)
+        // 最大距離より遠い場合は除外 (ブロックより後ろのアイテムフレームは除外)
+        if (result.canvasIntersectLocation.distanceSquared(playerEyePos) > maxDistance * maxDistance) {
+            return null
         }
-        return null
+
+        return result
     }
 
     /**
@@ -447,21 +458,19 @@ class CanvasDrawListener : Listener {
     /**
      * プレイヤーの視点とアイテムフレームの位置から交点の座標を計算する
      * @param playerEyePos プレイヤーの目線位置
-     * @param itemFrameLocation アイテムフレームの座標
+     * @param canvasLocation キャンバス平面の位置
      * @param isFrameVisible アイテムフレームが見えるかどうか
      * @return 交点座標
      */
     private fun intersectCanvas(
         playerEyePos: Location,
-        itemFrameLocation: Location,
+        canvasLocation: Location,
         isFrameVisible: Boolean,
         debugPlayer: Player,
     ): Vector {
         // プレイヤーの目線の方向
         val playerDirection = playerEyePos.direction
 
-        // キャンバス平面の位置 (tpでアイテムフレームを回転したときにずれる)
-        val canvasLocation = itemFrameLocation.toCanvasLocation()
         // アイテムフレームの正面ベクトル
         val canvasDirection = canvasLocation.direction
 
@@ -507,6 +516,7 @@ class CanvasDrawListener : Listener {
     /**
      * キャンバスフレームの平面の座標を求める
      * アイテムフレームの座標からキャンバス平面の座標を計算する
+     * (tpでアイテムフレームを回転したときにずれる)
      * @return キャンバスフレームの平面の座標
      */
     private fun Location.toCanvasLocation(): Location {
