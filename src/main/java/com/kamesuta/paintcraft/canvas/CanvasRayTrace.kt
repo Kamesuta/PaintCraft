@@ -1,7 +1,7 @@
 package com.kamesuta.paintcraft.canvas
 
-import com.kamesuta.paintcraft.map.MapBuffer.Companion.mapSize
-import com.kamesuta.paintcraft.map.MapItem
+import com.kamesuta.paintcraft.map.DrawableMapBuffer.Companion.mapSize
+import com.kamesuta.paintcraft.map.DrawableMapItem
 import com.kamesuta.paintcraft.util.DebugLocationType
 import com.kamesuta.paintcraft.util.DebugLocationVisualizer.debugLocation
 import com.kamesuta.paintcraft.util.UV
@@ -139,7 +139,7 @@ class CanvasRayTrace(private val player: Player) {
         itemFrame: ItemFrame,
     ): CanvasRayTraceResult? {
         // マップデータを取得、ただの地図ならばスキップ
-        val mapItem = MapItem.get(itemFrame.item)
+        val mapItem = DrawableMapItem.get(itemFrame.item)
             ?: return null
         // アイテムフレームの位置
         val itemFrameLocation = itemFrame.location

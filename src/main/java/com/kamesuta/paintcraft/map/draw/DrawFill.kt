@@ -1,8 +1,8 @@
 package com.kamesuta.paintcraft.map.draw
 
 import com.kamesuta.paintcraft.PaintCraft
-import com.kamesuta.paintcraft.map.MapBuffer
-import com.kamesuta.paintcraft.map.MapBuffer.Companion.mapSize
+import com.kamesuta.paintcraft.map.DrawableMapBuffer
+import com.kamesuta.paintcraft.map.DrawableMapBuffer.Companion.mapSize
 import org.bukkit.Bukkit
 import org.bukkit.map.MapCanvas
 
@@ -14,14 +14,14 @@ class DrawFill(
 ) : Draw {
     override fun draw(canvas: MapCanvas) {
         Bukkit.getScheduler().runTaskAsynchronously(PaintCraft.instance) { ->
-            val colored = MapBuffer()
+            val colored = DrawableMapBuffer()
             fillBucket(canvas, colored, x, y, srcColor, newColor)
         }
     }
 
     private fun fillBucket(
         canvas: MapCanvas,
-        colored: MapBuffer,
+        colored: DrawableMapBuffer,
         x: Int,
         y: Int,
         sourceColor: Byte,

@@ -1,6 +1,6 @@
 package com.kamesuta.paintcraft.canvas
 
-import com.kamesuta.paintcraft.map.MapItem
+import com.kamesuta.paintcraft.map.DrawableMapItem
 import com.kamesuta.paintcraft.util.UVInt
 import org.bukkit.Location
 import org.bukkit.entity.ItemFrame
@@ -16,7 +16,7 @@ import org.bukkit.util.Vector
  */
 data class CanvasRayTraceResult(
     val itemFrame: ItemFrame,
-    val mapItem: MapItem,
+    val mapItem: DrawableMapItem,
     val canvasLocation: Location,
     val canvasIntersectOffset: Vector,
     val uv: UVInt,

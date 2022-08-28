@@ -5,8 +5,8 @@ import com.kamesuta.paintcraft.canvas.CanvasInteraction
 import com.kamesuta.paintcraft.canvas.CanvasSession
 import com.kamesuta.paintcraft.canvas.paint.PaintTool.Companion.isDrawTime
 import com.kamesuta.paintcraft.canvas.paint.PaintTool.Companion.now
-import com.kamesuta.paintcraft.map.MapBuffer.Companion.mapSize
-import com.kamesuta.paintcraft.map.MapItem
+import com.kamesuta.paintcraft.map.DrawableMapBuffer.Companion.mapSize
+import com.kamesuta.paintcraft.map.DrawableMapItem
 import com.kamesuta.paintcraft.map.draw.DrawLine
 import com.kamesuta.paintcraft.map.draw.DrawRect
 import org.bukkit.Material
@@ -16,7 +16,7 @@ import java.awt.Color
 
 class PaintPencil(override val session: CanvasSession) : PaintTool {
     private data class PaintEvent(
-        val mapItem: MapItem,
+        val mapItem: DrawableMapItem,
         val interact: CanvasInteraction,
     )
 
@@ -29,7 +29,7 @@ class PaintPencil(override val session: CanvasSession) : PaintTool {
 
     override fun paint(
         itemStack: ItemStack,
-        mapItem: MapItem,
+        mapItem: DrawableMapItem,
         interact: CanvasInteraction,
     ) {
         // ツールを持っている場合のみ

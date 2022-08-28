@@ -10,7 +10,7 @@ import org.bukkit.map.MapView
 /**
  * 書き込み可能レンダラー
  */
-class MapRenderer : MapRenderer() {
+class DrawableMapRenderer : MapRenderer() {
     /** 初期化フラグ */
     private var initialized = false
 
@@ -85,9 +85,9 @@ class MapRenderer : MapRenderer() {
 
     /** プレイヤーに更新を通知する */
     private fun MapCanvas.updatePlayer(player: Player) {
-        val dirty = MapReflection.getMapDirtyArea(player, mapView)
+        val dirty = DrawableMapReflection.getMapDirtyArea(player, mapView)
             ?: return
-        val buffer = MapReflection.getCanvasBuffer(this)
+        val buffer = DrawableMapReflection.getCanvasBuffer(this)
             ?: return
 
         // プレイヤーに地図を送信する
@@ -96,8 +96,8 @@ class MapRenderer : MapRenderer() {
 
     /** キャンバスの内容をマップビューに保存し永続化する */
     private fun MapCanvas.saveToMapView() {
-        val src = MapReflection.getCanvasBuffer(this)
-        val dst = MapReflection.getMapBuffer(mapView)
+        val src = DrawableMapReflection.getCanvasBuffer(this)
+        val dst = DrawableMapReflection.getMapBuffer(mapView)
         if (src != null && dst != null) {
             src.copyTo(dst)
         }
@@ -105,8 +105,8 @@ class MapRenderer : MapRenderer() {
 
     /** 永続化されたマップビューのデータを読み込む */
     private fun MapCanvas.loadFromMapView() {
-        val src = MapReflection.getMapBuffer(mapView)
-        val dst = MapReflection.getCanvasBuffer(this)
+        val src = DrawableMapReflection.getMapBuffer(mapView)
+        val dst = DrawableMapReflection.getCanvasBuffer(this)
         if (src != null && dst != null) {
             src.copyTo(dst)
         }

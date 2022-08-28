@@ -2,14 +2,14 @@ package com.kamesuta.paintcraft.canvas.paint
 
 import com.kamesuta.paintcraft.canvas.CanvasInteraction
 import com.kamesuta.paintcraft.canvas.CanvasSession
-import com.kamesuta.paintcraft.map.MapItem
+import com.kamesuta.paintcraft.map.DrawableMapItem
 import org.bukkit.inventory.ItemStack
 
 /**
  * 描くためのツール
  */
 interface PaintTool {
-    fun paint(itemStack: ItemStack, mapItem: MapItem, interact: CanvasInteraction)
+    fun paint(itemStack: ItemStack, mapItem: DrawableMapItem, interact: CanvasInteraction)
     fun tick()
 
     val session: CanvasSession

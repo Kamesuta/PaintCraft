@@ -4,7 +4,7 @@ import com.comphenix.protocol.PacketType
 import com.comphenix.protocol.events.PacketContainer
 import com.comphenix.protocol.utility.MinecraftReflection
 import com.kamesuta.paintcraft.PaintCraft
-import com.kamesuta.paintcraft.map.MapBuffer
+import com.kamesuta.paintcraft.map.DrawableMapBuffer
 import com.kamesuta.paintcraft.util.UVIntArea
 import org.bukkit.entity.Player
 import org.bukkit.map.MapView
@@ -23,7 +23,7 @@ object CanvasUpdater {
      * @param mapView マップ
      * @param dirty 更新領域
      */
-    fun sendMap(player: Player, mapView: MapView, buffer: MapBuffer, dirty: UVIntArea) {
+    fun sendMap(player: Player, mapView: MapView, buffer: DrawableMapBuffer, dirty: UVIntArea) {
         val part = buffer.createSubImage(dirty)
         val packet = createPacket(mapView, part, dirty)
         PaintCraft.instance.protocolManager.sendServerPacket(player, packet)

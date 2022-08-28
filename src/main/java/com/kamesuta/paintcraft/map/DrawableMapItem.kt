@@ -18,7 +18,7 @@ import org.bukkit.persistence.PersistentDataType
  * @param mapView マップ
  * @param renderer レンダラー
  */
-class MapItem(val itemStack: ItemStack, val mapView: MapView, val renderer: MapRenderer) {
+class DrawableMapItem(val itemStack: ItemStack, val mapView: MapView, val renderer: DrawableMapRenderer) {
     /**
      * マップに描画する
      * @param f 描画する関数
@@ -37,9 +37,9 @@ class MapItem(val itemStack: ItemStack, val mapView: MapView, val renderer: MapR
          * 書き込み可能マップを作成する
          * @param world ワールド
          */
-        fun create(world: World): MapItem {
+        fun create(world: World): DrawableMapItem {
             val mapView = Bukkit.getServer().createMap(world)
-            val renderer = MapRenderer()
+            val renderer = DrawableMapRenderer()
             mapView.setRenderer(renderer)
             mapView.centerX = -999999
             mapView.centerZ = -999999
@@ -50,7 +50,7 @@ class MapItem(val itemStack: ItemStack, val mapView: MapView, val renderer: MapR
                 it.mapView = mapView
                 it.paintGroupId = 1
             }
-            return MapItem(item, mapView, renderer)
+            return DrawableMapItem(item, mapView, renderer)
         }
 
         /**
@@ -58,23 +58,23 @@ class MapItem(val itemStack: ItemStack, val mapView: MapView, val renderer: MapR
          * @param item アイテム
          * @return 書き込み可能マップ
          */
-        fun get(item: ItemStack): MapItem? {
+        fun get(item: ItemStack): DrawableMapItem? {
             if (item.type != Material.FILLED_MAP)
                 return null
             val mapView = (item.itemMeta as? MapMeta)?.mapView
                 ?: return null
-            val mapRenderer = mapView.getRenderer()
-            val renderer = if (mapRenderer != null) {
-                mapRenderer
+            val drawableMapRenderer = mapView.getRenderer()
+            val renderer = if (drawableMapRenderer != null) {
+                drawableMapRenderer
             } else {
                 item.itemMeta.paintGroupId
                     ?: return null
 
-                val renderer = MapRenderer()
+                val renderer = DrawableMapRenderer()
                 mapView.setRenderer(renderer)
                 renderer
             }
-            return MapItem(item, mapView, renderer)
+            return DrawableMapItem(item, mapView, renderer)
         }
 
         /**
@@ -97,7 +97,7 @@ class MapItem(val itemStack: ItemStack, val mapView: MapView, val renderer: MapR
          * マップのレンダラーを書き込み可能レンダラー置き換える
          * @param renderer レンダラー
          */
-        private fun MapView.setRenderer(renderer: MapRenderer?) {
+        private fun MapView.setRenderer(renderer: DrawableMapRenderer?) {
             // ConcurrentModificationExceptionが起きないように一度toListする
             renderers.toList().forEach { removeRenderer(it) }
             if (renderer != null) {
@@ -108,8 +108,8 @@ class MapItem(val itemStack: ItemStack, val mapView: MapView, val renderer: MapR
         /**
          * 書き込み可能レンダラーを取得する
          */
-        private fun MapView.getRenderer(): MapRenderer? {
-            return renderers.filterIsInstance<MapRenderer>().firstOrNull()
+        private fun MapView.getRenderer(): DrawableMapRenderer? {
+            return renderers.filterIsInstance<DrawableMapRenderer>().firstOrNull()
         }
     }
 }

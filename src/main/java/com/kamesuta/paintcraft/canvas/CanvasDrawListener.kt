@@ -5,7 +5,7 @@ import com.comphenix.protocol.events.ListenerPriority
 import com.comphenix.protocol.events.PacketAdapter
 import com.comphenix.protocol.events.PacketEvent
 import com.kamesuta.paintcraft.PaintCraft
-import com.kamesuta.paintcraft.map.MapItem
+import com.kamesuta.paintcraft.map.DrawableMapItem
 import com.kamesuta.paintcraft.util.DebugLocationType
 import com.kamesuta.paintcraft.util.DebugLocationVisualizer.clearDebugLocation
 import com.kamesuta.paintcraft.util.LocationOperation
@@ -260,7 +260,7 @@ class CanvasDrawListener : Listener {
             return false
         }
         // キャンバスか判定し取得
-        MapItem.get(itemFrame.item)
+        DrawableMapItem.get(itemFrame.item)
             ?: return false
         return true
     }

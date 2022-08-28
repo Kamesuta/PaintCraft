@@ -6,7 +6,7 @@ import com.kamesuta.paintcraft.util.UVIntArea
  * マップピクセルデータ
  * @param pixels ピクセルデータ
  */
-class MapBuffer(val pixels: ByteArray) {
+class DrawableMapBuffer(val pixels: ByteArray) {
     /**
      * 128x128のピクセルを取得する
      */
@@ -71,7 +71,7 @@ class MapBuffer(val pixels: ByteArray) {
      * ピクセルを全てコピーする
      * @param destination コピー先
      */
-    fun copyTo(destination: MapBuffer) {
+    fun copyTo(destination: DrawableMapBuffer) {
         System.arraycopy(pixels, 0, destination.pixels, 0, destination.pixels.size)
     }
 

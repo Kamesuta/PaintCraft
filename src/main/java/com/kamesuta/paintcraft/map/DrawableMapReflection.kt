@@ -11,16 +11,16 @@ import org.bukkit.map.MapView
 /**
  * 地図操作リフレクションクラス
  */
-object MapReflection {
+object DrawableMapReflection {
     /**
      * MapCanvasのピクセルデータを取得します
      * @param mapCanvas キャンバス
      * @return ピクセルデータ
      */
-    fun getCanvasBuffer(mapCanvas: MapCanvas): MapBuffer? {
+    fun getCanvasBuffer(mapCanvas: MapCanvas): DrawableMapBuffer? {
         return try {
             (ReflectionAccessor.getField(mapCanvas, "buffer") as ByteArray?)?.let {
-                MapBuffer(it)
+                DrawableMapBuffer(it)
             }
         } catch (e: ReflectiveOperationException) {
             PaintCraft.instance.logger.warning("Failed to get MapCanvas buffer")
@@ -33,7 +33,7 @@ object MapReflection {
      * @param mapView マップビュー
      * @return ピクセルデータ
      */
-    fun getMapBuffer(mapView: MapView): MapBuffer? {
+    fun getMapBuffer(mapView: MapView): DrawableMapBuffer? {
         return try {
             val worldMap: Any = ReflectionAccessor.getField(mapView, "worldMap")
                 ?: return null
@@ -44,7 +44,7 @@ object MapReflection {
                 ReflectionAccessor.getField(worldMap, "g") as ByteArray?
             }
             pixels?.let {
-                MapBuffer(it)
+                DrawableMapBuffer(it)
             }
         } catch (e: ReflectiveOperationException) {
             PaintCraft.instance.logger.warning("Failed to get map buffer")

@@ -1,6 +1,6 @@
 package com.kamesuta.paintcraft
 
-import com.kamesuta.paintcraft.map.MapItem
+import com.kamesuta.paintcraft.map.DrawableMapItem
 import com.kamesuta.paintcraft.map.draw.DrawFill
 import com.kamesuta.paintcraft.map.draw.DrawLine
 import com.kamesuta.paintcraft.util.DebugLocationVisualizer
@@ -27,7 +27,7 @@ class GiveCanvasCommand : Command("give") {
             executes {
                 val entities = typedArgs[0] as List<*>
                 entities.filterIsInstance<Player>().forEach {
-                    val mapDrawer = MapItem.create(it.world)
+                    val mapDrawer = DrawableMapItem.create(it.world)
                     it.inventory.addItem(mapDrawer.itemStack)
 
                     mapDrawer.draw { g ->
@@ -48,7 +48,7 @@ class DrawCanvasCommand : Command("draw") {
             executes {
                 val entities = typedArgs[0] as List<*>
                 entities.filterIsInstance<Player>().forEach {
-                    val mapDrawer = MapItem.get(it.inventory.itemInMainHand)
+                    val mapDrawer = DrawableMapItem.get(it.inventory.itemInMainHand)
 
                     mapDrawer?.draw { g ->
                         g(DrawLine(128, 0, 0, 128, MapPalette.matchColor(Color.BLUE)))
@@ -66,7 +66,7 @@ class FillCanvasCommand : Command("fill") {
             executes {
                 val entities = typedArgs[0] as List<*>
                 entities.filterIsInstance<Player>().forEach {
-                    val mapDrawer = MapItem.get(it.inventory.itemInMainHand)
+                    val mapDrawer = DrawableMapItem.get(it.inventory.itemInMainHand)
 
                     mapDrawer?.draw { g ->
                         g(DrawFill(64, 32, MapPalette.matchColor(Color.RED), MapPalette.matchColor(Color.YELLOW)))
