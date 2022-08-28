@@ -104,27 +104,26 @@ class CanvasRayTrace(private val player: Player) {
 
     /**
      * キャンバスに描画する
-     * @param itemFrame アイテムフレーム
-     * @param mapItem マップデータ
-     * @param uv UV座標
+     * @param ray レイ
+     * @param session セッション
      * @param actionType アクションタイプ
      */
     fun manipulate(
-        itemFrame: ItemFrame,
-        mapItem: MapItem,
-        canvasOffset: Vector,
-        uv: UVInt,
+        ray: CanvasRayTraceResult,
         session: CanvasSession,
         actionType: CanvasActionType
     ) {
         // アイテムフレームの位置を取得
-        val itemFrameLocation = itemFrame.location
+        val itemFrameLocation = ray.itemFrame.location
         player.debugLocation(DebugLocationType.FRAME_LOCATION, itemFrameLocation)
         player.debugLocation(
             DebugLocationType.FRAME_DIRECTION,
             itemFrameLocation.clone().add(itemFrameLocation.direction)
         )
-        player.debugLocation(DebugLocationType.FRAME_FACING, itemFrameLocation.clone().add(itemFrame.facing.direction))
+        player.debugLocation(
+            DebugLocationType.FRAME_FACING,
+            itemFrameLocation.clone().add(ray.itemFrame.facing.direction)
+        )
         player.debugLocation(DebugLocationType.FRAME_FACING_BLOCK, itemFrameLocation.toCenterLocation())
 
         // アイテムフレームの位置を取得
@@ -137,22 +136,21 @@ class CanvasRayTrace(private val player: Player) {
         )
 
         // ヒット位置
-        val canvasHitLocation = canvasLocation.clone().add(canvasOffset)
-        player.debugLocation(DebugLocationType.CANVAS_HIT_LOCATION, canvasHitLocation)
+        player.debugLocation(DebugLocationType.CANVAS_HIT_LOCATION, ray.canvasIntersectLocation)
 
         // アイテムフレームが貼り付いているブロックの位置を計算する
         val blockLocation = canvasLocation.clone().add(
-            -0.5 * itemFrame.facing.modX,
-            -0.5 * itemFrame.facing.modY,
-            -0.5 * itemFrame.facing.modZ,
+            -0.5 * ray.itemFrame.facing.modX,
+            -0.5 * ray.itemFrame.facing.modY,
+            -0.5 * ray.itemFrame.facing.modZ,
         )
         // インタラクトオブジェクトを作成
-        val interact = CanvasInteraction(uv, player, blockLocation, canvasLocation, actionType)
+        val interact = CanvasInteraction(ray.uv, player, blockLocation, canvasLocation, actionType)
 
         // キャンバスに描画する
-        session.tool.paint(player.inventory.itemInMainHand, mapItem, interact)
+        session.tool.paint(player.inventory.itemInMainHand, ray.mapItem, interact)
         // プレイヤーに描画を通知する
-        mapItem.renderer.updatePlayer(player)
+        ray.mapItem.renderer.updatePlayer(player)
     }
 
     /**

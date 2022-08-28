@@ -48,7 +48,7 @@ class CanvasDrawListener : Listener {
             return
         }
         // キャンバスか判定し取得
-        val mapItem = MapItem.get(itemFrame.item)
+        MapItem.get(itemFrame.item)
             ?: return
         // イベントをキャンセル (ここに来た時点でキャンバスを左クリックしているのでアイテムフレームが破壊されないようにキャンセルする)
         event.isCancelled = true
@@ -70,10 +70,7 @@ class CanvasDrawListener : Listener {
 
         // キャンバスに描画
         rayTrace.manipulate(
-            ray.itemFrame,
-            ray.mapItem,
-            ray.canvasIntersectOffset,
-            ray.uv,
+            ray,
             session,
             CanvasActionType.LEFT_CLICK
         )
@@ -101,7 +98,7 @@ class CanvasDrawListener : Listener {
             return
         }
         // キャンバスか判定し取得
-        val mapItem = MapItem.get(itemFrame.item)
+        MapItem.get(itemFrame.item)
             ?: return
         // イベントをキャンセル (ここに来た時点でキャンバスを右クリックしているのでアイテムフレームが回転しないようにキャンセルする)
         event.isCancelled = true
@@ -123,10 +120,7 @@ class CanvasDrawListener : Listener {
 
         // キャンバスに描画
         rayTrace.manipulate(
-            ray.itemFrame,
-            ray.mapItem,
-            ray.canvasIntersectOffset,
-            ray.uv,
+            ray,
             session,
             CanvasActionType.RIGHT_CLICK
         )
@@ -165,7 +159,7 @@ class CanvasDrawListener : Listener {
 
         // キャンバスに描画
         rayTrace.manipulate(
-            ray.itemFrame, ray.mapItem, ray.canvasIntersectOffset, ray.uv, session,
+            ray, session,
             when (event.action) {
                 Action.RIGHT_CLICK_BLOCK -> CanvasActionType.RIGHT_CLICK
                 Action.RIGHT_CLICK_AIR -> CanvasActionType.RIGHT_CLICK
@@ -254,10 +248,7 @@ class CanvasDrawListener : Listener {
 
             // キャンバスに描画
             rayTrace.manipulate(
-                ray.itemFrame,
-                ray.mapItem,
-                ray.canvasIntersectOffset,
-                ray.uv,
+                ray,
                 session,
                 CanvasActionType.MOUSE_MOVE
             )
