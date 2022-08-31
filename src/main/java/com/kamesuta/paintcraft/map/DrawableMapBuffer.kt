@@ -6,7 +6,7 @@ import com.kamesuta.paintcraft.util.UVIntArea
  * マップピクセルデータ
  * @param pixels ピクセルデータ
  */
-class DrawableMapBuffer(val pixels: ByteArray) {
+class DrawableMapBuffer(val pixels: ByteArray) : Cloneable {
     /**
      * 128x128のピクセルを取得する
      */
@@ -73,6 +73,14 @@ class DrawableMapBuffer(val pixels: ByteArray) {
      */
     fun copyTo(destination: DrawableMapBuffer) {
         System.arraycopy(pixels, 0, destination.pixels, 0, destination.pixels.size)
+    }
+
+    /**
+     * ピクセルを全てコピーして新しいインスタンスを作成する
+     * @return コピーしたインスタンス
+     */
+    public override fun clone(): DrawableMapBuffer {
+        return DrawableMapBuffer(pixels.clone())
     }
 
     companion object {

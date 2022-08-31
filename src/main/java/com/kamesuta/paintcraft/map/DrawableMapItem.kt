@@ -1,7 +1,7 @@
 package com.kamesuta.paintcraft.map
 
 import com.kamesuta.paintcraft.PaintCraft
-import com.kamesuta.paintcraft.map.draw.Draw
+import com.kamesuta.paintcraft.map.draw.Drawable
 import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.NamespacedKey
@@ -23,7 +23,7 @@ class DrawableMapItem(val itemStack: ItemStack, val mapView: MapView, val render
      * マップに描画する
      * @param f 描画する関数
      */
-    fun draw(f: (g: (draw: Draw) -> Unit) -> Unit) {
+    fun draw(f: (g: Drawable) -> Unit) {
         f(renderer::draw)
     }
 

@@ -17,7 +17,7 @@ class DrawableMapRenderer : MapRenderer() {
     private lateinit var mapView: MapView
 
     /** マップキャンバス */
-    private lateinit var mapCanvas: MapCanvas
+    lateinit var mapCanvas: MapCanvas
 
     /** 変更フラグ */
     private var dirty = false

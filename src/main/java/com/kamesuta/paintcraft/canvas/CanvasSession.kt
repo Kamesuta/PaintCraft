@@ -1,6 +1,6 @@
 package com.kamesuta.paintcraft.canvas
 
-import com.kamesuta.paintcraft.canvas.paint.PaintPencil
+import com.kamesuta.paintcraft.canvas.paint.PaintLine
 import com.kamesuta.paintcraft.canvas.paint.PaintTool
 import com.kamesuta.paintcraft.util.TimeWatcher
 import org.bukkit.entity.Player
@@ -14,7 +14,7 @@ class CanvasSession(val player: Player) {
     var eyeLocation = player.eyeLocation
 
     /** 塗りつぶしツール */
-    var tool: PaintTool = PaintPencil(this)
+    var tool: PaintTool = PaintLine(this)
 
     /** 最後のエンティティ右クリック時刻 */
     var lastInteract = 0L
