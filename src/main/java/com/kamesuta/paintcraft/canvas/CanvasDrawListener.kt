@@ -22,7 +22,23 @@ import org.bukkit.event.Listener
 /**
  * 描画用のイベントリスナー
  */
-class CanvasDrawListener : Listener {
+class CanvasDrawListener : Listener, Runnable {
+    /**
+     * ティックイベント
+     */
+    override fun run() {
+        // トロッコなど乗っていた場合はティックイベントで動かす
+        for (player in Bukkit.getOnlinePlayers()) {
+            // プレイヤーの右手にインクがあるか
+            if (player.hasPencil()) {
+                continue
+            }
+
+            // パケットを処理
+            onMovePacket(player, player.eyeLocation, LocationOperation.POSITION, true)
+        }
+    }
+
     /**
      * プレイヤーの移動パケットリスナーを作成する
      * @return プレイヤーの移動パケットリスナー
@@ -35,8 +51,10 @@ class CanvasDrawListener : Listener {
                 PacketType.Play.Client.LOOK,
                 PacketType.Play.Client.POSITION,
                 PacketType.Play.Client.POSITION_LOOK,
+                PacketType.Play.Client.VEHICLE_MOVE,
             ),
         ) {
+            /** 受信 (クライアント→サーバー) */
             override fun onPacketReceiving(event: PacketEvent) {
                 // プレイヤーがいなければ無視
                 val player = event.player
@@ -62,12 +80,19 @@ class CanvasDrawListener : Listener {
                     PacketType.Play.Client.LOOK -> LocationOperation.LOOK
                     PacketType.Play.Client.POSITION -> LocationOperation.POSITION
                     PacketType.Play.Client.POSITION_LOOK -> LocationOperation.POSITION_LOOK
+                    PacketType.Play.Client.VEHICLE_MOVE -> {
+                        // 乗り物のyOffset
+                        location.add(0.0, -0.45, 0.0)
+                        LocationOperation.POSITION
+                    }
+
                     else -> LocationOperation.NONE
                 }
 
                 // メインスレッド以外でエンティティを取得できないため、メインスレッドで処理
                 Bukkit.getScheduler().runTask(PaintCraft.instance) { ->
-                    onMovePacket(player, location, locationOperation)
+                    // パケットを処理
+                    onMovePacket(player, location, locationOperation, false)
                 }
             }
         }
@@ -75,14 +100,41 @@ class CanvasDrawListener : Listener {
 
     /**
      * 動いたとき
-     * PaintCraftクラス(ProtocolLib)から呼ばれる
      * @param player プレイヤー
      * @param eyeLocation 移動先の位置
      * @param locationOperation 移動先の位置における操作
+     * @param isTickEvent ティックイベントか
      */
-    private fun onMovePacket(player: Player, eyeLocation: Location, locationOperation: LocationOperation) {
+    private fun onMovePacket(
+        player: Player,
+        eyeLocation: Location,
+        locationOperation: LocationOperation,
+        isTickEvent: Boolean
+    ) {
         // キャンバスのセッションを取得
         val session = CanvasSessionManager.getSession(player)
+
+        // ティックイベントかどうか
+        if (isTickEvent) {
+            // ティックイベントの場合、乗り物に乗っていないときは無視
+            if (!player.isInsideVehicle) {
+                return
+            }
+
+            // 直前でクライアント側の移動パケットを処理していればティックイベントは無視する
+            if (CanvasSession.vehicleMoveDuration.isInTime(session.lastVehicleMove)) {
+                return
+            }
+        } else {
+            // パケット受信時の場合
+            if (player.isInsideVehicle) {
+                // 乗り物に乗っている場合かつ移動パケットがある場合 (馬やボートなど)
+                if (locationOperation == LocationOperation.POSITION || locationOperation == LocationOperation.POSITION_LOOK) {
+                    // 最後の移動時刻を取得
+                    session.lastVehicleMove = TimeWatcher.now
+                }
+            }
+        }
 
         // パケットの座標を合成しプレイヤーの座標と目線を計算
         val playerEyePos = locationOperation.operation(session.eyeLocation, eyeLocation)
@@ -141,6 +193,7 @@ class CanvasDrawListener : Listener {
                 PacketType.Play.Client.USE_ENTITY,
             ),
         ) {
+            /** 受信 (クライアント→サーバー) */
             override fun onPacketReceiving(event: PacketEvent) {
                 // プレイヤーがいなければ無視
                 val player = event.player
@@ -200,7 +253,6 @@ class CanvasDrawListener : Listener {
 
     /**
      * クリックしたとき
-     * PaintCraftクラス(ProtocolLib)から呼ばれる
      * @param player プレイヤー
      * @param actionType クリックの種類
      * @param targetEntity クリックしたエンティティ (イベントの種類によってはない)
@@ -232,7 +284,7 @@ class CanvasDrawListener : Listener {
         // クリックタイプに応じた処理、判定を行う
         val actionTypeRightOrLeft = when (actionType) {
             CanvasActionType.RIGHT_CLICK -> {
-                // 最後の右クリック時間を取得
+                // 最後の右クリック時刻を取得
                 session.lastInteract = TimeWatcher.now
 
                 CanvasActionType.RIGHT_CLICK
