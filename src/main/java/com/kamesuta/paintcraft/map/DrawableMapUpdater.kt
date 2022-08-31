@@ -1,10 +1,9 @@
-package com.kamesuta.paintcraft.canvas
+package com.kamesuta.paintcraft.map
 
 import com.comphenix.protocol.PacketType
 import com.comphenix.protocol.events.PacketContainer
 import com.comphenix.protocol.utility.MinecraftReflection
 import com.kamesuta.paintcraft.PaintCraft
-import com.kamesuta.paintcraft.map.DrawableMapBuffer
 import com.kamesuta.paintcraft.util.UVIntArea
 import org.bukkit.entity.Player
 import org.bukkit.map.MapView
@@ -13,8 +12,9 @@ import java.lang.reflect.Array
 /**
  * 地図の更新をクライアントに送信するためのクラス
  */
-object CanvasUpdater {
+object DrawableMapUpdater {
     private val mapIconClass = MinecraftReflection.getMinecraftClass("MapIcon")
+
     @Suppress("UNCHECKED_CAST")
     private val mapIconArrayClass = MinecraftReflection.getArrayClass(mapIconClass) as Class<Any>
 

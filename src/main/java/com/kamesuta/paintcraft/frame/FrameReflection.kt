@@ -1,4 +1,4 @@
-package com.kamesuta.paintcraft.canvas
+package com.kamesuta.paintcraft.frame
 
 import com.kamesuta.paintcraft.PaintCraft
 import com.kamesuta.paintcraft.util.ReflectionAccessor
@@ -7,7 +7,7 @@ import org.bukkit.entity.Entity
 /**
  * キャンバスリフレクションクラス
  */
-object CanvasReflection {
+object FrameReflection {
     /**
      * エンティティが乗り物に乗ったときのY方向のオフセットを取得します
      * @param entity 乗ったエンティティ

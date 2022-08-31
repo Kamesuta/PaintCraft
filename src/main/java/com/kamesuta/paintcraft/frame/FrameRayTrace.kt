@@ -1,5 +1,8 @@
-package com.kamesuta.paintcraft.canvas
+package com.kamesuta.paintcraft.frame
 
+import com.kamesuta.paintcraft.canvas.CanvasActionType
+import com.kamesuta.paintcraft.canvas.CanvasInteraction
+import com.kamesuta.paintcraft.canvas.CanvasSession
 import com.kamesuta.paintcraft.map.DrawableMapBuffer.Companion.mapSize
 import com.kamesuta.paintcraft.map.DrawableMapItem
 import com.kamesuta.paintcraft.util.DebugLocationType
@@ -20,7 +23,7 @@ import kotlin.math.atan2
  * キャンバスと目線の交差判定をし、UVを計算します
  * @param player プレイヤー
  */
-class CanvasRayTrace(private val player: Player) {
+class FrameRayTrace(private val player: Player) {
     /**
      * キャンバスが表か判定する
      * @param playerDirection プレイヤーの方向
@@ -38,7 +41,7 @@ class CanvasRayTrace(private val player: Player) {
      */
     fun rayTraceCanvas(
         playerEyePos: Location,
-    ): CanvasRayTraceResult? {
+    ): FrameRayTraceResult? {
         // 目線と向きからエンティティを取得し、アイテムフレームかどうかを確認する
         // まず目線の位置と向きを取得
         val playerDirection = playerEyePos.direction
@@ -91,7 +94,7 @@ class CanvasRayTrace(private val player: Player) {
      * @param actionType アクションタイプ
      */
     fun manipulate(
-        ray: CanvasRayTraceResult,
+        ray: FrameRayTraceResult,
         session: CanvasSession,
         actionType: CanvasActionType
     ) {
@@ -121,7 +124,7 @@ class CanvasRayTrace(private val player: Player) {
         player.debugLocation(DebugLocationType.CANVAS_HIT_LOCATION, ray.canvasIntersectLocation)
 
         // インタラクトオブジェクトを作成
-        val interact = CanvasInteraction(ray, player, actionType)
+        val interact = CanvasInteraction(ray.uv, ray, player, actionType)
 
         // キャンバスに描画する
         session.tool.paint(player.inventory.itemInMainHand, ray.mapItem, interact)
@@ -137,7 +140,7 @@ class CanvasRayTrace(private val player: Player) {
     private fun rayTraceCanvasByEntity(
         playerEyePos: Location,
         itemFrame: ItemFrame,
-    ): CanvasRayTraceResult? {
+    ): FrameRayTraceResult? {
         // マップデータを取得、ただの地図ならばスキップ
         val mapItem = DrawableMapItem.get(itemFrame.item)
             ?: return null
@@ -152,7 +155,7 @@ class CanvasRayTrace(private val player: Player) {
         // キャンバス内UVを計算、キャンバス範囲外ならばスキップ
         val uv = transformUV(itemFrame.rotation, rawUV)
             ?: return null
-        return CanvasRayTraceResult(itemFrame, mapItem, canvasLocation, canvasIntersectOffset, uv)
+        return FrameRayTraceResult(itemFrame, mapItem, canvasLocation, canvasIntersectOffset, uv)
     }
 
     /**
@@ -163,7 +166,7 @@ class CanvasRayTrace(private val player: Player) {
      */
     private fun transformUV(rotation: Rotation, uv: UV): UVInt? {
         // BukkitのRotationからCanvasのRotationに変換する
-        val rot: CanvasRotation = CanvasRotation.fromRotation(rotation)
+        val rot: FrameRotation = FrameRotation.fromRotation(rotation)
         // -0.5～0.5の範囲を0.0～1.0の範囲に変換する
         val q = UV(rot.u(uv) + 0.5, rot.v(uv) + 0.5)
         // 0～128(ピクセル座標)の範囲に変換する

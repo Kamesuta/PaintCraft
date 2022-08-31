@@ -1,6 +1,5 @@
 package com.kamesuta.paintcraft.map
 
-import com.kamesuta.paintcraft.canvas.CanvasUpdater
 import com.kamesuta.paintcraft.map.draw.Draw
 import org.bukkit.entity.Player
 import org.bukkit.map.MapCanvas
@@ -91,7 +90,7 @@ class DrawableMapRenderer : MapRenderer() {
             ?: return
 
         // プレイヤーに地図を送信する
-        CanvasUpdater.sendMap(player, mapView, buffer, dirty)
+        DrawableMapUpdater.sendMap(player, mapView, buffer, dirty)
     }
 
     /** キャンバスの内容をマップビューに保存し永続化する */

@@ -2,7 +2,7 @@ package com.kamesuta.paintcraft
 
 import com.comphenix.protocol.ProtocolLibrary
 import com.comphenix.protocol.ProtocolManager
-import com.kamesuta.paintcraft.canvas.CanvasDrawListener
+import com.kamesuta.paintcraft.frame.FrameDrawListener
 import com.kamesuta.paintcraft.util.DebugLocationVisualizer
 import dev.kotx.flylib.flyLib
 import org.bukkit.plugin.java.JavaPlugin
@@ -27,9 +27,9 @@ class PaintCraft : JavaPlugin() {
         // デバッグ用の位置表示
         DebugLocationVisualizer.registerTick()
 
-        // キャンバスのイベントリスナーを初期化
-        val drawListener = CanvasDrawListener()
-        // キャンバスのイベントを登録
+        // フレームのイベントリスナーを初期化
+        val drawListener = FrameDrawListener()
+        // 通常ののイベントを登録
         server.pluginManager.registerEvents(drawListener, this)
         // ティックイベントを登録
         server.scheduler.runTaskTimer(this, drawListener, 0, 0)

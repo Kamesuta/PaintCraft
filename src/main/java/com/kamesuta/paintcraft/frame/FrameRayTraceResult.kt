@@ -1,4 +1,4 @@
-package com.kamesuta.paintcraft.canvas
+package com.kamesuta.paintcraft.frame
 
 import com.kamesuta.paintcraft.map.DrawableMapItem
 import com.kamesuta.paintcraft.util.UVInt
@@ -14,7 +14,7 @@ import org.bukkit.util.Vector
  * @param canvasIntersectOffset キャンバス上の位置とアイテムフレーム上の位置の差分
  * @param uv UV
  */
-data class CanvasRayTraceResult(
+data class FrameRayTraceResult(
     val itemFrame: ItemFrame,
     val mapItem: DrawableMapItem,
     val canvasLocation: Location,

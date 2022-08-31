@@ -1,9 +1,9 @@
-package com.kamesuta.paintcraft.canvas
+package com.kamesuta.paintcraft.frame
 
 import com.kamesuta.paintcraft.util.UV
 import org.bukkit.Rotation
 
-enum class CanvasRotation(
+enum class FrameRotation(
     private val x1: Double,
     private val y1: Double,
     private val x2: Double,
@@ -29,7 +29,7 @@ enum class CanvasRotation(
     }
 
     companion object {
-        fun fromRotation(rotation: Rotation): CanvasRotation {
+        fun fromRotation(rotation: Rotation): FrameRotation {
             return when (rotation) {
                 Rotation.NONE -> NONE
                 Rotation.CLOCKWISE_45 -> CLOCKWISE_45

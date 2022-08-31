@@ -1,4 +1,4 @@
-package com.kamesuta.paintcraft.canvas
+package com.kamesuta.paintcraft.frame
 
 import com.comphenix.protocol.PacketType
 import com.comphenix.protocol.events.ListenerPriority
@@ -6,6 +6,9 @@ import com.comphenix.protocol.events.PacketAdapter
 import com.comphenix.protocol.events.PacketEvent
 import com.comphenix.protocol.utility.MinecraftReflection
 import com.kamesuta.paintcraft.PaintCraft
+import com.kamesuta.paintcraft.canvas.CanvasActionType
+import com.kamesuta.paintcraft.canvas.CanvasSession
+import com.kamesuta.paintcraft.canvas.CanvasSessionManager
 import com.kamesuta.paintcraft.map.DrawableMapItem
 import com.kamesuta.paintcraft.util.DebugLocationType
 import com.kamesuta.paintcraft.util.DebugLocationVisualizer.clearDebugLocation
@@ -22,7 +25,7 @@ import org.bukkit.event.Listener
 /**
  * 描画用のイベントリスナー
  */
-class CanvasDrawListener : Listener, Runnable {
+class FrameDrawListener : Listener, Runnable {
     /**
      * ティックイベント
      */
@@ -83,7 +86,7 @@ class CanvasDrawListener : Listener, Runnable {
                     PacketType.Play.Client.VEHICLE_MOVE -> {
                         // 乗り物のyOffset
                         val yOffset = player.vehicle?.let {
-                            CanvasReflection.getYOffset(player) + CanvasReflection.getMountedYOffset(it)
+                            FrameReflection.getYOffset(player) + FrameReflection.getMountedYOffset(it)
                         } ?: 0.0
                         location.add(0.0, yOffset, 0.0)
                         LocationOperation.POSITION
@@ -154,7 +157,7 @@ class CanvasDrawListener : Listener, Runnable {
         player.clearDebug()
 
         // レイツールを初期化
-        val rayTrace = CanvasRayTrace(player)
+        val rayTrace = FrameRayTrace(player)
         // レイを飛ばしてアイテムフレームを取得
         val ray = rayTrace.rayTraceCanvas(playerEyePos)
             ?: return
@@ -274,7 +277,7 @@ class CanvasDrawListener : Listener, Runnable {
         // 目線の位置を取得
         val playerEyePos = session.eyeLocation
         // レイツールを初期化
-        val rayTrace = CanvasRayTrace(player)
+        val rayTrace = FrameRayTrace(player)
         // レイを飛ばしてアイテムフレームを取得
         val ray = rayTrace.rayTraceCanvas(playerEyePos)
             ?: return isCanvas
