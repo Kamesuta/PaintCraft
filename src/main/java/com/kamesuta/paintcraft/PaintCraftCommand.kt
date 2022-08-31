@@ -1,21 +1,20 @@
 package com.kamesuta.paintcraft
 
+import com.kamesuta.paintcraft.canvas.CanvasSessionManager
+import com.kamesuta.paintcraft.canvas.paint.PaintLine
+import com.kamesuta.paintcraft.canvas.paint.PaintPencil
 import com.kamesuta.paintcraft.map.DrawableMapItem
-import com.kamesuta.paintcraft.map.draw.DrawFill
-import com.kamesuta.paintcraft.map.draw.DrawLine
 import com.kamesuta.paintcraft.util.DebugLocationVisualizer
+import com.kamesuta.paintcraft.util.enumValueOrNull
 import dev.kotx.flylib.command.Command
 import org.bukkit.entity.Player
-import org.bukkit.map.MapPalette
-import java.awt.Color
 
 class PaintCraftCommand : Command("paintcraft") {
     init {
         children(
             DebugLocationVisualizer.DebugLocationCommand(),
             GiveCanvasCommand(),
-            DrawCanvasCommand(),
-            FillCanvasCommand()
+            SwitchDrawModeCommand(),
         )
     }
 }
@@ -41,35 +40,32 @@ class GiveCanvasCommand : Command("give") {
     }
 }
 
-class DrawCanvasCommand : Command("draw") {
-    init {
-        usage {
-            entityArgument("player")
-            executes {
-                val entities = typedArgs[0] as List<*>
-                entities.filterIsInstance<Player>().forEach {
-                    val mapDrawer = DrawableMapItem.get(it.inventory.itemInMainHand)
-
-                    mapDrawer?.draw { g ->
-                        g(DrawLine(128, 0, 0, 128, MapPalette.matchColor(Color.BLUE)))
-                    }
-                }
-            }
-        }
+class SwitchDrawModeCommand : Command("switch") {
+    enum class DrawMode {
+        PEN,
+        LINE,
     }
-}
 
-class FillCanvasCommand : Command("fill") {
     init {
         usage {
+            // 設定対象のプレイヤー
             entityArgument("player")
+            // 対象の座標の種類
+            selectionArgument("type", DrawMode.values().map { it.name.lowercase() })
             executes {
                 val entities = typedArgs[0] as List<*>
+                val typeName = typedArgs[1] as String
+                val type = enumValueOrNull<DrawMode>(typeName.uppercase())
+                if (type == null) {
+                    sender.sendMessage("Invalid mode: $typeName")
+                    return@executes
+                }
                 entities.filterIsInstance<Player>().forEach {
-                    val mapDrawer = DrawableMapItem.get(it.inventory.itemInMainHand)
-
-                    mapDrawer?.draw { g ->
-                        g(DrawFill(64, 32, MapPalette.matchColor(Color.RED), MapPalette.matchColor(Color.YELLOW)))
+                    CanvasSessionManager.getSession(it).let { session ->
+                        session.tool = when (type) {
+                            DrawMode.PEN -> PaintPencil(session)
+                            DrawMode.LINE -> PaintLine(session)
+                        }
                     }
                 }
             }
