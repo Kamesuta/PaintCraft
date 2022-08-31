@@ -3,6 +3,7 @@ package com.kamesuta.paintcraft
 import com.comphenix.protocol.ProtocolLibrary
 import com.comphenix.protocol.ProtocolManager
 import com.kamesuta.paintcraft.frame.FrameDrawListener
+import com.kamesuta.paintcraft.frame.FrameReflection
 import com.kamesuta.paintcraft.map.DrawableMapReflection
 import com.kamesuta.paintcraft.util.DebugLocationVisualizer
 import dev.kotx.flylib.flyLib
@@ -28,6 +29,8 @@ class PaintCraft : JavaPlugin() {
 
         // リフレクションクラスのチェック
         runCatching {
+            // アイテムフレーム系クラスのチェック
+            FrameReflection.checkReflection()
             // Map系クラスのチェック
             DrawableMapReflection.checkReflection()
         }.onFailure { e ->
