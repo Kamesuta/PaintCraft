@@ -21,6 +21,7 @@ import org.bukkit.entity.Entity
 import org.bukkit.entity.ItemFrame
 import org.bukkit.entity.Player
 import org.bukkit.event.Listener
+import java.util.logging.Level
 
 /**
  * 描画用のイベントリスナー
@@ -37,8 +38,17 @@ class FrameDrawListener : Listener, Runnable {
                 continue
             }
 
-            // パケットを処理
-            onMovePacket(player, player.eyeLocation, LocationOperation.POSITION, true)
+            try {
+                // パケットを処理
+                onMovePacket(player, player.eyeLocation, LocationOperation.POSITION, true)
+            } catch (e: Throwable) {
+                // スケジューラーに例外を投げないためにキャッチする
+                PaintCraft.instance.logger.log(
+                    Level.WARNING,
+                    "Error occurred while tick event for player " + player.name,
+                    e
+                )
+            }
         }
     }
 
@@ -62,43 +72,62 @@ class FrameDrawListener : Listener, Runnable {
                 // プレイヤーがいなければ無視
                 val player = event.player
                     ?: return
-                // プレイヤーの右手にインクがあるか
-                if (player.hasPencil()) {
-                    return
-                }
 
-                // パケット解析
-                val packet = event.packet
-                // 座標を読み取る
-                val x = packet.doubles.read(0)
-                val y = packet.doubles.read(1)
-                val z = packet.doubles.read(2)
-                val yaw = packet.float.read(0)
-                val pitch = packet.float.read(1)
-
-                // 座標構築
-                val location = Location(player.world, x, y + player.eyeHeight, z, yaw, pitch)
-                // 更新する部分の指定
-                val locationOperation = when (event.packetType) {
-                    PacketType.Play.Client.LOOK -> LocationOperation.LOOK
-                    PacketType.Play.Client.POSITION -> LocationOperation.POSITION
-                    PacketType.Play.Client.POSITION_LOOK -> LocationOperation.POSITION_LOOK
-                    PacketType.Play.Client.VEHICLE_MOVE -> {
-                        // 乗り物のyOffset
-                        val yOffset = player.vehicle?.let {
-                            FrameReflection.getYOffset(player) + FrameReflection.getMountedYOffset(it)
-                        } ?: 0.0
-                        location.add(0.0, yOffset, 0.0)
-                        LocationOperation.POSITION
+                try {
+                    // プレイヤーの右手にインクがあるか
+                    if (player.hasPencil()) {
+                        return
                     }
 
-                    else -> LocationOperation.NONE
-                }
+                    // パケット解析
+                    val packet = event.packet
+                    // 座標を読み取る
+                    val x = packet.doubles.read(0)
+                    val y = packet.doubles.read(1)
+                    val z = packet.doubles.read(2)
+                    val yaw = packet.float.read(0)
+                    val pitch = packet.float.read(1)
 
-                // メインスレッド以外でエンティティを取得できないため、メインスレッドで処理
-                Bukkit.getScheduler().runTask(PaintCraft.instance) { ->
-                    // パケットを処理
-                    onMovePacket(player, location, locationOperation, false)
+                    // 座標構築
+                    val location = Location(player.world, x, y + player.eyeHeight, z, yaw, pitch)
+                    // 更新する部分の指定
+                    val locationOperation = when (event.packetType) {
+                        PacketType.Play.Client.LOOK -> LocationOperation.LOOK
+                        PacketType.Play.Client.POSITION -> LocationOperation.POSITION
+                        PacketType.Play.Client.POSITION_LOOK -> LocationOperation.POSITION_LOOK
+                        PacketType.Play.Client.VEHICLE_MOVE -> {
+                            // 乗り物のyOffset
+                            val yOffset = player.vehicle?.let {
+                                FrameReflection.getYOffset(player) + FrameReflection.getMountedYOffset(it)
+                            } ?: 0.0
+                            location.add(0.0, yOffset, 0.0)
+                            LocationOperation.POSITION
+                        }
+
+                        else -> LocationOperation.NONE
+                    }
+
+                    // メインスレッド以外でエンティティを取得できないため、メインスレッドで処理
+                    Bukkit.getScheduler().runTask(PaintCraft.instance) { ->
+                        try {
+                            // パケットを処理
+                            onMovePacket(player, location, locationOperation, false)
+                        } catch (e: Throwable) {
+                            // スケジューラーに例外を投げないためにキャッチする
+                            PaintCraft.instance.logger.log(
+                                Level.WARNING,
+                                "Error occurred while move packet event for player " + player.name,
+                                e
+                            )
+                        }
+                    }
+                } catch (e: Throwable) {
+                    // パケット処理内で例外をthrowすると同期ズレの原因になるため、エラーメッセージを出力して処理しておく
+                    PaintCraft.instance.logger.log(
+                        Level.WARNING,
+                        "Failed to process move packet for player " + player.name,
+                        e
+                    )
                 }
             }
         }
@@ -204,54 +233,73 @@ class FrameDrawListener : Listener, Runnable {
                 // プレイヤーがいなければ無視
                 val player = event.player
                     ?: return
-                // プレイヤーの右手にインクがあるか
-                if (player.hasPencil()) {
-                    return
-                }
 
-                // パケット解析
-                val packet = event.packet
-                // クリックの種類を解析
-                var targetEntity: Entity? = null
-                val clickType = when (event.packetType) {
-                    PacketType.Play.Client.BLOCK_PLACE -> CanvasActionType.RIGHT_CLICK
-                    PacketType.Play.Client.USE_ITEM -> CanvasActionType.RIGHT_CLICK
-                    PacketType.Play.Client.ARM_ANIMATION -> null
-                    PacketType.Play.Client.USE_ENTITY -> {
-                        // アクションの種類を解析
-                        @Suppress("UNCHECKED_CAST")
-                        val enumAction =
-                            MinecraftReflection.getMinecraftClass("PacketPlayInUseEntity\$EnumEntityUseAction") as Class<Any>
-                        val actionType = packet
-                            .getEnumModifier(PacketEnumEntityUseAction::class.java, enumAction)
-                            .read(0)
-                            ?: return
-                        // エンティティを取得
-                        targetEntity = packet.getEntityModifier(event).read(0)
-                        // 右クリックか左クリックか判定
-                        when (actionType) {
-                            PacketEnumEntityUseAction.INTERACT -> CanvasActionType.RIGHT_CLICK
-                            PacketEnumEntityUseAction.INTERACT_AT -> CanvasActionType.RIGHT_CLICK
-                            PacketEnumEntityUseAction.ATTACK -> CanvasActionType.LEFT_CLICK
+                try {
+                    // プレイヤーの右手にインクがあるか
+                    if (player.hasPencil()) {
+                        return
+                    }
+
+                    // パケット解析
+                    val packet = event.packet
+                    // クリックの種類を解析
+                    var targetEntity: Entity? = null
+                    val clickType = when (event.packetType) {
+                        PacketType.Play.Client.BLOCK_PLACE -> CanvasActionType.RIGHT_CLICK
+                        PacketType.Play.Client.USE_ITEM -> CanvasActionType.RIGHT_CLICK
+                        PacketType.Play.Client.ARM_ANIMATION -> null
+                        PacketType.Play.Client.USE_ENTITY -> {
+                            // アクションの種類を解析
+                            @Suppress("UNCHECKED_CAST")
+                            val enumAction =
+                                MinecraftReflection.getMinecraftClass("PacketPlayInUseEntity\$EnumEntityUseAction") as Class<Any>
+                            val actionType = packet
+                                .getEnumModifier(PacketEnumEntityUseAction::class.java, enumAction)
+                                .read(0)
+                                ?: return
+                            // エンティティを取得
+                            targetEntity = packet.getEntityModifier(event).read(0)
+                            // 右クリックか左クリックか判定
+                            when (actionType) {
+                                PacketEnumEntityUseAction.INTERACT -> CanvasActionType.RIGHT_CLICK
+                                PacketEnumEntityUseAction.INTERACT_AT -> CanvasActionType.RIGHT_CLICK
+                                PacketEnumEntityUseAction.ATTACK -> CanvasActionType.LEFT_CLICK
+                            }
+                        }
+
+                        else -> return
+                    }
+
+                    // setCancelの判断を待ってもらう
+                    val marker = event.asyncMarker
+                    marker.incrementProcessingDelay()
+                    // メインスレッド以外でエンティティを取得できないため、メインスレッドで処理
+                    Bukkit.getScheduler().runTask(PaintCraft.instance) { ->
+                        try {
+                            // パケットを処理し、キャンセルフラグをセット
+                            event.isCancelled = onClickPacket(player, clickType, targetEntity)
+                        } catch (e: Throwable) {
+                            // エラーが発生してもsignalPacketTransmissionを呼ぶ必要があるため、キャッチする
+                            PaintCraft.instance.logger.log(
+                                Level.WARNING,
+                                "Error occurred while click packet event for player " + player.name,
+                                e
+                            )
+                        } finally {
+                            // ロック
+                            synchronized(marker.processingLock) {
+                                // 待ってもらっていたsetCancelの判断を続行してもらう
+                                PaintCraft.instance.protocolManager.asynchronousManager.signalPacketTransmission(event)
+                            }
                         }
                     }
-
-                    else -> return
-                }
-
-                // setCancelの判断を待ってもらう
-                val marker = event.asyncMarker
-                marker.incrementProcessingDelay()
-                // メインスレッド以外でエンティティを取得できないため、メインスレッドで処理
-                Bukkit.getScheduler().runTask(PaintCraft.instance) { ->
-                    // パケットを処理し、キャンセルフラグをセット
-                    event.isCancelled = onClickPacket(player, clickType, targetEntity)
-
-                    // ロック
-                    synchronized(marker.processingLock) {
-                        // 待ってもらっていたsetCancelの判断を続行してもらう
-                        PaintCraft.instance.protocolManager.asynchronousManager.signalPacketTransmission(event)
-                    }
+                } catch (e: Throwable) {
+                    // パケット処理内で例外をthrowすると同期ズレの原因になるため、エラーメッセージを出力して処理しておく
+                    PaintCraft.instance.logger.log(
+                        Level.WARNING,
+                        "Failed to process click packet for player " + player.name,
+                        e
+                    )
                 }
             }
         }
