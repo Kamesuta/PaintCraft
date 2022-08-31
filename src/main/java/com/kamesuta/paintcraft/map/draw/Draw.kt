@@ -5,3 +5,5 @@ import org.bukkit.map.MapCanvas
 fun interface Draw {
     fun draw(canvas: MapCanvas)
 }
+
+typealias Drawable = (draw: Draw) -> Unit
