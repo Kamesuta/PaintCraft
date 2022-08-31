@@ -82,7 +82,10 @@ class CanvasDrawListener : Listener, Runnable {
                     PacketType.Play.Client.POSITION_LOOK -> LocationOperation.POSITION_LOOK
                     PacketType.Play.Client.VEHICLE_MOVE -> {
                         // 乗り物のyOffset
-                        location.add(0.0, -0.45, 0.0)
+                        val yOffset = player.vehicle?.let {
+                            CanvasReflection.getYOffset(player) + CanvasReflection.getMountedYOffset(it)
+                        } ?: 0.0
+                        location.add(0.0, yOffset, 0.0)
                         LocationOperation.POSITION
                     }
 

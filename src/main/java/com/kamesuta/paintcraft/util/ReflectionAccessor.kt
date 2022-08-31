@@ -90,21 +90,23 @@ object ReflectionAccessor {
      */
     @Throws(NoSuchMethodException::class, InvocationTargetException::class, IllegalAccessException::class)
     fun invokeMethod(obj: Any, methodName: String, vararg params: Any): Any? {
-        val method: Method
         val paramTypes = getParamTypes(*params)
         val paramValues = getParamValues(*params)
-        try {
-            method = obj.javaClass.getDeclaredMethod(methodName, *paramTypes)
-            method.isAccessible = true
-        } catch (e: NoSuchMethodException) {
+
+        val method = runCatching {
+            // まずはそのクラスだけで検索する
+            obj.javaClass.getDeclaredMethod(methodName, *paramTypes).let { it.isAccessible = true; it }
+        }.recoverCatching {
+            // なければ親クラスも含めて検索する (publicメソッドのみ)
+            obj.javaClass.getMethod(methodName, *paramTypes).let { it.isAccessible = true; it }
+        }.getOrNull() ?: throw NoSuchMethodException(
             // 指定したメソッドが見つからない
-            throw NoSuchMethodException(
-                String.format(
-                    "Method '%s' could not be found in '%s'. Methods found: [%s]",
-                    methodName, obj.javaClass.name, listOf(*obj.javaClass.declaredMethods)
-                )
+            String.format(
+                "Method '%s' could not be found in '%s'. Methods found: [%s]",
+                methodName, obj.javaClass.name, listOf(*obj.javaClass.declaredMethods)
             )
-        }
+        )
+
         return method.invoke(obj, *paramValues)
     }
 

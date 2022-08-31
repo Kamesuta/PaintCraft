@@ -60,13 +60,13 @@ object DrawableMapReflection {
      */
     fun getMapDirtyArea(player: Player, mapView: MapView): UVIntArea? {
         return try {
-            val entity = ReflectionAccessor.invokeMethod(player, "getHandle")
+            val handle = ReflectionAccessor.invokeMethod(player, "getHandle")
                 ?: return null
             val worldMap = ReflectionAccessor.getField(mapView, "worldMap")
                 ?: return null
             val humanTrackerMap = ReflectionAccessor.getField(worldMap, "humans") as HashMap<*, *>?
                 ?: return null
-            val humanTracker = humanTrackerMap[entity]
+            val humanTracker = humanTrackerMap[handle]
                 ?: return null
             val x1 = ReflectionAccessor.getField(humanTracker, "e") as Int
             val y1 = ReflectionAccessor.getField(humanTracker, "f") as Int
