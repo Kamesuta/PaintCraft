@@ -14,6 +14,7 @@ import com.kamesuta.paintcraft.util.DebugLocationType
 import com.kamesuta.paintcraft.util.DebugLocationVisualizer.clearDebugLocation
 import com.kamesuta.paintcraft.util.LocationOperation
 import com.kamesuta.paintcraft.util.TimeWatcher
+import com.kamesuta.paintcraft.util.vec.Line3d.Companion.toLine
 import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.Material
@@ -171,10 +172,8 @@ class FrameDrawListener : Listener, Runnable {
             }
         }
 
-        // パケットの座標を合成しプレイヤーの座標と目線を計算
-        val playerEyePos = locationOperation.operation(session.eyeLocation, eyeLocation)
-        // 目線の座標を更新
-        session.eyeLocation = playerEyePos
+        // パケットの座標を合成しプレイヤーの座標と目線を計算し、目線の座標を更新
+        session.eyeLocation = locationOperation.operation(session.eyeLocation, eyeLocation)
 
         // キャンバスが描画中かどうかを確認
         if (!session.tool.isDrawing) {
@@ -188,6 +187,7 @@ class FrameDrawListener : Listener, Runnable {
         // レイツールを初期化
         val rayTrace = FrameRayTrace(player)
         // レイを飛ばしてアイテムフレームを取得
+        val playerEyePos = session.eyeLocation.toLine()
         val ray = rayTrace.rayTraceCanvas(playerEyePos)
             ?: return
 
@@ -323,7 +323,7 @@ class FrameDrawListener : Listener, Runnable {
         val session = CanvasSessionManager.getSession(player)
 
         // 目線の位置を取得
-        val playerEyePos = session.eyeLocation
+        val playerEyePos = session.eyeLocation.toLine()
         // レイツールを初期化
         val rayTrace = FrameRayTrace(player)
         // レイを飛ばしてアイテムフレームを取得

@@ -47,12 +47,14 @@ data class Line3d(val origin: Vector, val direction: Vector) {
         location.pitch = Math.toDegrees(asin(-direction.y)).toFloat()
         return location
     }
-}
 
-/**
- * 線に変換する
- * @return 線
- */
-fun Location.toLine(): Line3d {
-    return Line3d(this.toVector(), this.direction.clone().normalize())
+    companion object {
+        /**
+         * 線に変換する
+         * @return 線
+         */
+        fun Location.toLine(): Line3d {
+            return Line3d(this.toVector(), this.direction.clone().normalize())
+        }
+    }
 }
