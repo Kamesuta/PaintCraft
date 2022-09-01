@@ -7,8 +7,8 @@ import com.kamesuta.paintcraft.map.DrawableMapBuffer.Companion.mapSize
 import com.kamesuta.paintcraft.map.DrawableMapItem
 import com.kamesuta.paintcraft.util.DebugLocationType
 import com.kamesuta.paintcraft.util.DebugLocationVisualizer.debugLocation
-import com.kamesuta.paintcraft.util.UV
-import com.kamesuta.paintcraft.util.UVInt
+import com.kamesuta.paintcraft.util.vec.Vec2d
+import com.kamesuta.paintcraft.util.vec.Vec2i
 import org.bukkit.Location
 import org.bukkit.Material
 import org.bukkit.Rotation
@@ -164,19 +164,19 @@ class FrameRayTrace(private val player: Player) {
      * @param uv ブロックのUV座標
      * @return キャンバスピクセルのUV座標
      */
-    private fun transformUV(rotation: Rotation, uv: UV): UVInt? {
+    private fun transformUV(rotation: Rotation, uv: Vec2d): Vec2i? {
         // BukkitのRotationからCanvasのRotationに変換する
         val rot: FrameRotation = FrameRotation.fromRotation(rotation)
         // -0.5～0.5の範囲を0.0～1.0の範囲に変換する
-        val q = UV(rot.u(uv) + 0.5, rot.v(uv) + 0.5)
+        val q = Vec2d(rot.u(uv) + 0.5, rot.v(uv) + 0.5)
         // 0～128(ピクセル座標)の範囲に変換する
-        val x = (q.u * mapSize).toInt()
-        val y = (q.v * mapSize).toInt()
+        val x = (q.x * mapSize).toInt()
+        val y = (q.y * mapSize).toInt()
         // 範囲外ならばnullを返す
         if (x >= mapSize || x < 0) return null
         if (y >= mapSize || y < 0) return null
         // 変換した座標を返す
-        return UVInt(x, y)
+        return Vec2i(x, y)
     }
 
     /**
@@ -227,13 +227,13 @@ class FrameRayTrace(private val player: Player) {
         itemFrameYaw: Float,
         itemFramePitch: Float,
         intersectPosition: Vector
-    ): UV {
+    ): Vec2d {
         // 交点座標を(0,0)を中心に回転し、UV座標(x,-y)に対応するようにする
         val unRotated = intersectPosition.clone()
             .rotateAroundX(Math.toRadians(-itemFramePitch.toDouble()))
             .rotateAroundY(Math.toRadians(itemFrameYaw.toDouble()))
         // UV座標を返す (3D座標はYが上ほど大きく、UV座標はYが下ほど大きいため、Yを反転する)
-        return UV(unRotated.x, -unRotated.y)
+        return Vec2d(unRotated.x, -unRotated.y)
     }
 
     /**

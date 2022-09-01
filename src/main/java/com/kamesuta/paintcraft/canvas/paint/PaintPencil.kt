@@ -97,10 +97,10 @@ class PaintPencil(override val session: CanvasSession) : PaintTool {
         lastEvent?.let { ev ->
             g(
                 DrawLine(
-                    ev.interact.uv.u,
-                    ev.interact.uv.v,
-                    interact.uv.u,
-                    interact.uv.v,
+                    ev.interact.uv.x,
+                    ev.interact.uv.y,
+                    interact.uv.x,
+                    interact.uv.y,
                     color
                 )
             )

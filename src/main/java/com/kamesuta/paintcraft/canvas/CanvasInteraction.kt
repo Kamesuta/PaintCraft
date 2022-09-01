@@ -1,7 +1,7 @@
 package com.kamesuta.paintcraft.canvas
 
 import com.kamesuta.paintcraft.frame.FrameRayTraceResult
-import com.kamesuta.paintcraft.util.UVInt
+import com.kamesuta.paintcraft.util.vec.Vec2i
 import org.bukkit.entity.Player
 
 /**
@@ -12,7 +12,7 @@ import org.bukkit.entity.Player
  * @param actionType プレイヤーのアクションタイプ
  */
 data class CanvasInteraction(
-    val uv: UVInt,
+    val uv: Vec2i,
     val ray: FrameRayTraceResult,
     val player: Player,
     val actionType: CanvasActionType

@@ -1,6 +1,6 @@
 package com.kamesuta.paintcraft.frame
 
-import com.kamesuta.paintcraft.util.UV
+import com.kamesuta.paintcraft.util.vec.Vec2d
 import org.bukkit.Rotation
 
 enum class FrameRotation(
@@ -20,12 +20,12 @@ enum class FrameRotation(
     COUNTER_CLOCKWISE_45    ( 0.0, -1.0, +1.0,  0.0);
     // @formatter:on
 
-    fun u(uv: UV): Double {
-        return x1 * uv.u + y1 * uv.v
+    fun u(uv: Vec2d): Double {
+        return x1 * uv.x + y1 * uv.y
     }
 
-    fun v(uv: UV): Double {
-        return x2 * uv.u + y2 * uv.v
+    fun v(uv: Vec2d): Double {
+        return x2 * uv.x + y2 * uv.y
     }
 
     companion object {

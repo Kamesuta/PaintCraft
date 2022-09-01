@@ -2,8 +2,8 @@ package com.kamesuta.paintcraft.map
 
 import com.comphenix.protocol.utility.MinecraftReflection
 import com.kamesuta.paintcraft.PaintCraft
-import com.kamesuta.paintcraft.util.UVInt
-import com.kamesuta.paintcraft.util.UVIntArea
+import com.kamesuta.paintcraft.util.vec.Vec2i
+import com.kamesuta.paintcraft.util.vec.Rect2i
 import org.bukkit.entity.Player
 import org.bukkit.map.MapCanvas
 import org.bukkit.map.MapView
@@ -98,7 +98,7 @@ object DrawableMapReflection {
      * @param player プレイヤー
      * @param mapView マップビュー
      */
-    fun getMapDirtyArea(player: Player, mapView: MapView): UVIntArea? {
+    fun getMapDirtyArea(player: Player, mapView: MapView): Rect2i? {
         return runCatching {
             val handle = Accessor.craftEntityGetHandle(player)
                 ?: return null
@@ -112,9 +112,9 @@ object DrawableMapReflection {
             val y1 = Accessor.humanTrackerMinY[humanTracker] as Int
             val x2 = Accessor.humanTrackerMaxX[humanTracker] as Int
             val y2 = Accessor.humanTrackerMaxY[humanTracker] as Int
-            UVIntArea(
-                UVInt(x1, y1),
-                UVInt(x2, y2),
+            Rect2i(
+                Vec2i(x1, y1),
+                Vec2i(x2, y2),
             )
         }.onFailure {
             PaintCraft.instance.logger.warning("Failed to get map dirty area for player ${player.name}")

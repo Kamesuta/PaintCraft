@@ -1,6 +1,6 @@
 package com.kamesuta.paintcraft.map
 
-import com.kamesuta.paintcraft.util.UVIntArea
+import com.kamesuta.paintcraft.util.vec.Rect2i
 
 /**
  * マップピクセルデータ
@@ -55,13 +55,13 @@ class DrawableMapBuffer(val pixels: ByteArray) : Cloneable {
      * @param dirty 更新する領域
      * @return 切り抜かれたピクセルデータ配列
      */
-    fun createSubImage(dirty: UVIntArea): ByteArray {
+    fun createSubImage(dirty: Rect2i): ByteArray {
         val width = dirty.width
         val height = dirty.height
         val part = ByteArray(width * height)
         for (y in 0 until height) {
             for (x in 0 until width) {
-                part[x + y * width] = this[dirty.p1.u + x, dirty.p1.v + y]
+                part[x + y * width] = this[dirty.p1.x + x, dirty.p1.y + y]
             }
         }
         return part

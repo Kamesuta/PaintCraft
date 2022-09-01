@@ -4,7 +4,7 @@ import com.comphenix.protocol.PacketType
 import com.comphenix.protocol.events.PacketContainer
 import com.comphenix.protocol.utility.MinecraftReflection
 import com.kamesuta.paintcraft.PaintCraft
-import com.kamesuta.paintcraft.util.UVIntArea
+import com.kamesuta.paintcraft.util.vec.Rect2i
 import org.bukkit.entity.Player
 import org.bukkit.map.MapView
 import java.lang.reflect.Array
@@ -24,7 +24,7 @@ object DrawableMapUpdater {
      * @param mapView マップ
      * @param dirty 更新領域
      */
-    fun sendMap(player: Player, mapView: MapView, buffer: DrawableMapBuffer, dirty: UVIntArea) {
+    fun sendMap(player: Player, mapView: MapView, buffer: DrawableMapBuffer, dirty: Rect2i) {
         val part = buffer.createSubImage(dirty)
         val packet = createPacket(mapView, part, dirty)
         PaintCraft.instance.protocolManager.sendServerPacket(player, packet)
@@ -39,7 +39,7 @@ object DrawableMapUpdater {
     private fun createPacket(
         mapView: MapView,
         part: ByteArray,
-        dirty: UVIntArea,
+        dirty: Rect2i,
     ): PacketContainer {
         // パケットを作成する
         val packet = PaintCraft.instance.protocolManager.createPacket(PacketType.Play.Server.MAP)
@@ -58,8 +58,8 @@ object DrawableMapUpdater {
         packet.getSpecificModifier(mapIconArrayClass).write(0, Array.newInstance(mapIconClass, 0))
 
         // 更新する領域を設定する
-        packet.integers.write(1, dirty.p1.u)
-        packet.integers.write(2, dirty.p1.v)
+        packet.integers.write(1, dirty.p1.x)
+        packet.integers.write(2, dirty.p1.y)
         packet.integers.write(3, dirty.width)
         packet.integers.write(4, dirty.height)
 
