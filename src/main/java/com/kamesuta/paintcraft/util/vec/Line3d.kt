@@ -14,10 +14,31 @@ import kotlin.math.atan2
  */
 data class Line3d(val origin: Vector, val direction: Vector) {
     /**
+     * 線の先の位置を返す
+     * @return 線の先の位置
+     */
+    val target: Vector get() = origin.clone().add(direction)
+
+    /**
+     * 平行移動させた線を取得する
+     * @param other 移動するベクトル
+     * @return 移動後の線
+     */
+    operator fun plus(other: Vector) = Line3d(origin.clone().add(other), direction)
+
+    /**
+     * 逆方向に平行移動させた線を取得する
+     * @param other 移動するベクトル
+     * @return 移動後の線
+     */
+    operator fun minus(other: Vector) = Line3d(origin.clone().subtract(other), direction)
+
+    /**
      * BukkitのLocationに変換する
      * @param world ワールド
      * @return Location座標
      */
+    @Deprecated("Locationに変換するのはコストが高いため、Line3dのまま使用することを推奨します")
     fun toLocation(world: World): Location {
         // 始点を取得
         val location = origin.toLocation(world)

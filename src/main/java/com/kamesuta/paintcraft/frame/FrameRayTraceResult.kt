@@ -1,6 +1,7 @@
 package com.kamesuta.paintcraft.frame
 
 import com.kamesuta.paintcraft.map.DrawableMapItem
+import com.kamesuta.paintcraft.util.vec.Line3d
 import com.kamesuta.paintcraft.util.vec.Vec2i
 import org.bukkit.Location
 import org.bukkit.entity.ItemFrame
@@ -17,10 +18,10 @@ import org.bukkit.util.Vector
 data class FrameRayTraceResult(
     val itemFrame: ItemFrame,
     val mapItem: DrawableMapItem,
-    val canvasLocation: Location,
+    val canvasLocation: Line3d,
     val canvasIntersectOffset: Vector,
     val uv: Vec2i,
 ) {
-    val canvasIntersectLocation: Location by lazy { canvasLocation.clone().add(canvasIntersectOffset) }
+    val canvasIntersectLocation: Line3d by lazy { canvasLocation + canvasIntersectOffset }
 }
 
