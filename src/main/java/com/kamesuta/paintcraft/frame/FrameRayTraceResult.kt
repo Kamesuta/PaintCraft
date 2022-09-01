@@ -3,7 +3,6 @@ package com.kamesuta.paintcraft.frame
 import com.kamesuta.paintcraft.map.DrawableMapItem
 import com.kamesuta.paintcraft.util.vec.Line3d
 import com.kamesuta.paintcraft.util.vec.Vec2i
-import org.bukkit.Location
 import org.bukkit.entity.ItemFrame
 import org.bukkit.util.Vector
 

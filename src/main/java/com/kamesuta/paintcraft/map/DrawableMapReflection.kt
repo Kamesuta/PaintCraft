@@ -2,8 +2,8 @@ package com.kamesuta.paintcraft.map
 
 import com.comphenix.protocol.utility.MinecraftReflection
 import com.kamesuta.paintcraft.PaintCraft
-import com.kamesuta.paintcraft.util.vec.Vec2i
 import com.kamesuta.paintcraft.util.vec.Rect2i
+import com.kamesuta.paintcraft.util.vec.Vec2i
 import org.bukkit.entity.Player
 import org.bukkit.map.MapCanvas
 import org.bukkit.map.MapView

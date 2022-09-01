@@ -12,7 +12,7 @@ object CanvasSessionManager {
      * プレイヤーのキャンバスステート
      * 別スレッド(パケットを受け取った時)で書き込みが発生するため、ConcurrentHashMapを使用する
      */
-    private val sessions = ConcurrentHashMap<UUID, CanvasSession>();
+    private val sessions = ConcurrentHashMap<UUID, CanvasSession>()
 
     /**
      * プレイヤーのキャンバスステートを取得する

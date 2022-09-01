@@ -9,6 +9,7 @@ package com.kamesuta.paintcraft.util.vec
 data class Rect2i(val p1: Vec2i, val p2: Vec2i) {
     /** 幅 */
     val width: Int get() = p2.x - p1.x + 1
+
     /** 高さ */
     val height: Int get() = p2.y - p1.y + 1
 }

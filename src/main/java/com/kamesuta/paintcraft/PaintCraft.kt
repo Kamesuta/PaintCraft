@@ -25,7 +25,7 @@ class PaintCraft : JavaPlugin() {
         // プラグインインスタンスをstaticフィールドに保存
         instance = this
         // ProtocolLibを初期化
-        protocolManager = ProtocolLibrary.getProtocolManager();
+        protocolManager = ProtocolLibrary.getProtocolManager()
 
         // リフレクションクラスのチェック
         runCatching {
