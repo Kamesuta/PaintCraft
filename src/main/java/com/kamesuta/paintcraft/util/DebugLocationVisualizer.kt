@@ -8,6 +8,9 @@ import org.bukkit.Particle
 import org.bukkit.entity.Player
 import java.util.*
 
+typealias DebugLocator = (type: DebugLocationType, location: Location?) -> Unit
+typealias DebugLocatable = (locator: DebugLocator) -> Unit
+
 /**
  * 位置を視覚化してデバッグするためのコマンド
  */
@@ -27,12 +30,19 @@ object DebugLocationVisualizer {
     }
 
     /** デバッグ座標を更新 */
-    fun Player.debugLocation(type: DebugLocationType, location: Location?) {
+    fun locate(player: Player, type: DebugLocationType, location: Location?) {
+        get(player).location(type, location)
+    }
+
+    /** デバッグ座標を更新 */
+    inline fun Player.debugLocation(f: DebugLocatable) {
         if (!DebugLocationType.ENABLE_DEBUG) {
             return
         }
 
-        get(this).location(type, location)
+        f { type, location ->
+            locate(this, type, location)
+        }
     }
 
     /** デバッグ座標をクリア */

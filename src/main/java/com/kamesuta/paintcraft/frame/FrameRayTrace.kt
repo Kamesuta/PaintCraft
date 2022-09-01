@@ -42,8 +42,10 @@ class FrameRayTrace(private val player: Player) {
         playerEyePos: Line3d,
     ): FrameRayTraceResult? {
         // 目線と向きからエンティティを取得し、アイテムフレームかどうかを確認する
-        player.debugLocation(DebugLocationType.EYE_LOCATION, playerEyePos.origin.toLocation(player.world))
-        player.debugLocation(DebugLocationType.EYE_DIRECTION, playerEyePos.target.toLocation(player.world))
+        player.debugLocation { locate ->
+            locate(DebugLocationType.EYE_LOCATION, playerEyePos.origin.toLocation(player.world))
+            locate(DebugLocationType.EYE_DIRECTION, playerEyePos.target.toLocation(player.world))
+        }
 
         // 距離は前方8m(半径4)を範囲にする
         val distance = 8.0
@@ -59,7 +61,9 @@ class FrameRayTrace(private val player: Player) {
         )
         // クリックがヒットした座標
         val blockHitLocation = blockRay?.hitPosition
-        player.debugLocation(DebugLocationType.BLOCK_HIT_LOCATION, blockHitLocation?.toLocation(player.world))
+        player.debugLocation { locate ->
+            locate(DebugLocationType.BLOCK_HIT_LOCATION, blockHitLocation?.toLocation(player.world))
+        }
 
         // キャンバスよりも手前にブロックがあるならば探索終了
         val maxDistance = (blockHitLocation?.distance(playerEyePos.origin) ?: distance)
@@ -101,22 +105,27 @@ class FrameRayTrace(private val player: Player) {
     ) {
         // アイテムフレームの位置を取得
         val itemFrameLocation = ray.itemFrame.location
-        player.debugLocation(DebugLocationType.FRAME_LOCATION, itemFrameLocation)
-        player.debugLocation(
-            DebugLocationType.FRAME_DIRECTION,
-            itemFrameLocation.clone().add(itemFrameLocation.direction)
-        )
-        player.debugLocation(
-            DebugLocationType.FRAME_FACING,
-            itemFrameLocation.clone().add(ray.itemFrame.facing.direction)
-        )
-        player.debugLocation(DebugLocationType.FRAME_FACING_BLOCK, itemFrameLocation.toCenterLocation())
-
-        // ヒット位置
-        player.debugLocation(
-            DebugLocationType.CANVAS_HIT_LOCATION,
-            ray.canvasIntersectLocation.origin.toLocation(player.world)
-        )
+        player.debugLocation { locate ->
+            // アイテムフレームの位置
+            locate(DebugLocationType.FRAME_LOCATION, itemFrameLocation)
+            // アイテムフレームの方向
+            locate(
+                DebugLocationType.FRAME_DIRECTION,
+                itemFrameLocation.clone().add(itemFrameLocation.direction)
+            )
+            // アイテムフレームのブロック上での方向
+            locate(
+                DebugLocationType.FRAME_FACING,
+                itemFrameLocation.clone().add(ray.itemFrame.facing.direction)
+            )
+            // アイテムフレームのブロック
+            locate(DebugLocationType.FRAME_FACING_BLOCK, itemFrameLocation.toCenterLocation())
+            // ヒット位置
+            locate(
+                DebugLocationType.CANVAS_HIT_LOCATION,
+                ray.canvasIntersectLocation.origin.toLocation(player.world)
+            )
+        }
 
         // インタラクトオブジェクトを作成
         val interact = CanvasInteraction(ray.uv, ray, player, actionType)
@@ -143,9 +152,12 @@ class FrameRayTrace(private val player: Player) {
         val itemFrameLocation = itemFrame.location
         // キャンバス平面の位置
         val canvasLocation = itemFrameLocation.toCanvasLocation()
-        player.debugLocation(DebugLocationType.CANVAS_LOCATION, canvasLocation.origin.toLocation(player.world))
-        // アイテムフレームの正面ベクトル
-        player.debugLocation(DebugLocationType.CANVAS_DIRECTION, canvasLocation.target.toLocation(player.world))
+        player.debugLocation { locate ->
+            // アイテムフレームの位置
+            locate(DebugLocationType.CANVAS_LOCATION, canvasLocation.origin.toLocation(player.world))
+            // アイテムフレームの正面ベクトル
+            locate(DebugLocationType.CANVAS_DIRECTION, canvasLocation.target.toLocation(player.world))
+        }
 
         // キャンバスのオフセットを計算
         val canvasIntersectOffset = intersectCanvas(playerEyePos, canvasLocation, itemFrame.isVisible)
