@@ -202,16 +202,10 @@ class FrameRayTrace(private val player: Player) {
         canvasLocation: Line3d,
         isFrameVisible: Boolean,
     ): Vector {
-        // プレイヤーの目線の方向
-        val playerDirection = playerEyePos.direction
-
-        // アイテムフレームの正面ベクトル
-        val canvasDirection = canvasLocation.direction
-
         // キャンバス平面とアイテムフレームの差 = アイテムフレームの厚さ/2
         val canvasOffsetZ = if (isFrameVisible) 0.07 else 0.0075
         // キャンバスの表面の平面の座標 = アイテムフレームエンティティの中心からアイテムフレームの厚さ/2だけずらした位置
-        val canvasPlane = canvasLocation + canvasDirection.clone().multiply(canvasOffsetZ)
+        val canvasPlane = canvasLocation + canvasLocation.direction.clone().multiply(canvasOffsetZ)
 
         // アイテムフレームから目線へのベクトル
         val canvasPlaneToEye = playerEyePos.origin.clone().subtract(canvasPlane.origin)
@@ -219,11 +213,11 @@ class FrameRayTrace(private val player: Player) {
         // 目線上のキャンバス座標のオフセットを計算 (平面とベクトルとの交点)
         // https://qiita.com/edo_m18/items/c8808f318f5abfa8af1e
         // http://www.sousakuba.com/Programming/gs_plane_line_intersect.html
-        val v1 = canvasDirection.clone().dot(canvasPlaneToEye)
-        val v0 = canvasDirection.clone().dot(playerDirection)
+        val v1 = canvasLocation.direction.clone().dot(canvasPlaneToEye)
+        val v0 = canvasLocation.direction.clone().dot(playerEyePos.direction)
 
         // 交点の座標を求める
-        return canvasPlaneToEye.clone().subtract(playerDirection.clone().multiply(v1 / v0))
+        return canvasPlaneToEye.clone().subtract(playerEyePos.direction.clone().multiply(v1 / v0))
     }
 
     /**
