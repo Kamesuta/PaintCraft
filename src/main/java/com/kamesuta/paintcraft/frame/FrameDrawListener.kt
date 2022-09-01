@@ -192,7 +192,7 @@ class FrameDrawListener : Listener, Runnable {
             ?: return
 
         // 裏からのクリックは無視
-        if (!rayTrace.isCanvasFrontSide(playerEyePos.direction, ray.itemFrame)) {
+        if (!rayTrace.isCanvasFrontSide(playerEyePos.direction, ray.canvasLocation)) {
             return
         }
 
@@ -331,7 +331,7 @@ class FrameDrawListener : Listener, Runnable {
             ?: return isCanvas
 
         // 裏からのクリックは無視
-        if (!rayTrace.isCanvasFrontSide(playerEyePos.direction, ray.itemFrame)) {
+        if (!rayTrace.isCanvasFrontSide(playerEyePos.direction, ray.canvasLocation)) {
             return isCanvas
         }
 

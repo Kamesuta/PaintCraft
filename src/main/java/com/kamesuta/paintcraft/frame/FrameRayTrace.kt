@@ -26,12 +26,12 @@ class FrameRayTrace(private val player: Player) {
     /**
      * キャンバスが表か判定する
      * @param playerDirection プレイヤーの方向
-     * @param itemFrame アイテムフレーム
+     * @param canvasLocation アイテムフレーム
      * @return キャンバスが表かどうか
      */
-    fun isCanvasFrontSide(playerDirection: Vector, itemFrame: ItemFrame): Boolean {
+    fun isCanvasFrontSide(playerDirection: Vector, canvasLocation: Line3d): Boolean {
         // 裏からのクリックを判定
-        return playerDirection.dot(itemFrame.location.toCanvasLocation().direction) <= 0
+        return playerDirection.dot(canvasLocation.direction) <= 0
     }
 
     /**
