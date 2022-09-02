@@ -82,6 +82,7 @@ class DrawableMapRenderer : MapRenderer() {
         mapCanvas.updatePlayer(player)
     }
 
+    companion object {
     /** プレイヤーに更新を通知する */
     private fun MapCanvas.updatePlayer(player: Player) {
         val dirty = DrawableMapReflection.getMapDirtyArea(player, mapView)
@@ -108,6 +109,7 @@ class DrawableMapRenderer : MapRenderer() {
         val dst = DrawableMapReflection.getCanvasBuffer(this)
         if (src != null && dst != null) {
             src.copyTo(dst)
+            }
         }
     }
 }

@@ -387,14 +387,16 @@ class FrameDrawListener : Listener, Runnable {
         return true
     }
 
-    /**
-     * デバッグ座標を初期化
-     */
-    private fun Player.clearDebug() = clearDebugLocation(DebugLocationType.DebugLocationGroup.CANVAS_DRAW)
+    companion object {
+        /**
+         * デバッグ座標を初期化
+         */
+        private fun Player.clearDebug() = clearDebugLocation(DebugLocationType.DebugLocationGroup.CANVAS_DRAW)
 
-    /**
-     * プレイヤーがペンを持っているかどうかを確認する
-     * @return ペンを持っているかどうか
-     */
-    private fun Player.hasPencil() = inventory.itemInMainHand.type != Material.INK_SAC
+        /**
+         * プレイヤーがペンを持っているかどうかを確認する
+         * @return ペンを持っているかどうか
+         */
+        private fun Player.hasPencil() = inventory.itemInMainHand.type != Material.INK_SAC
+    }
 }

@@ -38,18 +38,25 @@ class DrawableMapItem(val itemStack: ItemStack, val mapView: MapView, val render
          * @param world ワールド
          */
         fun create(world: World): DrawableMapItem {
+            // マップを作成する
             val mapView = Bukkit.getServer().createMap(world)
+            // レンダラーを初期化
             val renderer = DrawableMapRenderer()
+            // レンダラーを設定
             mapView.setRenderer(renderer)
+
+            // マップの設定
             mapView.centerX = -999999
             mapView.centerZ = -999999
             mapView.scale = MapView.Scale.FARTHEST
+            // アイテムの作成
             val item = ItemStack(Material.FILLED_MAP)
             item.editMeta {
                 it as MapMeta
                 it.mapView = mapView
                 it.paintGroupId = 1
             }
+            // インスタンスを作成
             return DrawableMapItem(item, mapView, renderer)
         }
 
@@ -59,21 +66,28 @@ class DrawableMapItem(val itemStack: ItemStack, val mapView: MapView, val render
          * @return 書き込み可能マップ
          */
         fun get(item: ItemStack): DrawableMapItem? {
+            // 地図でなければ無視
             if (item.type != Material.FILLED_MAP)
                 return null
+            // メタデータからマップを取得
             val mapView = (item.itemMeta as? MapMeta)?.mapView
                 ?: return null
+            // レンダラーを取得
             val drawableMapRenderer = mapView.getRenderer()
             val renderer = if (drawableMapRenderer != null) {
+                // レンダラーがあれば使用
                 drawableMapRenderer
             } else {
+                // グループIDがあるか確認
                 item.itemMeta.paintGroupId
                     ?: return null
-
+                // レンダラーを初期化
                 val renderer = DrawableMapRenderer()
+                // レンダラーを設定
                 mapView.setRenderer(renderer)
                 renderer
             }
+            // インスタンスを作成
             return DrawableMapItem(item, mapView, renderer)
         }
 

@@ -241,21 +241,23 @@ class FrameRayTrace(private val player: Player) {
         return Vec2d(unRotated.x, -unRotated.y)
     }
 
-    /**
-     * キャンバスフレームの平面の座標を求める
-     * アイテムフレームの座標からキャンバス平面の座標を計算する
-     * (tpでアイテムフレームを回転したときにずれる)
-     * @return キャンバスフレームの平面の座標
-     */
-    private fun Location.toCanvasLocation(): Line3d {
-        // キャンバスの向き。通常のdirectionとはpitchが反転していることに注意
-        // Y軸回転→X軸回転をX軸回転→Y軸回転にするために、一旦単位方向ベクトルに変換
-        val dir = Vector(0.0, 0.0, 1.0)
-            .rotateAroundY(Math.toRadians(-yaw.toDouble()))
-            .rotateAroundX(Math.toRadians(pitch.toDouble()))
-        // 中心の座標ををキャンバスの向き方向にずらす
-        val origin = toCenterLocation().toVector().subtract(dir.clone().multiply(0.5))
-        // キャンバスの面を合成して座標と向きを返す
-        return Line3d(origin, dir)
+    companion object {
+        /**
+         * キャンバスフレームの平面の座標を求める
+         * アイテムフレームの座標からキャンバス平面の座標を計算する
+         * (tpでアイテムフレームを回転したときにずれる)
+         * @return キャンバスフレームの平面の座標
+         */
+        private fun Location.toCanvasLocation(): Line3d {
+            // キャンバスの向き。通常のdirectionとはpitchが反転していることに注意
+            // Y軸回転→X軸回転をX軸回転→Y軸回転にするために、一旦単位方向ベクトルに変換
+            val dir = Vector(0.0, 0.0, 1.0)
+                .rotateAroundY(Math.toRadians(-yaw.toDouble()))
+                .rotateAroundX(Math.toRadians(pitch.toDouble()))
+            // 中心の座標ををキャンバスの向き方向にずらす
+            val origin = toCenterLocation().toVector().subtract(dir.clone().multiply(0.5))
+            // キャンバスの面を合成して座標と向きを返す
+            return Line3d(origin, dir)
+        }
     }
 }
