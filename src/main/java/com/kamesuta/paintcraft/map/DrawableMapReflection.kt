@@ -6,7 +6,9 @@ import com.kamesuta.paintcraft.util.vec.Rect2i
 import com.kamesuta.paintcraft.util.vec.Vec2i
 import org.bukkit.entity.Player
 import org.bukkit.map.MapCanvas
+import org.bukkit.map.MapRenderer
 import org.bukkit.map.MapView
+import java.lang.reflect.Constructor
 import java.lang.reflect.Field
 import java.lang.reflect.Method
 
@@ -43,6 +45,9 @@ object DrawableMapReflection {
         val humanTrackerMinY: Field = humanTracker.getDeclaredField("f").apply { isAccessible = true }
         val humanTrackerMaxX: Field = humanTracker.getDeclaredField("g").apply { isAccessible = true }
         val humanTrackerMaxY: Field = humanTracker.getDeclaredField("h").apply { isAccessible = true }
+        val craftMapCanvasNew: Constructor<*> =
+            craftMapCanvas.getDeclaredConstructor(craftMapView).apply { isAccessible = true }
+        val craftMapViewCanvases: Field = craftMapView.getDeclaredField("canvases").apply { isAccessible = true }
     }
 
     /**
@@ -118,6 +123,27 @@ object DrawableMapReflection {
             )
         }.onFailure {
             PaintCraft.instance.logger.warning("Failed to get map dirty area for player ${player.name}")
+        }.getOrNull()
+    }
+
+    /**
+     * MapViewからMapCanvasを取得します
+     * MapCanvasはrender関数で取れますが、プラグイン読み込み直後の描き込みなど、
+     * MapView#renderが呼ばれるよりも早いタイミングでMapCanvasがほしいタイミングがあるためリフレクションで取得します。
+     * @param mapView マップビュー
+     * @param renderer レンダラー
+     */
+    fun createAndPutCanvas(mapView: MapView, renderer: MapRenderer): MapCanvas? {
+        return runCatching {
+            @Suppress("UNCHECKED_CAST")
+            val canvases = Accessor.craftMapViewCanvases[mapView] as MutableMap<MapRenderer, MutableMap<Any?, Any?>>
+            val canvasMap = canvases[renderer]
+                ?: throw IllegalStateException("Craft canvas map not found")
+            canvasMap.computeIfAbsent(null) {
+                Accessor.craftMapCanvasNew.newInstance(mapView)
+            } as MapCanvas
+        }.onFailure {
+            PaintCraft.instance.logger.warning("Failed to get map craft canvas")
         }.getOrNull()
     }
 }

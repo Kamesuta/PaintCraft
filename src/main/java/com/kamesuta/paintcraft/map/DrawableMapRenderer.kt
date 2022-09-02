@@ -17,10 +17,34 @@ class DrawableMapRenderer : MapRenderer() {
     private lateinit var mapView: MapView
 
     /** マップキャンバス */
-    lateinit var mapCanvas: MapCanvas
+    private lateinit var mapCanvas: MapCanvas
 
     /** 変更フラグ */
     private var dirty = false
+
+    /** マップキャンバスを取得する */
+    val canvas: MapCanvas?
+        get() = if (initialized) mapCanvas else null
+
+    /**
+     * addRenderer() された時に呼ばれる
+     * @param map マップビュー
+     */
+    override fun initialize(map: MapView) {
+        // ビューをいつでも使えるようにする
+        mapView = map
+        // キャンバスを強制初期化
+        mapCanvas = DrawableMapReflection.createAndPutCanvas(mapView, this)
+            ?: return
+        // マップをキャンバスに読み込む
+        mapCanvas.loadFromMapView()
+        // 地図上のプレイヤーカーソルをすべて削除する
+        repeat(mapCanvas.cursors.size()) {
+            mapCanvas.cursors.removeCursor(mapCanvas.cursors.getCursor(0))
+        }
+        // 初期化が完了したことを記録する
+        initialized = true
+    }
 
     /**
      * レンダリングする
@@ -31,19 +55,9 @@ class DrawableMapRenderer : MapRenderer() {
      * @param player プレイヤー
      */
     override fun render(map: MapView, canvas: MapCanvas, player: Player) {
-        // マップが初期化されていない場合は初期化する
+        // 初期化チェック
         if (!initialized) {
-            // マップをキャンバスに読み込む
-            canvas.loadFromMapView()
-            // 地図上のプレイヤーカーソルをすべて削除する
-            repeat(canvas.cursors.size()) {
-                canvas.cursors.removeCursor(canvas.cursors.getCursor(0))
-            }
-            // キャンバスとビューをいつでも使えるようにする
-            mapView = map
-            mapCanvas = canvas
-            // 初期化が完了したことを記録する
-            initialized = true
+            return
         }
 
         // 変更がある場合保存する
@@ -83,32 +97,32 @@ class DrawableMapRenderer : MapRenderer() {
     }
 
     companion object {
-    /** プレイヤーに更新を通知する */
-    private fun MapCanvas.updatePlayer(player: Player) {
-        val dirty = DrawableMapReflection.getMapDirtyArea(player, mapView)
-            ?: return
-        val buffer = DrawableMapReflection.getCanvasBuffer(this)
-            ?: return
+        /** プレイヤーに更新を通知する */
+        private fun MapCanvas.updatePlayer(player: Player) {
+            val dirty = DrawableMapReflection.getMapDirtyArea(player, mapView)
+                ?: return
+            val buffer = DrawableMapReflection.getCanvasBuffer(this)
+                ?: return
 
-        // プレイヤーに地図を送信する
-        DrawableMapUpdater.sendMap(player, mapView, buffer, dirty)
-    }
-
-    /** キャンバスの内容をマップビューに保存し永続化する */
-    private fun MapCanvas.saveToMapView() {
-        val src = DrawableMapReflection.getCanvasBuffer(this)
-        val dst = DrawableMapReflection.getMapBuffer(mapView)
-        if (src != null && dst != null) {
-            src.copyTo(dst)
+            // プレイヤーに地図を送信する
+            DrawableMapUpdater.sendMap(player, mapView, buffer, dirty)
         }
-    }
 
-    /** 永続化されたマップビューのデータを読み込む */
-    private fun MapCanvas.loadFromMapView() {
-        val src = DrawableMapReflection.getMapBuffer(mapView)
-        val dst = DrawableMapReflection.getCanvasBuffer(this)
-        if (src != null && dst != null) {
-            src.copyTo(dst)
+        /** キャンバスの内容をマップビューに保存し永続化する */
+        private fun MapCanvas.saveToMapView() {
+            val src = DrawableMapReflection.getCanvasBuffer(this)
+            val dst = DrawableMapReflection.getMapBuffer(mapView)
+            if (src != null && dst != null) {
+                src.copyTo(dst)
+            }
+        }
+
+        /** 永続化されたマップビューのデータを読み込む */
+        private fun MapCanvas.loadFromMapView() {
+            val src = DrawableMapReflection.getMapBuffer(mapView)
+            val dst = DrawableMapReflection.getCanvasBuffer(this)
+            if (src != null && dst != null) {
+                src.copyTo(dst)
             }
         }
     }

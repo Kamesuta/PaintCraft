@@ -87,10 +87,13 @@ class PaintLine(override val session: CanvasSession) : PaintTool {
 
         // クリックを開始した場合
         if (lastEvent == null) {
-            // 復元地点を保存
-            previewBefore = DrawRollback(mapItem.renderer.mapCanvas)
-            // イベントを保存
-            lastEvent = PaintEvent(mapItem, interact)
+            // キャンバスが初期化できている場合のみ
+            mapItem.renderer.canvas?.let {
+                // 復元地点を保存
+                previewBefore = DrawRollback(it)
+                // イベントを保存
+                lastEvent = PaintEvent(mapItem, interact)
+            }
         }
     }
 
