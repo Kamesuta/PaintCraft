@@ -179,7 +179,7 @@ class FrameRayTrace(private val player: Player) {
         // BukkitのRotationからCanvasのRotationに変換する
         val rot: FrameRotation = FrameRotation.fromRotation(rotation)
         // -0.5～0.5の範囲を0.0～1.0の範囲に変換する
-        val q = Vec2d(rot.u(uv) + 0.5, rot.v(uv) + 0.5)
+        val q = rot.uv(uv) + Vec2d(0.5, 0.5)
         // 0～128(ピクセル座標)の範囲に変換する
         val x = (q.x * mapSize).toInt()
         val y = (q.y * mapSize).toInt()

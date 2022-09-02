@@ -24,22 +24,11 @@ enum class FrameRotation(
     // @formatter:on
 
     /**
-     * 回転後のU成分を計算
+     * 回転後のUV座標を計算
      * @param uv 回転前のUV
-     * @return 回転後のU成分
+     * @return 回転後のUV座標
      */
-    fun u(uv: Vec2d): Double {
-        return x1 * uv.x + y1 * uv.y
-    }
-
-    /**
-     * 回転後のV成分を計算
-     * @param uv 回転前のUV
-     * @return 回転後のV成分
-     */
-    fun v(uv: Vec2d): Double {
-        return x2 * uv.x + y2 * uv.y
-    }
+    fun uv(uv: Vec2d) = Vec2d(x1 * uv.x + y1 * uv.y, x2 * uv.x + y2 * uv.y)
 
     companion object {
         /**
