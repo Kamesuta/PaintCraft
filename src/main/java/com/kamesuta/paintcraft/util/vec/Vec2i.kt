@@ -7,17 +7,9 @@ package com.kamesuta.paintcraft.util.vec
  * @param y v座標
  */
 data class Vec2i(val x: Int, val y: Int) {
-    /**
-     * ベクトルを合成
-     * @param other ベクトル
-     * @return 合成後のベクトル
-     */
+    /** ベクトルを合成 */
     operator fun plus(other: Vec2i) = Vec2i(x + other.x, y + other.y)
 
-    /**
-     * 逆方向ベクトルを合成
-     * @param other ベクトル
-     * @return 合成後のベクトル
-     */
+    /** 逆方向ベクトルを合成 */
     operator fun minus(other: Vec2i) = Vec2i(x - other.x, y - other.y)
 }

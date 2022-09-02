@@ -7,10 +7,7 @@ import com.kamesuta.paintcraft.map.DrawableMapBuffer.Companion.mapSize
 import com.kamesuta.paintcraft.map.DrawableMapItem
 import com.kamesuta.paintcraft.util.DebugLocationType
 import com.kamesuta.paintcraft.util.DebugLocationVisualizer.debugLocation
-import com.kamesuta.paintcraft.util.vec.Line3d
-import com.kamesuta.paintcraft.util.vec.Plane3d
-import com.kamesuta.paintcraft.util.vec.Vec2d
-import com.kamesuta.paintcraft.util.vec.Vec2i
+import com.kamesuta.paintcraft.util.vec.*
 import org.bukkit.Location
 import org.bukkit.Material
 import org.bukkit.Rotation
@@ -112,12 +109,12 @@ class FrameRayTrace(private val player: Player) {
             // アイテムフレームの方向
             locate(
                 DebugLocationType.FRAME_DIRECTION,
-                itemFrameLocation.clone().add(itemFrameLocation.direction)
+                itemFrameLocation.target
             )
             // アイテムフレームのブロック上での方向
             locate(
                 DebugLocationType.FRAME_FACING,
-                itemFrameLocation.clone().add(ray.itemFrame.facing.direction)
+                itemFrameLocation + ray.itemFrame.facing.direction
             )
             // アイテムフレームのブロック
             locate(DebugLocationType.FRAME_FACING_BLOCK, itemFrameLocation.toCenterLocation())
@@ -167,7 +164,7 @@ class FrameRayTrace(private val player: Player) {
         val rawUV = mapToBlockUV(
             itemFrameLocation.yaw,
             itemFrameLocation.pitch,
-            canvasIntersectLocation.clone().subtract(canvasLocation.origin)
+            canvasIntersectLocation - canvasLocation.origin
         )
         // キャンバス内UVを計算、キャンバス範囲外ならばスキップ
         val uv = transformUV(itemFrame.rotation, rawUV)
@@ -231,7 +228,7 @@ class FrameRayTrace(private val player: Player) {
                 .rotateAroundY(Math.toRadians(-yaw.toDouble()))
                 .rotateAroundX(Math.toRadians(pitch.toDouble()))
             // 中心の座標ををキャンバスの向き方向にずらす
-            val origin = toCenterLocation().toVector().subtract(dir.clone().multiply(0.5))
+            val origin = toCenterLocation().toVector() - (dir * 0.5)
             // キャンバスの面を合成して座標と向きを返す
             return Line3d(origin, dir)
         }
@@ -246,7 +243,7 @@ class FrameRayTrace(private val player: Player) {
             // キャンバス平面とアイテムフレームの差 = アイテムフレームの厚さ/2
             val canvasOffsetZ = if (isFrameVisible) 0.07 else 0.0075
             // キャンバスの表面の平面の座標 = アイテムフレームエンティティの中心からアイテムフレームの厚さ/2だけずらした位置
-            val canvasPlane = this + direction.clone().multiply(canvasOffsetZ)
+            val canvasPlane = this + (direction * canvasOffsetZ)
             // 平面を作成
             return Plane3d.fromPointNormal(canvasPlane.origin, canvasPlane.direction)
         }

@@ -13,25 +13,14 @@ import kotlin.math.atan2
  * @param direction 方向
  */
 data class Line3d(val origin: Vector, val direction: Vector) {
-    /**
-     * 線の先の位置を返す
-     * @return 線の先の位置
-     */
-    val target: Vector get() = origin.clone().add(direction)
+    /** 線の先の位置 */
+    val target: Vector get() = origin + direction
 
-    /**
-     * 平行移動させた線を取得する
-     * @param other 移動するベクトル
-     * @return 移動後の線
-     */
-    operator fun plus(other: Vector) = Line3d(origin.clone().add(other), direction)
+    /** 平行移動させた線を取得する */
+    operator fun plus(other: Vector) = Line3d(origin + other, direction)
 
-    /**
-     * 逆方向に平行移動させた線を取得する
-     * @param other 移動するベクトル
-     * @return 移動後の線
-     */
-    operator fun minus(other: Vector) = Line3d(origin.clone().subtract(other), direction)
+    /** 逆方向に平行移動させた線を取得する */
+    operator fun minus(other: Vector) = Line3d(origin - other, direction)
 
     /**
      * BukkitのLocationに変換する
@@ -54,7 +43,7 @@ data class Line3d(val origin: Vector, val direction: Vector) {
          * @return 線
          */
         fun Location.toLine(): Line3d {
-            return Line3d(this.toVector(), this.direction.clone().normalize())
+            return Line3d(toVector(), direction.normalized)
         }
     }
 }

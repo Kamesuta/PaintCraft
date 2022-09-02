@@ -28,13 +28,18 @@ class Plane3d(
     )
 
     /**
-     * 正規化する
-     * @return 正規化された平面
+     * 正規化された平面
      */
-    fun normalize(): Plane3d {
-        val length = sqrt(a * a + b * b + c * c)
-        return Plane3d(a / length, b / length, c / length, d / length)
-    }
+    val normalized: Plane3d
+        get() {
+            val length = sqrt(a * a + b * b + c * c)
+            return Plane3d(a / length, b / length, c / length, d / length)
+        }
+
+    /**
+     * 法線
+     */
+    val normal: Vector get() = Vector(a, b, c)
 
     /**
      * 点までの符号付きの最短距離を返す
@@ -60,14 +65,8 @@ class Plane3d(
      * @return 点に一番近い平面上の点
      */
     fun closestPoint(point: Vector): Vector {
-        return point.clone().add(normal().multiply(signedDistance(point)))
+        return point + (normal * signedDistance(point))
     }
-
-    /**
-     * 法線を返す
-     * @return 法線
-     */
-    private fun normal() = Vector(a, b, c)
 
     /**
      * 平面と線の交点を返す
@@ -83,7 +82,7 @@ class Plane3d(
             return null
         }
         val t = -(a * ray.origin.x + b * ray.origin.y + c * ray.origin.z + d) / denom
-        return ray.origin.clone().add(ray.direction.clone().multiply(t))
+        return ray.origin + (ray.direction * t)
     }
 
     /**
@@ -102,7 +101,7 @@ class Plane3d(
             (d * other.a - other.d * a) / denom,
             0.0
         )
-        val direction = normal().crossProduct(other.normal())
+        val direction = normal.getCrossProduct(other.normal)
         if (direction.length() == 0.0) {
             // 2つの面が平行であるときに発生する
             return null
@@ -118,7 +117,7 @@ class Plane3d(
          * @return 平面
          */
         fun fromPointNormal(point: Vector, normal: Vector) =
-            Plane3d(normal.clone().normalize(), -normal.dot(point))
+            Plane3d(normal.normalized, -normal.dot(point))
 
         /**
          * 座標と辺から平面を作成する
@@ -129,7 +128,7 @@ class Plane3d(
          */
         fun fromPointVectors(point: Vector, v1: Vector, v2: Vector) = fromPointNormal(
             point,
-            v1.clone().crossProduct(v2),
+            v1.getCrossProduct(v2),
         )
 
         /**
@@ -140,9 +139,9 @@ class Plane3d(
          * @return 平面
          */
         fun fromPoints(p0: Vector, p1: Vector, p2: Vector): Plane3d {
-            val v1 = p1.clone().subtract(p0)
-            val v2 = p2.clone().subtract(p0)
-            val normal = v1.clone().crossProduct(v2).normalize()
+            val v1 = p1 - p0
+            val v2 = p2 - p0
+            val normal = v1.getCrossProduct(v2).normalize()
             return fromPointNormal(p0, normal)
         }
     }
