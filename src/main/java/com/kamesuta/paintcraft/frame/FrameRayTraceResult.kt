@@ -10,17 +10,14 @@ import org.bukkit.util.Vector
  * キャンバス上のヒットした位置情報
  * @param itemFrame アイテムフレーム
  * @param mapItem 地図アイテム
- * @param canvasLocation キャンバス上の位置
- * @param canvasIntersectOffset キャンバス上の位置とアイテムフレーム上の位置の差分
+ * @param canvasLocation キャンバスの位置
+ * @param canvasIntersectLocation キャンバスとレイの交点
  * @param uv UV
  */
 data class FrameRayTraceResult(
     val itemFrame: ItemFrame,
     val mapItem: DrawableMapItem,
     val canvasLocation: Line3d,
-    val canvasIntersectOffset: Vector,
+    val canvasIntersectLocation: Vector,
     val uv: Vec2i,
-) {
-    val canvasIntersectLocation: Line3d by lazy { canvasLocation + canvasIntersectOffset }
-}
-
+)

@@ -8,6 +8,7 @@ import com.kamesuta.paintcraft.map.DrawableMapItem
 import com.kamesuta.paintcraft.util.DebugLocationType
 import com.kamesuta.paintcraft.util.DebugLocationVisualizer.debugLocation
 import com.kamesuta.paintcraft.util.vec.Line3d
+import com.kamesuta.paintcraft.util.vec.Plane3d
 import com.kamesuta.paintcraft.util.vec.Vec2d
 import com.kamesuta.paintcraft.util.vec.Vec2i
 import org.bukkit.Location
@@ -76,16 +77,16 @@ class FrameRayTrace(private val player: Player) {
             .filter { it.item.type == Material.FILLED_MAP }
             // レイを飛ばす
             .mapNotNull { rayTraceCanvasByEntity(playerEyePos, it) }
-            .filter { it.canvasIntersectLocation.origin.distanceSquared(playerEyePos.origin) <= maxDistance * maxDistance }
+            .filter { it.canvasIntersectLocation.distanceSquared(playerEyePos.origin) <= maxDistance * maxDistance }
             // 一番近いヒットしたキャンバス
             .minByOrNull {
                 // 距離の2条で比較する
-                it.canvasIntersectLocation.origin.distanceSquared(playerEyePos.origin)
+                it.canvasIntersectLocation.distanceSquared(playerEyePos.origin)
             }
             ?: return null
 
         // 最大距離より遠い場合は除外 (ブロックより後ろのアイテムフレームは除外)
-        if (result.canvasIntersectLocation.origin.distanceSquared(playerEyePos.origin) > maxDistance * maxDistance) {
+        if (result.canvasIntersectLocation.distanceSquared(playerEyePos.origin) > maxDistance * maxDistance) {
             return null
         }
 
@@ -123,7 +124,7 @@ class FrameRayTrace(private val player: Player) {
             // ヒット位置
             locate(
                 DebugLocationType.CANVAS_HIT_LOCATION,
-                ray.canvasIntersectLocation.origin.toLocation(player.world)
+                ray.canvasIntersectLocation.toLocation(player.world)
             )
         }
 
@@ -160,13 +161,18 @@ class FrameRayTrace(private val player: Player) {
         }
 
         // キャンバスのオフセットを計算
-        val canvasIntersectOffset = intersectCanvas(playerEyePos, canvasLocation, itemFrame.isVisible)
+        val canvasIntersectLocation = canvasLocation.toCanvasPlane(itemFrame.isVisible).intersect(playerEyePos)
+            ?: return null
         // UVに変換
-        val rawUV = mapToBlockUV(itemFrameLocation.yaw, itemFrameLocation.pitch, canvasIntersectOffset)
+        val rawUV = mapToBlockUV(
+            itemFrameLocation.yaw,
+            itemFrameLocation.pitch,
+            canvasIntersectLocation.clone().subtract(canvasLocation.origin)
+        )
         // キャンバス内UVを計算、キャンバス範囲外ならばスキップ
         val uv = transformUV(itemFrame.rotation, rawUV)
             ?: return null
-        return FrameRayTraceResult(itemFrame, mapItem, canvasLocation, canvasIntersectOffset, uv)
+        return FrameRayTraceResult(itemFrame, mapItem, canvasLocation, canvasIntersectLocation, uv)
     }
 
     /**
@@ -188,36 +194,6 @@ class FrameRayTrace(private val player: Player) {
         if (y >= mapSize || y < 0) return null
         // 変換した座標を返す
         return Vec2i(x, y)
-    }
-
-    /**
-     * プレイヤーの視点とアイテムフレームの位置から交点の座標を計算する
-     * @param playerEyePos プレイヤーの目線位置
-     * @param canvasLocation キャンバス平面の位置
-     * @param isFrameVisible アイテムフレームが見えるかどうか
-     * @return 交点座標
-     */
-    private fun intersectCanvas(
-        playerEyePos: Line3d,
-        canvasLocation: Line3d,
-        isFrameVisible: Boolean,
-    ): Vector {
-        // キャンバス平面とアイテムフレームの差 = アイテムフレームの厚さ/2
-        val canvasOffsetZ = if (isFrameVisible) 0.07 else 0.0075
-        // キャンバスの表面の平面の座標 = アイテムフレームエンティティの中心からアイテムフレームの厚さ/2だけずらした位置
-        val canvasPlane = canvasLocation + canvasLocation.direction.clone().multiply(canvasOffsetZ)
-
-        // アイテムフレームから目線へのベクトル
-        val canvasPlaneToEye = playerEyePos.origin.clone().subtract(canvasPlane.origin)
-
-        // 目線上のキャンバス座標のオフセットを計算 (平面とベクトルとの交点)
-        // https://qiita.com/edo_m18/items/c8808f318f5abfa8af1e
-        // http://www.sousakuba.com/Programming/gs_plane_line_intersect.html
-        val v1 = canvasLocation.direction.clone().dot(canvasPlaneToEye)
-        val v0 = canvasLocation.direction.clone().dot(playerEyePos.direction)
-
-        // 交点の座標を求める
-        return canvasPlaneToEye.clone().subtract(playerEyePos.direction.clone().multiply(v1 / v0))
     }
 
     /**
@@ -258,6 +234,21 @@ class FrameRayTrace(private val player: Player) {
             val origin = toCenterLocation().toVector().subtract(dir.clone().multiply(0.5))
             // キャンバスの面を合成して座標と向きを返す
             return Line3d(origin, dir)
+        }
+
+        /**
+         * キャンバス平面の位置からキャンバスの平面を取得する
+         * @receiver キャンバス平面の位置
+         * @param isFrameVisible アイテムフレームが見えるかどうか
+         * @return キャンバスの平面
+         */
+        private fun Line3d.toCanvasPlane(isFrameVisible: Boolean): Plane3d {
+            // キャンバス平面とアイテムフレームの差 = アイテムフレームの厚さ/2
+            val canvasOffsetZ = if (isFrameVisible) 0.07 else 0.0075
+            // キャンバスの表面の平面の座標 = アイテムフレームエンティティの中心からアイテムフレームの厚さ/2だけずらした位置
+            val canvasPlane = this + direction.clone().multiply(canvasOffsetZ)
+            // 平面を作成
+            return Plane3d.fromPointNormal(canvasPlane.origin, canvasPlane.direction)
         }
     }
 }

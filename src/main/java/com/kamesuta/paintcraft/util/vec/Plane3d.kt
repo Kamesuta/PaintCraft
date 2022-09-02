@@ -75,6 +75,9 @@ class Plane3d(
      * @return 平面と線の交点
      */
     fun intersect(ray: Line3d): Vector? {
+        // 平面とベクトルとの交点を求める
+        // https://qiita.com/edo_m18/items/c8808f318f5abfa8af1e
+        // http://www.sousakuba.com/Programming/gs_plane_line_intersect.html
         val denom = a * ray.direction.x + b * ray.direction.y + c * ray.direction.z
         if (denom == 0.0) {
             return null
