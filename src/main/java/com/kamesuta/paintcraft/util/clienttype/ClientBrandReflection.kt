@@ -21,8 +21,8 @@ object ClientBrandReflection {
         val craftEntityGetHandle: Method = craftEntity.getDeclaredMethod("getHandle").apply { isAccessible = true }
         val entityPlayerPlayerConnection: Field =
             entityPlayer.getDeclaredField("playerConnection").apply { isAccessible = true }
-        val playerConnectionClientBrandName: Field =
-            playerConnection.getDeclaredField("clientBrandName").apply { isAccessible = true }
+        val playerConnectionGetClientBrandName: Method =
+            playerConnection.getDeclaredMethod("getClientBrandName").apply { isAccessible = true }
     }
 
     /**
@@ -51,7 +51,7 @@ object ClientBrandReflection {
                 ?: return@runCatching null
             val connection = Accessor.entityPlayerPlayerConnection[handle]
                 ?: return@runCatching null
-            val clientBrand = Accessor.playerConnectionClientBrandName[connection] as String?
+            val clientBrand = Accessor.playerConnectionGetClientBrandName(connection) as String?
                 ?: return@runCatching null
             clientBrand
         }.onFailure {

@@ -11,10 +11,10 @@ enum class ClientType(
     drawLimit: Long,
 ) {
     /** 通常のクライアント */
-    VANILLA(20, 20, 300),
+    VANILLA(40, 40, 300),
 
     /** Geyser (Bedrock Edition) */
-    GEYSER(60, 60, 500),
+    GEYSER(80, 80, 500),
     ;
 
     /** 最後のエンティティ右クリックから左クリックを無視し続ける時間 */
