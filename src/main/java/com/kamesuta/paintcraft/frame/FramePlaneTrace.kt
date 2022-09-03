@@ -1,17 +1,14 @@
 package com.kamesuta.paintcraft.frame
 
 import com.kamesuta.paintcraft.frame.FrameRayTrace.Companion.mapToBlockUV
-import com.kamesuta.paintcraft.frame.FrameRayTrace.Companion.toCanvasLocation
 import com.kamesuta.paintcraft.frame.FrameRayTrace.Companion.toCanvasPlane
 import com.kamesuta.paintcraft.frame.FrameRayTrace.Companion.transformUV
 import com.kamesuta.paintcraft.map.DrawableMapItem
-import com.kamesuta.paintcraft.util.vec.Line2d
-import com.kamesuta.paintcraft.util.vec.Vec2d
-import com.kamesuta.paintcraft.util.vec.Vec2i
-import com.kamesuta.paintcraft.util.vec.minus
+import com.kamesuta.paintcraft.util.vec.*
 import org.bukkit.Material
 import org.bukkit.entity.ItemFrame
 import org.bukkit.util.BoundingBox
+import org.bukkit.util.Vector
 
 /**
  * キャンバスと面の交差判定をします
@@ -64,7 +61,7 @@ class FramePlaneTrace(private val rayTrace: FrameRayTrace) {
         // アイテムフレームの位置
         val itemFrameLocation = itemFrame.location
         // キャンバス平面の位置
-        val canvasLocation = itemFrameLocation.toCanvasLocation()
+        val canvasLocation = rayTrace.toCanvasLocation(itemFrame)
         // キャンバスの平面
         val canvasPlane = canvasLocation.toCanvasPlane(itemFrame.isVisible)
 
@@ -72,11 +69,18 @@ class FramePlaneTrace(private val rayTrace: FrameRayTrace) {
         val canvasIntersectLine = canvasPlane.intersect(plane.plane)
             ?: return null
 
+        // キャンバスの回転を計算
+        val (canvasYaw, canvasPitch) = if (rayTrace.isGeyser) {
+            Line3d(Vector(), itemFrame.facing.direction).let { it.yaw to it.pitch }
+        } else {
+            itemFrameLocation.let { it.yaw to it.pitch }
+        }
+
         // 2D座標に変換
         val rawUvOrigin = (canvasIntersectLine.origin - canvasLocation.origin)
-            .mapToBlockUV(itemFrameLocation.yaw, itemFrameLocation.pitch)
+            .mapToBlockUV(canvasYaw, canvasPitch)
         val rawUvTarget = (canvasIntersectLine.target - canvasLocation.origin)
-            .mapToBlockUV(itemFrameLocation.yaw, itemFrameLocation.pitch)
+            .mapToBlockUV(canvasYaw, canvasPitch)
         val segment = Line2d.fromPoints(rawUvOrigin, rawUvTarget)
             .clipBlockUV()
             ?: return null

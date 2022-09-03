@@ -8,7 +8,6 @@ import com.kamesuta.paintcraft.map.DrawableMapItem
 import com.kamesuta.paintcraft.util.DebugLocationType
 import com.kamesuta.paintcraft.util.DebugLocationVisualizer.debugLocation
 import com.kamesuta.paintcraft.util.vec.*
-import org.bukkit.Location
 import org.bukkit.Material
 import org.bukkit.Rotation
 import org.bukkit.entity.ItemFrame
@@ -19,8 +18,12 @@ import org.bukkit.util.Vector
 /**
  * キャンバスと目線の交差判定をし、UVを計算します
  * @param player プレイヤー
+ * @param isGeyser Geyserクライアント(BE版)かどうか
  */
-class FrameRayTrace(val player: Player) {
+class FrameRayTrace(
+    val player: Player,
+    val isGeyser: Boolean
+) {
     /**
      * キャンバスが表か判定する
      * @param playerDirection プレイヤーの方向
@@ -146,12 +149,19 @@ class FrameRayTrace(val player: Player) {
         // アイテムフレームの位置
         val itemFrameLocation = itemFrame.location
         // キャンバス平面の位置
-        val canvasLocation = itemFrameLocation.toCanvasLocation()
+        val canvasLocation = toCanvasLocation(itemFrame)
         player.debugLocation { locate ->
             // アイテムフレームの位置
             locate(DebugLocationType.CANVAS_LOCATION, canvasLocation.origin)
             // アイテムフレームの正面ベクトル
             locate(DebugLocationType.CANVAS_DIRECTION, canvasLocation.target)
+        }
+
+        // キャンバスの回転を計算
+        val (canvasYaw, canvasPitch) = if (isGeyser) {
+            Line3d(Vector(), itemFrame.facing.direction).let { it.yaw to it.pitch }
+        } else {
+            itemFrameLocation.let { it.yaw to it.pitch }
         }
 
         // キャンバスのオフセットを計算
@@ -160,7 +170,7 @@ class FrameRayTrace(val player: Player) {
         // UVに変換 → キャンバス内UVを計算、キャンバス範囲外ならばスキップ
         val uv = (canvasIntersectLocation - canvasLocation.origin)
             // UVに変換(-0.5～+0.5)
-            .mapToBlockUV(itemFrameLocation.yaw, itemFrameLocation.pitch)
+            .mapToBlockUV(canvasYaw, canvasPitch)
             // キャンバス内UV(0～127)を計算、キャンバス範囲外ならばスキップ
             .transformUV(itemFrame.rotation)
             ?: return null
@@ -168,21 +178,42 @@ class FrameRayTrace(val player: Player) {
         return FrameRayTraceResult(itemFrame, mapItem, canvasLocation, canvasIntersectLocation, uv)
     }
 
+    /**
+     * キャンバスフレームの平面の座標を求める
+     * アイテムフレームの座標からキャンバス平面の座標を計算する
+     * (tpでアイテムフレームを回転したときにずれる)
+     * @receiver アイテムフレームの座標
+     * @return キャンバスフレームの平面の座標
+     */
+    fun toCanvasLocation(itemFrame: ItemFrame): Line3d {
+        val centerLocation = itemFrame.location.toCenterLocation()
+        // キャンバスの面を合成して座標と向きを返す
+        return if (isGeyser) {
+            // BE版はアイテムフレームの向きが変わらないため、正面の向きを使う
+            val facingDirection = Line3d(Vector(), itemFrame.facing.direction)
+            centerLocation.origin.toCanvasLocation(facingDirection.yaw, facingDirection.pitch)
+        } else {
+            // Java版はアイテムフレームをtpで回転できるため、回転する
+            centerLocation.origin.toCanvasLocation(centerLocation.yaw, centerLocation.pitch)
+        }
+    }
+
     companion object {
         /**
          * キャンバスフレームの平面の座標を求める
          * アイテムフレームの座標からキャンバス平面の座標を計算する
          * (tpでアイテムフレームを回転したときにずれる)
+         * @receiver キャンバスの中心座標
          * @return キャンバスフレームの平面の座標
          */
-        fun Location.toCanvasLocation(): Line3d {
+        fun Vector.toCanvasLocation(yaw: Float, pitch: Float): Line3d {
             // キャンバスの向き。通常のdirectionとはpitchが反転していることに注意
             // Y軸回転→X軸回転をX軸回転→Y軸回転にするために、一旦単位方向ベクトルに変換
             val dir = Vector(0.0, 0.0, 1.0)
                 .rotateAroundY(Math.toRadians(-yaw.toDouble()))
                 .rotateAroundX(Math.toRadians(pitch.toDouble()))
             // 中心の座標ををキャンバスの向き方向にずらす
-            val origin = toCenterLocation().origin - (dir * 0.5)
+            val origin = this - (dir * 0.5)
             // キャンバスの面を合成して座標と向きを返す
             return Line3d(origin, dir)
         }

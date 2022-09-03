@@ -7,13 +7,13 @@ import com.comphenix.protocol.events.PacketEvent
 import com.comphenix.protocol.utility.MinecraftReflection
 import com.kamesuta.paintcraft.PaintCraft
 import com.kamesuta.paintcraft.canvas.CanvasActionType
-import com.kamesuta.paintcraft.canvas.CanvasSession
 import com.kamesuta.paintcraft.canvas.CanvasSessionManager
 import com.kamesuta.paintcraft.map.DrawableMapItem
 import com.kamesuta.paintcraft.util.DebugLocationType
 import com.kamesuta.paintcraft.util.DebugLocationVisualizer.clearDebugLocation
 import com.kamesuta.paintcraft.util.LocationOperation
 import com.kamesuta.paintcraft.util.TimeWatcher
+import com.kamesuta.paintcraft.util.clienttype.ClientType
 import com.kamesuta.paintcraft.util.vec.Line3d.Companion.toLine
 import org.bukkit.Bukkit
 import org.bukkit.Location
@@ -158,7 +158,7 @@ class FrameDrawListener : Listener, Runnable {
             }
 
             // 直前でクライアント側の移動パケットを処理していればティックイベントは無視する
-            if (CanvasSession.vehicleMoveDuration.isInTime(session.lastVehicleMove)) {
+            if (session.clientType.vehicleMoveDuration.isInTime(session.lastVehicleMove)) {
                 return
             }
         } else {
@@ -185,7 +185,7 @@ class FrameDrawListener : Listener, Runnable {
         player.clearDebug()
 
         // レイツールを初期化
-        val rayTrace = FrameRayTrace(player)
+        val rayTrace = FrameRayTrace(player, session.clientType == ClientType.GEYSER)
         // レイを飛ばしてアイテムフレームを取得
         val playerEyePos = session.eyeLocation.toLine()
         val ray = rayTrace.rayTraceCanvas(playerEyePos)
@@ -325,7 +325,7 @@ class FrameDrawListener : Listener, Runnable {
         // 目線の位置を取得
         val playerEyePos = session.eyeLocation.toLine()
         // レイツールを初期化
-        val rayTrace = FrameRayTrace(player)
+        val rayTrace = FrameRayTrace(player, session.clientType == ClientType.GEYSER)
         // レイを飛ばしてアイテムフレームを取得
         val ray = rayTrace.rayTraceCanvas(playerEyePos)
             ?: return isCanvas
@@ -347,7 +347,7 @@ class FrameDrawListener : Listener, Runnable {
             null -> {
                 // PacketType.Play.Client.ARM_ANIMATIONの場合、エンティティを右クリックすると左クリック判定になることがある
                 // 対策として、直前で右クリックが行われていれば右クリックだと判定する
-                if (CanvasSession.interactEntityDuration.isInTime(session.lastInteract)) {
+                if (session.clientType.interactEntityDuration.isInTime(session.lastInteract)) {
                     // エンティティを右クリック後から一定時間経過していなければ右クリック
                     CanvasActionType.RIGHT_CLICK
                 } else {
