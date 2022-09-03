@@ -20,7 +20,7 @@ import org.bukkit.util.Vector
  * キャンバスと目線の交差判定をし、UVを計算します
  * @param player プレイヤー
  */
-class FrameRayTrace(private val player: Player) {
+class FrameRayTrace(val player: Player) {
     /**
      * キャンバスが表か判定する
      * @param playerDirection プレイヤーの方向
@@ -160,58 +160,15 @@ class FrameRayTrace(private val player: Player) {
         // キャンバスのオフセットを計算
         val canvasIntersectLocation = canvasLocation.toCanvasPlane(itemFrame.isVisible).intersect(playerEyePos)
             ?: return null
-        // UVに変換
-        val rawUV = mapToBlockUV(
-            itemFrameLocation.yaw,
-            itemFrameLocation.pitch,
-            canvasIntersectLocation - canvasLocation.origin
-        )
-        // キャンバス内UVを計算、キャンバス範囲外ならばスキップ
-        val uv = transformUV(itemFrame.rotation, rawUV)
+        // UVに変換 → キャンバス内UVを計算、キャンバス範囲外ならばスキップ
+        val uv = (canvasIntersectLocation - canvasLocation.origin)
+            // UVに変換(-0.5～+0.5)
+            .mapToBlockUV(itemFrameLocation.yaw, itemFrameLocation.pitch)
+            // キャンバス内UV(0～127)を計算、キャンバス範囲外ならばスキップ
+            .transformUV(itemFrame.rotation)
             ?: return null
+        // レイの結果を返す
         return FrameRayTraceResult(itemFrame, mapItem, canvasLocation, canvasIntersectLocation, uv)
-    }
-
-    /**
-     * ブロックのUV座標->キャンバスピクセルのUV座標を計算する
-     * @param rotation アイテムフレーム内の地図の回転
-     * @param uv ブロックのUV座標
-     * @return キャンバスピクセルのUV座標
-     */
-    private fun transformUV(rotation: Rotation, uv: Vec2d): Vec2i? {
-        // BukkitのRotationからCanvasのRotationに変換する
-        val rot: FrameRotation = FrameRotation.fromRotation(rotation)
-        // -0.5～0.5の範囲を0.0～1.0の範囲に変換する
-        val q = rot.uv(uv) + Vec2d(0.5, 0.5)
-        // 0～128(ピクセル座標)の範囲に変換する
-        val x = (q.x * mapSize).toInt()
-        val y = (q.y * mapSize).toInt()
-        // 範囲外ならばnullを返す
-        if (x >= mapSize || x < 0) return null
-        if (y >= mapSize || y < 0) return null
-        // 変換した座標を返す
-        return Vec2i(x, y)
-    }
-
-    /**
-     * 交点座標をキャンバス上のUV座標に変換する
-     * UV座標は中央が(0,0)になる
-     * @param itemFrameYaw アイテムフレームのYaw角度
-     * @param itemFramePitch アイテムフレームのPitch角度
-     * @param intersectPosition 交点座標
-     * @return キャンバス上のUV座標
-     */
-    private fun mapToBlockUV(
-        itemFrameYaw: Float,
-        itemFramePitch: Float,
-        intersectPosition: Vector
-    ): Vec2d {
-        // 交点座標を(0,0)を中心に回転し、UV座標(x,-y)に対応するようにする
-        val unRotated = intersectPosition.clone()
-            .rotateAroundX(Math.toRadians(-itemFramePitch.toDouble()))
-            .rotateAroundY(Math.toRadians(itemFrameYaw.toDouble()))
-        // UV座標を返す (3D座標はYが上ほど大きく、UV座標はYが下ほど大きいため、Yを反転する)
-        return Vec2d(unRotated.x, -unRotated.y)
     }
 
     companion object {
@@ -221,7 +178,7 @@ class FrameRayTrace(private val player: Player) {
          * (tpでアイテムフレームを回転したときにずれる)
          * @return キャンバスフレームの平面の座標
          */
-        private fun Location.toCanvasLocation(): Line3d {
+        fun Location.toCanvasLocation(): Line3d {
             // キャンバスの向き。通常のdirectionとはpitchが反転していることに注意
             // Y軸回転→X軸回転をX軸回転→Y軸回転にするために、一旦単位方向ベクトルに変換
             val dir = Vector(0.0, 0.0, 1.0)
@@ -239,13 +196,54 @@ class FrameRayTrace(private val player: Player) {
          * @param isFrameVisible アイテムフレームが見えるかどうか
          * @return キャンバスの平面
          */
-        private fun Line3d.toCanvasPlane(isFrameVisible: Boolean): Plane3d {
+        fun Line3d.toCanvasPlane(isFrameVisible: Boolean): Plane3d {
             // キャンバス平面とアイテムフレームの差 = アイテムフレームの厚さ/2
             val canvasOffsetZ = if (isFrameVisible) 0.07 else 0.0075
             // キャンバスの表面の平面の座標 = アイテムフレームエンティティの中心からアイテムフレームの厚さ/2だけずらした位置
             val canvasPlane = this + (direction * canvasOffsetZ)
             // 平面を作成
             return Plane3d.fromPointNormal(canvasPlane.origin, canvasPlane.direction)
+        }
+
+        /**
+         * 交点座標をキャンバス上のUV座標に変換する
+         * UV座標は中央が(0,0)になる
+         * @receiver 交点座標
+         * @param itemFrameYaw アイテムフレームのYaw角度
+         * @param itemFramePitch アイテムフレームのPitch角度
+         * @return キャンバス上のUV座標
+         */
+        fun Vector.mapToBlockUV(
+            itemFrameYaw: Float,
+            itemFramePitch: Float,
+        ): Vec2d {
+            // 交点座標を(0,0)を中心に回転し、UV座標(x,-y)に対応するようにする
+            val unRotated = clone()
+                .rotateAroundX(Math.toRadians(-itemFramePitch.toDouble()))
+                .rotateAroundY(Math.toRadians(itemFrameYaw.toDouble()))
+            // UV座標を返す (3D座標はYが上ほど大きく、UV座標はYが下ほど大きいため、Yを反転する)
+            return Vec2d(unRotated.x, -unRotated.y)
+        }
+
+        /**
+         * ブロックのUV座標->キャンバスピクセルのUV座標を計算する
+         * @receiver ブロックのUV座標
+         * @param rotation アイテムフレーム内の地図の回転
+         * @return キャンバスピクセルのUV座標
+         */
+        fun Vec2d.transformUV(rotation: Rotation): Vec2i? {
+            // BukkitのRotationからCanvasのRotationに変換する
+            val rot: FrameRotation = FrameRotation.fromRotation(rotation)
+            // -0.5～0.5の範囲を0.0～1.0の範囲に変換する
+            val q = rot.uv(this) + Vec2d(0.5, 0.5)
+            // 0～128(ピクセル座標)の範囲に変換する
+            val x = (q.x * mapSize).toInt()
+            val y = (q.y * mapSize).toInt()
+            // 範囲外ならばnullを返す
+            if (x >= mapSize || x < 0) return null
+            if (y >= mapSize || y < 0) return null
+            // 変換した座標を返す
+            return Vec2i(x, y)
         }
     }
 }
