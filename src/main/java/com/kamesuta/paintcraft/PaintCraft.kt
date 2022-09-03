@@ -6,6 +6,8 @@ import com.kamesuta.paintcraft.frame.FrameDrawListener
 import com.kamesuta.paintcraft.frame.FrameReflection
 import com.kamesuta.paintcraft.map.DrawableMapReflection
 import com.kamesuta.paintcraft.util.DebugLocationVisualizer
+import com.kamesuta.paintcraft.util.clienttype.ClientBrandReflection
+import com.kamesuta.paintcraft.util.clienttype.ClientTypeUpdateListener
 import dev.kotx.flylib.flyLib
 import org.bukkit.plugin.java.JavaPlugin
 import java.util.logging.Level
@@ -33,6 +35,8 @@ class PaintCraft : JavaPlugin() {
             FrameReflection.checkReflection()
             // Map系クラスのチェック
             DrawableMapReflection.checkReflection()
+            // クライアントのブランドクラスのチェック
+            ClientBrandReflection.checkReflection()
         }.onFailure { e ->
             logger.log(
                 Level.SEVERE,
@@ -57,6 +61,11 @@ class PaintCraft : JavaPlugin() {
         protocolManager.asynchronousManager.registerAsyncHandler(drawListener.createMovePacketAdapter()).start()
         // クリックしたときのパケットハンドラーを登録する
         protocolManager.asynchronousManager.registerAsyncHandler(drawListener.createClickPacketAdapter()).start()
+
+        // クライアントのブランドを更新するイベントリスナー (Geyser判定のため)
+        val clientTypeUpdateListener = ClientTypeUpdateListener()
+        server.pluginManager.registerEvents(clientTypeUpdateListener, this)
+        clientTypeUpdateListener.updateAll()
     }
 
     override fun onDisable() {

@@ -2,7 +2,7 @@ package com.kamesuta.paintcraft.canvas
 
 import com.kamesuta.paintcraft.canvas.paint.PaintLine
 import com.kamesuta.paintcraft.canvas.paint.PaintTool
-import com.kamesuta.paintcraft.util.TimeWatcher
+import com.kamesuta.paintcraft.util.clienttype.ClientType
 import org.bukkit.entity.Player
 
 /**
@@ -22,11 +22,9 @@ class CanvasSession(val player: Player) {
     /** 最後のエンティティ移動時刻 */
     var lastVehicleMove = 0L
 
-    companion object {
-        /** 最後のエンティティ右クリックから左クリックを無視し続ける時間 */
-        val interactEntityDuration = TimeWatcher(20)
+    /** クライアントのブランド名 */
+    var clientBrand: String? = null
 
-        /** 最後のエンティティ移動時刻からティックイベントを無視し続ける時間 */
-        val vehicleMoveDuration = TimeWatcher(20)
-    }
+    /** クライアントの種類 */
+    var clientType = ClientType.VANILLA
 }
