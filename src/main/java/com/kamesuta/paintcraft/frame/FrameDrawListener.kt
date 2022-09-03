@@ -370,23 +370,6 @@ class FrameDrawListener : Listener, Runnable {
         return true
     }
 
-    /**
-     * キャンバスかどうか判定
-     */
-    private fun Entity.isCanvas(): Boolean {
-        // アイテムフレームを取得
-        val itemFrame = this as? ItemFrame
-            ?: return false
-        // アイテムが地図かどうかを確認
-        if (itemFrame.item.type != Material.FILLED_MAP) {
-            return false
-        }
-        // キャンバスか判定し取得
-        DrawableMapItem.get(itemFrame.item)
-            ?: return false
-        return true
-    }
-
     companion object {
         /**
          * デバッグ座標を初期化
@@ -398,5 +381,22 @@ class FrameDrawListener : Listener, Runnable {
          * @return ペンを持っているかどうか
          */
         private fun Player.hasPencil() = inventory.itemInMainHand.type != Material.INK_SAC
+
+        /**
+         * キャンバスかどうか判定
+         */
+        private fun Entity.isCanvas(): Boolean {
+            // アイテムフレームを取得
+            val itemFrame = this as? ItemFrame
+                ?: return false
+            // アイテムが地図かどうかを確認
+            if (itemFrame.item.type != Material.FILLED_MAP) {
+                return false
+            }
+            // キャンバスか判定し取得
+            DrawableMapItem.get(itemFrame.item)
+                ?: return false
+            return true
+        }
     }
 }

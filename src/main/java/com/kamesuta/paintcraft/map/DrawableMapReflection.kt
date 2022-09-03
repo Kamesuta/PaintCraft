@@ -18,7 +18,7 @@ import java.lang.reflect.Method
 object DrawableMapReflection {
     /**
      * NMSにアクセスするためのクラス
-     * NMSクラスが見つからなかったりした際、DrawableMapReflectionクラスの関数がそもそも呼べなくなるのを防ぐ
+     * NMSクラスが見つからなかったりした際、クラスの関数がそもそも呼べなくなるのを防ぐ
      */
     private object Accessor {
         // NMSクラス

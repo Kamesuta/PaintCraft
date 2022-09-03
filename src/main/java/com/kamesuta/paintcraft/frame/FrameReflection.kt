@@ -11,7 +11,7 @@ import java.lang.reflect.Method
 object FrameReflection {
     /**
      * NMSにアクセスするためのクラス
-     * NMSクラスが見つからなかったりした際、DrawableMapReflectionクラスの関数がそもそも呼べなくなるのを防ぐ
+     * NMSクラスが見つからなかったりした際、クラスの関数がそもそも呼べなくなるのを防ぐ
      */
     private object Accessor {
         // NMSクラス
@@ -45,7 +45,7 @@ object FrameReflection {
      * @return Y方向のオフセット
      */
     fun getYOffset(entity: Entity): Double {
-        return entity.runCatching {
+        return runCatching {
             val handle = Accessor.craftEntityGetHandle(entity)
                 ?: return@runCatching null
             val yOffset = Accessor.entityGetYOffset(handle) as Double
@@ -61,7 +61,7 @@ object FrameReflection {
      * @return Y方向のオフセット
      */
     fun getMountedYOffset(entity: Entity): Double {
-        return entity.runCatching {
+        return runCatching {
             val handle = Accessor.craftEntityGetHandle(entity)
                 ?: return@runCatching null
             val mountedYOffset = Accessor.entityGetMountedYOffset(handle) as Double

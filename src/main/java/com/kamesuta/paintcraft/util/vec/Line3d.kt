@@ -26,6 +26,12 @@ data class Line3d(val origin: Vector, val direction: Vector) {
     /** 逆方向に平行移動させた線を取得する */
     operator fun minus(other: Vector) = Line3d(origin - other, direction)
 
+    /** 方向ベクトルからyawを求める */
+    val pitch get() = Math.toDegrees(asin(-direction.y)).toFloat()
+
+    /** 方向ベクトルからpitchを求める */
+    val yaw get() = Math.toDegrees(-atan2(direction.x, direction.z)).toFloat()
+
     /**
      * BukkitのLocationに変換する
      * @param world ワールド
@@ -36,8 +42,8 @@ data class Line3d(val origin: Vector, val direction: Vector) {
         // 始点を取得
         val location = origin.toLocation(world)
         // 方向ベクトルからyawとpitchを求める
-        location.yaw = Math.toDegrees(-atan2(direction.x, direction.z)).toFloat()
-        location.pitch = Math.toDegrees(asin(-direction.y)).toFloat()
+        location.yaw = yaw
+        location.pitch = pitch
         return location
     }
 
@@ -56,7 +62,7 @@ data class Line3d(val origin: Vector, val direction: Vector) {
          * @return 線
          */
         fun Location.toLine(): Line3d {
-            return Line3d(origin, direction.normalized)
+            return Line3d(origin, direction)
         }
     }
 }
