@@ -3,7 +3,6 @@ package com.kamesuta.paintcraft.canvas.paint
 import com.kamesuta.paintcraft.canvas.CanvasActionType
 import com.kamesuta.paintcraft.canvas.CanvasInteraction
 import com.kamesuta.paintcraft.canvas.CanvasSession
-import com.kamesuta.paintcraft.canvas.paint.PaintTool.Companion.drawDuration
 import com.kamesuta.paintcraft.map.DrawableMapBuffer.Companion.mapSize
 import com.kamesuta.paintcraft.map.DrawableMapItem
 import com.kamesuta.paintcraft.map.draw.DrawLine
@@ -30,7 +29,7 @@ class PaintPencil(override val session: CanvasSession) : PaintTool {
 
     /** 描いているか */
     override val isDrawing: Boolean
-        get() = drawDuration.isInTime(lastTime)
+        get() = session.clientType.drawDuration.isInTime(lastTime)
 
     override fun paint(
         itemStack: ItemStack,

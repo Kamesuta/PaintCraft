@@ -28,9 +28,4 @@ interface PaintTool {
 
     /** 現在描画中か */
     val isDrawing: Boolean
-
-    companion object {
-        /** 最後のクリックから書き続ける時間 */
-        val drawDuration = TimeWatcher(300)
-    }
 }
