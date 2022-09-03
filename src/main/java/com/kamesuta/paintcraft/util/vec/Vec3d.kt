@@ -30,5 +30,8 @@ operator fun Location.minus(other: Vector): Location = clone().subtract(other)
 /** ロケーションのスカラー倍 */
 operator fun Location.times(other: Double): Location = clone().multiply(other)
 
+/** 線の始点の位置 */
+val Location.origin: Vector get() = toVector()
+
 /** 線の先の位置 */
-val Location.target: Location get() = clone().add(direction)
+val Location.target: Vector get() = toVector().add(direction)

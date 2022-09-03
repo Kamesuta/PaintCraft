@@ -6,9 +6,10 @@ import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.Particle
 import org.bukkit.entity.Player
+import org.bukkit.util.Vector
 import java.util.*
 
-typealias DebugLocator = (type: DebugLocationType, location: Location?) -> Unit
+typealias DebugLocator = (type: DebugLocationType, location: Vector?) -> Unit
 typealias DebugLocatable = (locator: DebugLocator) -> Unit
 
 /**
@@ -30,8 +31,8 @@ object DebugLocationVisualizer {
     }
 
     /** デバッグ座標を更新 */
-    fun locate(player: Player, type: DebugLocationType, location: Location?) {
-        get(player).location(type, location)
+    fun locate(player: Player, type: DebugLocationType, location: Vector?) {
+        get(player).location(type, location?.toLocation(player.world))
     }
 
     /** デバッグ座標を更新 */

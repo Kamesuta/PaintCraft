@@ -56,7 +56,7 @@ data class Line3d(val origin: Vector, val direction: Vector) {
          * @return 線
          */
         fun Location.toLine(): Line3d {
-            return Line3d(toVector(), direction.normalized)
+            return Line3d(origin, direction.normalized)
         }
     }
 }
