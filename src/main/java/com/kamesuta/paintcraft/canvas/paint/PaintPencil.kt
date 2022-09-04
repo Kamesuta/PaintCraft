@@ -70,6 +70,9 @@ class PaintPencil(override val session: CanvasSession) : PaintTool {
             }
         }
 
+        // プレイヤーに描画を通知する
+        mapItem.renderer.updatePlayer(interact.player)
+
         // イベントを保存
         lastEvent = PaintEvent(mapItem, interact)
     }

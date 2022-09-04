@@ -179,8 +179,6 @@ class FrameRayTrace(
 
         // キャンバスに描画する
         session.tool.paint(player.inventory.itemInMainHand, ray.mapItem, interact)
-        // プレイヤーに描画を通知する
-        ray.mapItem.renderer.updatePlayer(player)
     }
 
     /**

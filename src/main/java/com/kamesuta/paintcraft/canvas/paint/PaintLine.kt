@@ -89,6 +89,11 @@ class PaintLine(override val session: CanvasSession) : PaintTool {
             }
         }
 
+        // 変更箇所をプレイヤーに送信
+        edited.values.forEach {
+            it.renderer.updatePlayer(interact.player)
+        }
+
         // クリックを開始した場合
         if (lastEvent == null) {
             // イベントを保存

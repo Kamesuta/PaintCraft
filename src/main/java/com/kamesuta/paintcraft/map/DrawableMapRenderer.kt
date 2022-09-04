@@ -80,8 +80,10 @@ class DrawableMapRenderer : MapRenderer(), Drawable {
     companion object {
         /** プレイヤーに更新を通知する */
         private fun MapCanvas.updatePlayer(player: Player) {
+            // 変更箇所を取得する
             val dirty = DrawableMapReflection.getMapDirtyArea(player, mapView)
-                ?: return
+                ?: return // 変更箇所がなければ何もしない
+            // 新しいバッファーを取得
             val buffer = DrawableMapReflection.getCanvasBuffer(this)
                 ?: return
 

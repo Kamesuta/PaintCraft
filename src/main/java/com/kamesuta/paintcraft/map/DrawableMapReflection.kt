@@ -41,6 +41,7 @@ object DrawableMapReflection {
             }.apply { isAccessible = true }
         val craftEntityGetHandle: Method = craftEntity.getDeclaredMethod("getHandle").apply { isAccessible = true }
         val worldMapHumans: Field = worldMap.getDeclaredField("humans").apply { isAccessible = true }
+        val humanTrackerIsDirty: Field = humanTracker.getDeclaredField("d").apply { isAccessible = true }
         val humanTrackerMinX: Field = humanTracker.getDeclaredField("e").apply { isAccessible = true }
         val humanTrackerMinY: Field = humanTracker.getDeclaredField("f").apply { isAccessible = true }
         val humanTrackerMaxX: Field = humanTracker.getDeclaredField("g").apply { isAccessible = true }
@@ -113,6 +114,11 @@ object DrawableMapReflection {
                 ?: return null
             val humanTracker = humanTrackerMap[handle]
                 ?: return null
+            val isDirty = Accessor.humanTrackerIsDirty[humanTracker] as Boolean
+            if (!isDirty) {
+                // 変更箇所なし
+                return null
+            }
             val x1 = Accessor.humanTrackerMinX[humanTracker] as Int
             val y1 = Accessor.humanTrackerMinY[humanTracker] as Int
             val x2 = Accessor.humanTrackerMaxX[humanTracker] as Int
