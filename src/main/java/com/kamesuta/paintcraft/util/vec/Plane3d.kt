@@ -1,5 +1,6 @@
 package com.kamesuta.paintcraft.util.vec
 
+import com.kamesuta.paintcraft.util.DebugLocatable
 import org.bukkit.util.Vector
 import kotlin.math.abs
 import kotlin.math.sqrt
@@ -11,12 +12,12 @@ import kotlin.math.sqrt
  * @param c Z座標
  * @param d 距離
  */
-class Plane3d(
+data class Plane3d(
     val a: Double,
     val b: Double,
     val c: Double,
     val d: Double,
-) {
+) : DebugLocatable {
     /**
      * 正規化された法線と距離で初期化する
      */
@@ -47,7 +48,7 @@ class Plane3d(
      * @return 点までの符号付きの最短距離
      */
     fun signedDistance(point: Vector): Double {
-        return a * point.x + b * point.y + c * point.z + d
+        return normal.dot(point) + d
     }
 
     /**
@@ -65,7 +66,7 @@ class Plane3d(
      * @return 点に一番近い平面上の点
      */
     fun closestPoint(point: Vector): Vector {
-        return point + (normal * signedDistance(point))
+        return point - normal * signedDistance(point)
     }
 
     /**
@@ -77,11 +78,11 @@ class Plane3d(
         // 平面とベクトルとの交点を求める
         // https://qiita.com/edo_m18/items/c8808f318f5abfa8af1e
         // http://www.sousakuba.com/Programming/gs_plane_line_intersect.html
-        val denom = a * ray.direction.x + b * ray.direction.y + c * ray.direction.z
+        val denom = normal.dot(ray.direction)
         if (denom == 0.0) {
             return null
         }
-        val t = -(a * ray.origin.x + b * ray.origin.y + c * ray.origin.z + d) / denom
+        val t = -(normal.dot(ray.origin) + d) / denom
         return ray.origin + (ray.direction * t)
     }
 
@@ -91,22 +92,46 @@ class Plane3d(
      * @return 平面と平面の交線
      */
     fun intersect(other: Plane3d): Line3d? {
-        val denom = a * other.b + b * other.a
-        if (denom == 0.0) {
-            // 2つの軸が交わったときに発生する
-            return null
+        // https://stackoverflow.com/a/32410473
+        // logically the 3rd plane, but we only use the normal component.
+        val p1_normal = normal
+        val p2_normal = other.normal
+        val p3_normal = p1_normal.getCrossProduct(p2_normal);
+        val det = p3_normal.lengthSquared();
+
+        // If the determinant is 0, that means parallel planes, no intersection.
+        // note: you may want to check against an epsilon value here.
+        if (det != 0.0) {
+            // calculate the final (point, normal)
+            val r_point = ((p3_normal.getCrossProduct(p2_normal) * d) +
+                    (p1_normal.getCrossProduct(p3_normal) * other.d)) / det;
+            val r_normal = p3_normal;
+            return Line3d(r_point, r_normal);
+        } else {
+            return null;
         }
-        val origin = Vector(
-            (other.d * b - d * other.b) / denom,
-            (d * other.a - other.d * a) / denom,
-            0.0
-        )
-        val direction = normal.getCrossProduct(other.normal)
-        if (direction.length() == 0.0) {
-            // 2つの面が平行であるときに発生する
-            return null
+    }
+
+    /**
+     * デバッグ用に平面を描画する
+     */
+    override fun debugLocate(eyeLocation: Line3d, locate: (Vector) -> Unit) {
+        val norm = normal
+        val dirA = Vector(0.0, 1.0, 0.0)
+        val dirB = norm.getCrossProduct(dirA)
+        val dirC = when (dirB.lengthSquared() > 0.0) {
+            true -> dirB.normalized
+            false -> norm.getCrossProduct(Vector(1.0, 0.0, 0.0))
         }
-        return Line3d(origin, direction.normalize())
+        val dirD = norm.getCrossProduct(dirC).normalized
+
+        val closestPoint = closestPoint(eyeLocation.origin)
+        for (y in -10..10) {
+            for (x in -10..10) {
+                val pos = closestPoint + (dirC * (x.toDouble() * 0.25)) + (dirD * (y.toDouble() * 0.25))
+                locate(pos)
+            }
+        }
     }
 
     companion object {
@@ -141,7 +166,7 @@ class Plane3d(
         fun fromPoints(p0: Vector, p1: Vector, p2: Vector): Plane3d {
             val v1 = p1 - p0
             val v2 = p2 - p0
-            val normal = v1.getCrossProduct(v2).normalize()
+            val normal = v1.getCrossProduct(v2)
             return fromPointNormal(p0, normal)
         }
     }

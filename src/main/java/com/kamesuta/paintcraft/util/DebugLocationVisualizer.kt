@@ -1,16 +1,13 @@
 package com.kamesuta.paintcraft.util
 
 import com.kamesuta.paintcraft.PaintCraft
+import com.kamesuta.paintcraft.util.vec.Line3d.Companion.toLine
 import dev.kotx.flylib.command.Command
 import org.bukkit.Bukkit
-import org.bukkit.Location
 import org.bukkit.Particle
 import org.bukkit.entity.Player
 import org.bukkit.util.Vector
 import java.util.*
-
-typealias DebugLocator = (type: DebugLocationType, location: Vector?) -> Unit
-typealias DebugLocatable = (locator: DebugLocator) -> Unit
 
 /**
  * 位置を視覚化してデバッグするためのコマンド
@@ -31,19 +28,31 @@ object DebugLocationVisualizer {
     }
 
     /** デバッグ座標を更新 */
-    fun locate(player: Player, type: DebugLocationType, location: Vector?) {
-        get(player).location(type, location?.toLocation(player.world))
+    fun locate(player: Player, type: DebugLocationType, location: DebugLocatable) {
+        get(player).location(type, location)
+    }
+
+    /** デバッグ座標を更新するツール */
+    class DebugLocatorImpl(private val player: Player) : DebugLocator {
+        /** Vector型の座標を更新 */
+        override fun locate(type: DebugLocationType, location: Vector?) {
+            location?.let { locate(player, type) { _, locate -> locate(it) } }
+        }
+
+        /** DebugLocatable型の座標を更新 */
+        override fun locate(type: DebugLocationType, location: DebugLocatable?) {
+            location?.let { locate(player, type, it) }
+        }
     }
 
     /** デバッグ座標を更新 */
-    inline fun Player.debugLocation(f: DebugLocatable) {
+    inline fun Player.debugLocation(f: DebugLocator.() -> Unit) {
         if (!DebugLocationType.ENABLE_DEBUG) {
             return
         }
 
-        f { type, location ->
-            locate(this, type, location)
-        }
+        // デバッグ座標を更新
+        f(DebugLocatorImpl(this))
     }
 
     /** デバッグ座標をクリア */
@@ -58,14 +67,12 @@ object DebugLocationVisualizer {
     /** プレイヤーのデバッグ情報 */
     private class PlayerState(private val player: Player) {
         var particles: EnumMap<DebugLocationType, Particle> = EnumMap(DebugLocationType::class.java)
-        private var locations: EnumMap<DebugLocationType, MutableList<Location>> =
+        private var locations: EnumMap<DebugLocationType, MutableList<DebugLocatable>> =
             EnumMap(DebugLocationType::class.java)
 
         /** 指定タイプのデバッグ座標を更新 */
-        fun location(type: DebugLocationType, location: Location?) {
-            if (location != null) {
-                locations.computeIfAbsent(type) { mutableListOf() } += location.clone()
-            }
+        fun location(type: DebugLocationType, location: DebugLocatable) {
+            locations.computeIfAbsent(type) { mutableListOf() } += location
         }
 
         /** 指定グループのデバッグ座標をクリア */
@@ -79,11 +86,15 @@ object DebugLocationVisualizer {
                 return
             }
 
+            val eyeLocation = player.eyeLocation.toLine()
+            val world = player.world
             for ((type, location) in locations) {
                 val particle = particles[type]
                 if (particle != null) {
-                    location.forEach {
-                        player.spawnParticle(particle, it, 1, 0.0, 0.0, 0.0, 0.0)
+                    location.forEach { locator ->
+                        locator.debugLocate(eyeLocation) {
+                            player.spawnParticle(particle, it.toLocation(world), 1, 0.0, 0.0, 0.0, 0.0)
+                        }
                     }
                 }
             }

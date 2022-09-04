@@ -43,9 +43,10 @@ class FrameRayTrace(
         playerEyePos: Line3d,
     ): FrameRayTraceResult? {
         // 目線と向きからエンティティを取得し、アイテムフレームかどうかを確認する
-        player.debugLocation { locate ->
+        player.debugLocation {
             locate(DebugLocationType.EYE_LOCATION, playerEyePos.origin)
             locate(DebugLocationType.EYE_DIRECTION, playerEyePos.target)
+            locate(DebugLocationType.EYE_LINE, playerEyePos)
         }
 
         // 距離は前方8m(半径4)を範囲にする
@@ -62,7 +63,7 @@ class FrameRayTrace(
         )
         // クリックがヒットした座標
         val blockHitLocation = blockRay?.hitPosition
-        player.debugLocation { locate ->
+        player.debugLocation {
             locate(DebugLocationType.BLOCK_HIT_LOCATION, blockHitLocation)
         }
 
@@ -106,7 +107,7 @@ class FrameRayTrace(
     ) {
         // アイテムフレームの位置を取得
         val itemFrameLocation = ray.itemFrame.location
-        player.debugLocation { locate ->
+        player.debugLocation {
             // アイテムフレームの位置
             locate(DebugLocationType.FRAME_LOCATION, itemFrameLocation.origin)
             // アイテムフレームの方向
@@ -148,7 +149,7 @@ class FrameRayTrace(
             ?: return null
         // キャンバス平面の位置
         val canvasLocation = toCanvasLocation(itemFrame)
-        player.debugLocation { locate ->
+        player.debugLocation {
             // アイテムフレームの位置
             locate(DebugLocationType.CANVAS_LOCATION, canvasLocation.origin)
             // アイテムフレームの正面ベクトル

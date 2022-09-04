@@ -1,5 +1,6 @@
 package com.kamesuta.paintcraft.util.vec
 
+import com.kamesuta.paintcraft.util.DebugLocatable
 import org.bukkit.Location
 import org.bukkit.World
 import org.bukkit.util.Vector
@@ -13,7 +14,7 @@ import kotlin.math.atan2
  * @param origin 始点
  * @param direction 方向
  */
-data class Line3d(val origin: Vector, val direction: Vector) {
+data class Line3d(val origin: Vector, val direction: Vector) : DebugLocatable {
     /** 線の先の位置 */
     val target: Vector get() = origin + direction
 
@@ -31,6 +32,30 @@ data class Line3d(val origin: Vector, val direction: Vector) {
 
     /** 方向ベクトルからpitchを求める */
     val yaw get() = Math.toDegrees(-atan2(direction.x, direction.z)).toFloat()
+
+    /**
+     * 点に一番近い直線上の点を返す
+     * @param point 点
+     * @return 点に一番近い直線上の点
+     */
+    fun closestPoint(point: Vector): Vector {
+        val dir = direction.normalized
+        val v = point - origin;
+        val d = v.dot(dir);
+        return origin + dir * d;
+    }
+
+    /**
+     * デバッグ用に線を描画する
+     */
+    override fun debugLocate(eyeLocation: Line3d, locate: (Vector) -> Unit) {
+        val dir = direction.normalized
+        val closestPoint = closestPoint(eyeLocation.origin)
+        for (i in -10..10) {
+            val pos = closestPoint + (dir * (i.toDouble() * 0.25))
+            locate(pos)
+        }
+    }
 
     /**
      * BukkitのLocationに変換する

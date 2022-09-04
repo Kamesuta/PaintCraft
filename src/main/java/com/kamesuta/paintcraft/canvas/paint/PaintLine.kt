@@ -146,7 +146,7 @@ class PaintLine(override val session: CanvasSession) : PaintTool {
                     interact.ray.canvasIntersectLocation
                 )
                 val plane = Plane3d.fromPoints(eyeLocation.origin, segment.origin, segment.target)
-                interact.player.debugLocation { locate ->
+                interact.player.debugLocation {
                     locate(DebugLocationType.SEGMENT_ORIGIN, segment.origin)
                     locate(DebugLocationType.SEGMENT_TARGET, segment.target)
                 }

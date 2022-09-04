@@ -4,6 +4,8 @@ import com.kamesuta.paintcraft.frame.FrameRayTrace.Companion.mapToBlockUV
 import com.kamesuta.paintcraft.frame.FrameRayTrace.Companion.toCanvasPlane
 import com.kamesuta.paintcraft.frame.FrameRayTrace.Companion.transformUV
 import com.kamesuta.paintcraft.map.DrawableMapItem
+import com.kamesuta.paintcraft.util.DebugLocationType
+import com.kamesuta.paintcraft.util.DebugLocationVisualizer.debugLocation
 import com.kamesuta.paintcraft.util.vec.Line2d
 import com.kamesuta.paintcraft.util.vec.Vec2d
 import com.kamesuta.paintcraft.util.vec.Vec2i
@@ -69,6 +71,12 @@ class FramePlaneTrace(private val rayTrace: FrameRayTrace) {
         // 面の交線を計算
         val canvasIntersectLine = canvasPlane.intersect(plane.plane)
             ?: return null
+        player.debugLocation {
+            locate(DebugLocationType.INTERSECT_LINE_ORIGIN, canvasIntersectLine.origin)
+            locate(DebugLocationType.INTERSECT_LINE_TARGET, canvasIntersectLine.normalized.target)
+            locate(DebugLocationType.INTERSECT_LINE, canvasIntersectLine)
+            locate(DebugLocationType.CANVAS_PLANE, canvasPlane)
+        }
 
         // キャンバスの回転を計算
         val (canvasYaw, canvasPitch) = rayTrace.getCanvasRotation(itemFrame)

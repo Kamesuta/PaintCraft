@@ -12,6 +12,9 @@ operator fun Vector.minus(other: Vector): Vector = clone().subtract(other)
 /** ベクトルのスカラー倍 */
 operator fun Vector.times(other: Double): Vector = clone().multiply(other)
 
+/** ベクトルの1/スカラー倍 */
+operator fun Vector.div(other: Double): Vector = clone().multiply(1.0 / other)
+
 /** ベクトルの正規化 */
 val Vector.normalized: Vector get() = clone().normalize()
 
