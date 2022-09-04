@@ -18,11 +18,11 @@ import org.bukkit.util.Vector
 /**
  * キャンバスと目線の交差判定をし、UVを計算します
  * @param player プレイヤー
- * @param isGeyser Geyserクライアント(BE版)かどうか
+ * @param isBedrockEdition BE版(Geyser)かどうか
  */
 class FrameRayTrace(
     val player: Player,
-    val isGeyser: Boolean
+    val isBedrockEdition: Boolean
 ) {
     /**
      * キャンバスが表か判定する
@@ -158,7 +158,7 @@ class FrameRayTrace(
         }
 
         // キャンバスの回転を計算
-        val (canvasYaw, canvasPitch) = if (isGeyser) {
+        val (canvasYaw, canvasPitch) = if (isBedrockEdition) {
             Line3d(Vector(), itemFrame.facing.direction).let { it.yaw to it.pitch }
         } else {
             itemFrameLocation.let { it.yaw to it.pitch }
@@ -188,7 +188,7 @@ class FrameRayTrace(
     fun toCanvasLocation(itemFrame: ItemFrame): Line3d {
         val centerLocation = itemFrame.location.toCenterLocation()
         // キャンバスの面を合成して座標と向きを返す
-        return if (isGeyser) {
+        return if (isBedrockEdition) {
             // BE版はアイテムフレームの向きが変わらないため、正面の向きを使う
             val facingDirection = Line3d(Vector(), itemFrame.facing.direction)
             centerLocation.origin.toCanvasLocation(facingDirection.yaw, facingDirection.pitch)

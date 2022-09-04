@@ -62,7 +62,7 @@ class PaintCraft : JavaPlugin() {
         // クリックしたときのパケットハンドラーを登録する
         protocolManager.asynchronousManager.registerAsyncHandler(drawListener.createClickPacketAdapter()).start()
 
-        // クライアントのブランドを更新するイベントリスナー (Geyser判定のため)
+        // クライアントのブランドを更新するイベントリスナー (BE版判定のため)
         val clientTypeUpdateListener = ClientTypeUpdateListener()
         server.pluginManager.registerEvents(clientTypeUpdateListener, this)
         clientTypeUpdateListener.updateAll()

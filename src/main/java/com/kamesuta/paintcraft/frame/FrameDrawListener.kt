@@ -13,7 +13,6 @@ import com.kamesuta.paintcraft.util.DebugLocationType
 import com.kamesuta.paintcraft.util.DebugLocationVisualizer.clearDebugLocation
 import com.kamesuta.paintcraft.util.LocationOperation
 import com.kamesuta.paintcraft.util.TimeWatcher
-import com.kamesuta.paintcraft.util.clienttype.ClientType
 import com.kamesuta.paintcraft.util.vec.Line3d.Companion.toLine
 import org.bukkit.Bukkit
 import org.bukkit.Location
@@ -185,7 +184,7 @@ class FrameDrawListener : Listener, Runnable {
         player.clearDebug()
 
         // レイツールを初期化
-        val rayTrace = FrameRayTrace(player, session.clientType == ClientType.GEYSER)
+        val rayTrace = FrameRayTrace(player, session.clientType.isBedrockEdition)
         // レイを飛ばしてアイテムフレームを取得
         val playerEyePos = session.eyeLocation.toLine()
         val ray = rayTrace.rayTraceCanvas(playerEyePos)
@@ -325,7 +324,7 @@ class FrameDrawListener : Listener, Runnable {
         // 目線の位置を取得
         val playerEyePos = session.eyeLocation.toLine()
         // レイツールを初期化
-        val rayTrace = FrameRayTrace(player, session.clientType == ClientType.GEYSER)
+        val rayTrace = FrameRayTrace(player, session.clientType.isBedrockEdition)
         // レイを飛ばしてアイテムフレームを取得
         val ray = rayTrace.rayTraceCanvas(playerEyePos)
             ?: return isCanvas

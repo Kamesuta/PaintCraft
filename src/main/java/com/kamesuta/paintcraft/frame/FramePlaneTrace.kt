@@ -70,7 +70,7 @@ class FramePlaneTrace(private val rayTrace: FrameRayTrace) {
             ?: return null
 
         // キャンバスの回転を計算
-        val (canvasYaw, canvasPitch) = if (rayTrace.isGeyser) {
+        val (canvasYaw, canvasPitch) = if (rayTrace.isBedrockEdition) {
             Line3d(Vector(), itemFrame.facing.direction).let { it.yaw to it.pitch }
         } else {
             itemFrameLocation.let { it.yaw to it.pitch }
