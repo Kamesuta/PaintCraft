@@ -4,7 +4,7 @@ import com.kamesuta.paintcraft.canvas.CanvasActionType
 import com.kamesuta.paintcraft.canvas.CanvasInteraction
 import com.kamesuta.paintcraft.canvas.CanvasSession
 import com.kamesuta.paintcraft.frame.FramePlane
-import com.kamesuta.paintcraft.frame.FramePlaneTrace
+import com.kamesuta.paintcraft.frame.FramePlaneTrace.planeTraceCanvas
 import com.kamesuta.paintcraft.frame.FrameRayTrace
 import com.kamesuta.paintcraft.map.DrawableMapItem
 import com.kamesuta.paintcraft.map.draw.DrawLine
@@ -153,8 +153,7 @@ class PaintLine(override val session: CanvasSession) : PaintTool {
 
                 // 当たり判定
                 val rayTrace = FrameRayTrace(interact.player, session.clientType)
-                val planeTrace = FramePlaneTrace(rayTrace)
-                val result = planeTrace.planeTraceCanvas(framePlane)
+                val result = rayTrace.planeTraceCanvas(framePlane)
 
                 // 線を描く
                 for (entityResult in result.entities) {

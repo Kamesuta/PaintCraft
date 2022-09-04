@@ -5,6 +5,9 @@ import com.kamesuta.paintcraft.util.vec.Plane3d
 
 /**
  * 線を引くための面を表現するクラス
+ * @param plane 平面
+ * @param eyeLocation 視点
+ * @param segment 線分
  */
 data class FramePlane(
     val plane: Plane3d,
