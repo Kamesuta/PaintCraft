@@ -1,6 +1,7 @@
 package com.kamesuta.paintcraft.map
 
 import com.kamesuta.paintcraft.map.draw.Draw
+import com.kamesuta.paintcraft.map.draw.DrawRollback
 import org.bukkit.entity.Player
 import org.bukkit.map.MapCanvas
 import org.bukkit.map.MapRenderer
@@ -25,6 +26,9 @@ class DrawableMapRenderer : MapRenderer() {
     /** マップキャンバスを取得する */
     val canvas: MapCanvas?
         get() = if (initialized) mapCanvas else null
+
+    /** 前回の状態 */
+    var previewBefore: DrawRollback? = null
 
     /**
      * addRenderer() された時に呼ばれる

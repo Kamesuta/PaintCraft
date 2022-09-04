@@ -11,6 +11,8 @@ enum class DebugLocationType(val group: DebugLocationGroup = DebugLocationGroup.
     FRAME_FACING_BLOCK,
     CANVAS_LOCATION,
     CANVAS_DIRECTION,
+    SEGMENT_ORIGIN,
+    SEGMENT_TARGET,
     ;
 
     enum class DebugLocationGroup {
