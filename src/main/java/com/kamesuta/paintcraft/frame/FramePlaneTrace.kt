@@ -4,11 +4,13 @@ import com.kamesuta.paintcraft.frame.FrameRayTrace.Companion.mapToBlockUV
 import com.kamesuta.paintcraft.frame.FrameRayTrace.Companion.toCanvasPlane
 import com.kamesuta.paintcraft.frame.FrameRayTrace.Companion.transformUV
 import com.kamesuta.paintcraft.map.DrawableMapItem
-import com.kamesuta.paintcraft.util.vec.*
+import com.kamesuta.paintcraft.util.vec.Line2d
+import com.kamesuta.paintcraft.util.vec.Vec2d
+import com.kamesuta.paintcraft.util.vec.Vec2i
+import com.kamesuta.paintcraft.util.vec.minus
 import org.bukkit.Material
 import org.bukkit.entity.ItemFrame
 import org.bukkit.util.BoundingBox
-import org.bukkit.util.Vector
 
 /**
  * キャンバスと面の交差判定をします
@@ -58,8 +60,6 @@ class FramePlaneTrace(private val rayTrace: FrameRayTrace) {
         // マップデータを取得、ただの地図ならばスキップ
         val mapItem = DrawableMapItem.get(itemFrame.item)
             ?: return null
-        // アイテムフレームの位置
-        val itemFrameLocation = itemFrame.location
         // キャンバス平面の位置
         val canvasLocation = rayTrace.toCanvasLocation(itemFrame)
         // キャンバスの平面
@@ -70,11 +70,7 @@ class FramePlaneTrace(private val rayTrace: FrameRayTrace) {
             ?: return null
 
         // キャンバスの回転を計算
-        val (canvasYaw, canvasPitch) = if (rayTrace.isBedrockEdition) {
-            Line3d(Vector(), itemFrame.facing.direction).let { it.yaw to it.pitch }
-        } else {
-            itemFrameLocation.let { it.yaw to it.pitch }
-        }
+        val (canvasYaw, canvasPitch) = rayTrace.getCanvasRotation(itemFrame)
 
         // 2D座標に変換
         val rawUvOrigin = (canvasIntersectLine.origin - canvasLocation.origin)

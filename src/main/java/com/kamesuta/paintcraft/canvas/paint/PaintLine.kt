@@ -34,7 +34,7 @@ class PaintLine(override val session: CanvasSession) : PaintTool {
 
     /** 描いているか */
     override val isDrawing: Boolean
-        get() = session.clientType.drawDuration.isInTime(lastTime)
+        get() = session.clientType.threshold.drawDuration.isInTime(lastTime)
 
     override fun paint(
         itemStack: ItemStack,

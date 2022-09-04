@@ -7,6 +7,7 @@ import com.kamesuta.paintcraft.map.DrawableMapBuffer.Companion.mapSize
 import com.kamesuta.paintcraft.map.DrawableMapItem
 import com.kamesuta.paintcraft.util.DebugLocationType
 import com.kamesuta.paintcraft.util.DebugLocationVisualizer.debugLocation
+import com.kamesuta.paintcraft.util.clienttype.ClientType
 import com.kamesuta.paintcraft.util.vec.*
 import org.bukkit.Material
 import org.bukkit.Rotation
@@ -18,11 +19,11 @@ import org.bukkit.util.Vector
 /**
  * キャンバスと目線の交差判定をし、UVを計算します
  * @param player プレイヤー
- * @param isBedrockEdition BE版(Geyser)かどうか
+ * @param clientType クライアントの種類
  */
 class FrameRayTrace(
     val player: Player,
-    val isBedrockEdition: Boolean
+    val clientType: ClientType
 ) {
     /**
      * キャンバスが表か判定する
@@ -146,8 +147,6 @@ class FrameRayTrace(
         // マップデータを取得、ただの地図ならばスキップ
         val mapItem = DrawableMapItem.get(itemFrame.item)
             ?: return null
-        // アイテムフレームの位置
-        val itemFrameLocation = itemFrame.location
         // キャンバス平面の位置
         val canvasLocation = toCanvasLocation(itemFrame)
         player.debugLocation { locate ->
@@ -158,11 +157,7 @@ class FrameRayTrace(
         }
 
         // キャンバスの回転を計算
-        val (canvasYaw, canvasPitch) = if (isBedrockEdition) {
-            Line3d(Vector(), itemFrame.facing.direction).let { it.yaw to it.pitch }
-        } else {
-            itemFrameLocation.let { it.yaw to it.pitch }
-        }
+        val (canvasYaw, canvasPitch) = getCanvasRotation(itemFrame)
 
         // キャンバスのオフセットを計算
         val canvasIntersectLocation = canvasLocation.toCanvasPlane(itemFrame.isVisible).intersect(playerEyePos)
@@ -179,6 +174,27 @@ class FrameRayTrace(
     }
 
     /**
+     * キャンバスの回転を計算
+     * @param itemFrame アイテムフレーム
+     * @return キャンバスの回転
+     */
+    fun getCanvasRotation(itemFrame: ItemFrame): Pair<Float, Float> {
+        return if (clientType.isPitchRotationSupported) {
+            // Java版1.13以降はYaw/Pitchの自由回転をサポートしている
+            itemFrame.location.let { it.yaw to it.pitch }
+        } else {
+            if (clientType.isFacingRotationOnly) {
+                // BE版はブロックに沿った回転のみサポートしている
+                val dir = Line3d(Vector(), itemFrame.facing.direction)
+                dir.yaw to dir.pitch
+            } else {
+                // Java版1.12以前はYaw回転のみサポートしている、Pitchは常に0
+                itemFrame.location.yaw to 0.0f
+            }
+        }
+    }
+
+    /**
      * キャンバスフレームの平面の座標を求める
      * アイテムフレームの座標からキャンバス平面の座標を計算する
      * (tpでアイテムフレームを回転したときにずれる)
@@ -186,16 +202,12 @@ class FrameRayTrace(
      * @return キャンバスフレームの平面の座標
      */
     fun toCanvasLocation(itemFrame: ItemFrame): Line3d {
+        // キャンバスの回転を計算
+        val (canvasYaw, canvasPitch) = getCanvasRotation(itemFrame)
+        // ブロックの中心座標
         val centerLocation = itemFrame.location.toCenterLocation()
         // キャンバスの面を合成して座標と向きを返す
-        return if (isBedrockEdition) {
-            // BE版はアイテムフレームの向きが変わらないため、正面の向きを使う
-            val facingDirection = Line3d(Vector(), itemFrame.facing.direction)
-            centerLocation.origin.toCanvasLocation(facingDirection.yaw, facingDirection.pitch)
-        } else {
-            // Java版はアイテムフレームをtpで回転できるため、回転する
-            centerLocation.origin.toCanvasLocation(centerLocation.yaw, centerLocation.pitch)
-        }
+        return centerLocation.origin.toCanvasLocation(canvasYaw, canvasPitch)
     }
 
     companion object {

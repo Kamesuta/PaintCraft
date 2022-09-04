@@ -3,6 +3,7 @@ package com.kamesuta.paintcraft.canvas
 import com.kamesuta.paintcraft.canvas.paint.PaintLine
 import com.kamesuta.paintcraft.canvas.paint.PaintTool
 import com.kamesuta.paintcraft.util.clienttype.ClientType
+import com.kamesuta.paintcraft.util.clienttype.ClientTypeThreshold
 import org.bukkit.entity.Player
 
 /**
@@ -22,9 +23,6 @@ class CanvasSession(val player: Player) {
     /** 最後のエンティティ移動時刻 */
     var lastVehicleMove = 0L
 
-    /** クライアントのブランド名 */
-    var clientBrand: String? = null
-
     /** クライアントの種類 */
-    var clientType = ClientType.VANILLA
+    var clientType: ClientType = ClientType()
 }

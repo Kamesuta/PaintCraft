@@ -6,7 +6,7 @@ import com.kamesuta.paintcraft.frame.FrameDrawListener
 import com.kamesuta.paintcraft.frame.FrameReflection
 import com.kamesuta.paintcraft.map.DrawableMapReflection
 import com.kamesuta.paintcraft.util.DebugLocationVisualizer
-import com.kamesuta.paintcraft.util.clienttype.ClientBrandReflection
+import com.kamesuta.paintcraft.util.clienttype.ClientTypeReflection
 import com.kamesuta.paintcraft.util.clienttype.ClientTypeUpdateListener
 import dev.kotx.flylib.flyLib
 import org.bukkit.plugin.java.JavaPlugin
@@ -36,7 +36,11 @@ class PaintCraft : JavaPlugin() {
             // Map系クラスのチェック
             DrawableMapReflection.checkReflection()
             // クライアントのブランドクラスのチェック
-            ClientBrandReflection.checkReflection()
+            ClientTypeReflection.checkReflection()
+            // ViaVersionがあればViaAPIを初期化
+            if (server.pluginManager.isPluginEnabled("ViaVersion")) {
+                ClientTypeReflection.initViaReflection()
+            }
         }.onFailure { e ->
             logger.log(
                 Level.SEVERE,
