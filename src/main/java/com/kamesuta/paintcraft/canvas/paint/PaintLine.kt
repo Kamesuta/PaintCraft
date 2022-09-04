@@ -124,7 +124,7 @@ class PaintLine(override val session: CanvasSession) : PaintTool {
         lastEvent?.let { ev ->
             if (interact.ray.itemFrame == ev.interact.ray.itemFrame) {
                 // アイテムフレームが同じならそのまま書き込む
-                mapItem.draw { g ->
+                mapItem.draw {
                     g(
                         DrawLine(
                             ev.interact.uv.x,
@@ -158,7 +158,7 @@ class PaintLine(override val session: CanvasSession) : PaintTool {
 
                 // 線を描く
                 for (entityResult in result.entities) {
-                    entityResult.mapItem.draw { g ->
+                    entityResult.mapItem.draw {
                         g(
                             DrawLine(
                                 entityResult.uvStart.x,
@@ -181,7 +181,7 @@ class PaintLine(override val session: CanvasSession) : PaintTool {
      */
     private fun rollback(mapItem: DrawableMapItem, deleteRollback: Boolean) {
         mapItem.renderer.previewBefore?.let {
-            mapItem.draw { g ->
+            mapItem.draw {
                 // キャンバスに描く
                 g(it)
             }

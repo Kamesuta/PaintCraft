@@ -23,8 +23,8 @@ class DrawableMapItem(val itemStack: ItemStack, val mapView: MapView, val render
      * マップに描画する
      * @param f 描画する関数
      */
-    fun draw(f: (g: Drawable) -> Unit) {
-        f(renderer::draw)
+    fun draw(f: Drawable.() -> Unit) {
+        f(renderer)
     }
 
     companion object {

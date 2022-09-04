@@ -51,7 +51,7 @@ class PaintPencil(override val session: CanvasSession) : PaintTool {
         val color = MapPalette.matchColor(Color.BLACK)
 
         // キャンバスに描く
-        mapItem.draw { g ->
+        mapItem.draw {
             when (drawMode) {
                 // 描くモードが左クリックの場合
                 CanvasActionType.LEFT_CLICK -> {
@@ -61,7 +61,7 @@ class PaintPencil(override val session: CanvasSession) : PaintTool {
                 // 描くモードが右クリックの場合
                 CanvasActionType.RIGHT_CLICK -> {
                     // 描画
-                    drawLine(g, interact, color)
+                    drawLine(interact, color)
                 }
                 // その他 (想定外)
                 else -> {
@@ -88,8 +88,7 @@ class PaintPencil(override val session: CanvasSession) : PaintTool {
      * @param interact インタラクト
      * @param color 描く色
      */
-    private fun drawLine(
-        g: Drawable,
+    private fun Drawable.drawLine(
         interact: CanvasInteraction,
         color: Byte
     ) {

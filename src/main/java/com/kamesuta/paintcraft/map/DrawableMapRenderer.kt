@@ -2,6 +2,7 @@ package com.kamesuta.paintcraft.map
 
 import com.kamesuta.paintcraft.map.draw.Draw
 import com.kamesuta.paintcraft.map.draw.DrawRollback
+import com.kamesuta.paintcraft.map.draw.Drawable
 import org.bukkit.entity.Player
 import org.bukkit.map.MapCanvas
 import org.bukkit.map.MapRenderer
@@ -10,7 +11,7 @@ import org.bukkit.map.MapView
 /**
  * 書き込み可能レンダラー
  */
-class DrawableMapRenderer : MapRenderer() {
+class DrawableMapRenderer : MapRenderer(), Drawable {
     /** 初期化フラグ */
     private var initialized = false
 
@@ -74,7 +75,7 @@ class DrawableMapRenderer : MapRenderer() {
     /**
      * 書き込みを行う
      */
-    fun draw(draw: Draw) {
+    override fun g(draw: Draw) {
         // 初期化チェック
         if (!initialized) {
             return
