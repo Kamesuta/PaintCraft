@@ -12,27 +12,20 @@ import org.bukkit.map.MapView
  * 書き込み可能レンダラー
  */
 class DrawableMapRenderer : MapRenderer(), Drawable {
-    /** 初期化フラグ */
-    private var initialized = false
-
     /** マップビュー */
     private lateinit var mapView: MapView
 
     /** マップキャンバス */
-    private lateinit var mapCanvas: MapCanvas
+    lateinit var mapCanvas: MapCanvas
 
     /** 変更フラグ */
     private var dirty = false
-
-    /** マップキャンバスを取得する */
-    val canvas: MapCanvas?
-        get() = if (initialized) mapCanvas else null
 
     /** 前回の状態 */
     var previewBefore: DrawRollback? = null
 
     /**
-     * addRenderer() された時に呼ばれる
+     * addRenderer() された時に呼ばれるため、必ず使えるはず
      * @param map マップビュー
      */
     override fun initialize(map: MapView) {
@@ -47,8 +40,6 @@ class DrawableMapRenderer : MapRenderer(), Drawable {
         repeat(mapCanvas.cursors.size()) {
             mapCanvas.cursors.removeCursor(mapCanvas.cursors.getCursor(0))
         }
-        // 初期化が完了したことを記録する
-        initialized = true
     }
 
     /**
@@ -60,11 +51,6 @@ class DrawableMapRenderer : MapRenderer(), Drawable {
      * @param player プレイヤー
      */
     override fun render(map: MapView, canvas: MapCanvas, player: Player) {
-        // 初期化チェック
-        if (!initialized) {
-            return
-        }
-
         // 変更がある場合保存する
         if (dirty) {
             canvas.saveToMapView()
@@ -76,11 +62,6 @@ class DrawableMapRenderer : MapRenderer(), Drawable {
      * 書き込みを行う
      */
     override fun g(draw: Draw) {
-        // 初期化チェック
-        if (!initialized) {
-            return
-        }
-
         // 描画
         draw.draw(mapCanvas)
         // 変更フラグを設定する
@@ -92,11 +73,6 @@ class DrawableMapRenderer : MapRenderer(), Drawable {
      * @param player プレイヤー
      */
     fun updatePlayer(player: Player) {
-        // 初期化チェック
-        if (!initialized) {
-            return
-        }
-
         // プレイヤーカーソルを更新する
         mapCanvas.updatePlayer(player)
     }

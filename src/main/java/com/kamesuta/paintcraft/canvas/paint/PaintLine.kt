@@ -14,6 +14,7 @@ import com.kamesuta.paintcraft.util.vec.Line3d
 import com.kamesuta.paintcraft.util.vec.Plane3d
 import com.kamesuta.paintcraft.util.vec.debug.DebugLocationType
 import com.kamesuta.paintcraft.util.vec.debug.DebugLocationVisualizer.debugLocation
+import org.bukkit.entity.ItemFrame
 import org.bukkit.inventory.ItemStack
 import org.bukkit.map.MapPalette
 import java.awt.Color
@@ -34,6 +35,9 @@ class PaintLine(override val session: CanvasSession) : PaintTool {
 
     /** 描くのを止める */
     private var stopDraw = false
+
+    /** 編集したマップアイテム */
+    private val edited = mutableMapOf<ItemFrame, DrawableMapItem>()
 
     /** 描いているか */
     override val isDrawing: Boolean
@@ -68,14 +72,14 @@ class PaintLine(override val session: CanvasSession) : PaintTool {
             // 描くモードが左クリックの場合
             CanvasActionType.LEFT_CLICK -> {
                 // 復元 (前回の状態を破棄)
-                rollback(mapItem, true)
+                rollback(rollbackCanvas = true, deleteRollback = true)
                 // 右クリックが離されるまで描くのを停止する
                 stopDraw = true
             }
             // 描くモードが右クリックの場合
             CanvasActionType.RIGHT_CLICK -> {
                 // 復元
-                rollback(mapItem, false)
+                rollback(rollbackCanvas = true, deleteRollback = false)
                 // 描画
                 drawLine(mapItem, interact, color)
             }
@@ -87,13 +91,8 @@ class PaintLine(override val session: CanvasSession) : PaintTool {
 
         // クリックを開始した場合
         if (lastEvent == null) {
-            // キャンバスが初期化できている場合のみ
-            mapItem.renderer.canvas?.let {
-                // 復元地点を保存
-                mapItem.renderer.previewBefore = DrawRollback(it)
-                // イベントを保存
-                lastEvent = PaintEvent(mapItem, interact)
-            }
+            // イベントを保存
+            lastEvent = PaintEvent(mapItem, interact)
         }
     }
 
@@ -102,7 +101,7 @@ class PaintLine(override val session: CanvasSession) : PaintTool {
         if (!isDrawing) {
             lastEvent?.let {
                 // 前回の状態に破棄
-                it.mapItem.renderer.previewBefore = null
+                rollback(rollbackCanvas = false, deleteRollback = true)
                 // 最後の位置を初期化
                 lastEvent = null
                 // 描くのを再開する
@@ -123,6 +122,8 @@ class PaintLine(override val session: CanvasSession) : PaintTool {
     ) {
         lastEvent?.let { ev ->
             if (interact.ray.itemFrame == ev.interact.ray.itemFrame) {
+                // 後で戻せるよう記憶しておく
+                store(interact.ray.itemFrame, mapItem)
                 // アイテムフレームが同じならそのまま書き込む
                 mapItem.draw {
                     g(
@@ -157,6 +158,9 @@ class PaintLine(override val session: CanvasSession) : PaintTool {
 
                 // 線を描く
                 for (entityResult in result.entities) {
+                    // 後で戻せるよう記憶しておく
+                    store(entityResult.itemFrame, entityResult.mapItem)
+                    // 線を描く
                     entityResult.mapItem.draw {
                         g(
                             DrawLine(
@@ -174,20 +178,42 @@ class PaintLine(override val session: CanvasSession) : PaintTool {
     }
 
     /**
-     * 新たに書いた内容を取り消す
-     * @param mapItem マップアイテム
+     * 描く前の内容を保存する
+     * @param itemFrame アイテムフレーム
+     * @param mapItem マップ
+     */
+    private fun store(itemFrame: ItemFrame, mapItem: DrawableMapItem) {
+        edited.computeIfAbsent(itemFrame) {
+            // 新たに描いたマップアイテムのみ記憶
+            mapItem.renderer.previewBefore = DrawRollback(mapItem.renderer.mapCanvas)
+            mapItem
+        }
+    }
+
+    /**
+     * 新たに描いた内容を取り消す
+     * @param rollbackCanvas trueならキャンバスを復元する
      * @param deleteRollback 前回の状態を破棄するかどうか
      */
-    private fun rollback(mapItem: DrawableMapItem, deleteRollback: Boolean) {
-        mapItem.renderer.previewBefore?.let {
-            mapItem.draw {
-                // キャンバスに描く
-                g(it)
+    private fun rollback(rollbackCanvas: Boolean, deleteRollback: Boolean) {
+        edited.values.forEach { mapItem ->
+            if (rollbackCanvas) {
+                // キャンバスを復元
+                mapItem.renderer.previewBefore?.let {
+                    mapItem.draw {
+                        // キャンバスに描く
+                        g(it)
+                    }
+                }
+            }
+            // 前回の状態を消す
+            if (deleteRollback) {
+                mapItem.renderer.previewBefore = null
             }
         }
-        // 前回の状態を消す
         if (deleteRollback) {
-            mapItem.renderer.previewBefore = null
+            // 描いた内容の記憶を消す
+            edited.clear()
         }
     }
 }

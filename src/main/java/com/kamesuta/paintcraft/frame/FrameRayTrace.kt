@@ -14,6 +14,7 @@ import org.bukkit.entity.ItemFrame
 import org.bukkit.entity.Player
 import org.bukkit.util.BoundingBox
 import org.bukkit.util.Vector
+import kotlin.math.round
 
 /**
  * キャンバスと目線の交差判定をし、UVを計算します
@@ -282,8 +283,8 @@ class FrameRayTrace(
             // -0.5～0.5の範囲を0.0～1.0の範囲に変換する
             val q = rotation.uv(this) + Vec2d(0.5, 0.5)
             // 0～128(ピクセル座標)の範囲に変換する
-            val x = (q.x * mapSize).toInt()
-            val y = (q.y * mapSize).toInt()
+            val x = round(q.x * (mapSize - 1)).toInt()
+            val y = round(q.y * (mapSize - 1)).toInt()
             // 範囲外ならばnullを返す
             if (x >= mapSize || x < 0) return null
             if (y >= mapSize || y < 0) return null
