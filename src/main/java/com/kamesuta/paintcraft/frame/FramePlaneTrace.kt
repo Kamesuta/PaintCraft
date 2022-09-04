@@ -63,7 +63,8 @@ class FramePlaneTrace(private val rayTrace: FrameRayTrace) {
         // キャンバス平面の位置
         val canvasLocation = rayTrace.toCanvasLocation(itemFrame)
         // キャンバスの平面
-        val canvasPlane = canvasLocation.toCanvasPlane(itemFrame.isVisible)
+        val canvasPlane =
+            canvasLocation.toCanvasPlane(itemFrame.isVisible || !rayTrace.clientType.isInvisibleFrameSupported)
 
         // 面の交線を計算
         val canvasIntersectLine = canvasPlane.intersect(plane.plane)

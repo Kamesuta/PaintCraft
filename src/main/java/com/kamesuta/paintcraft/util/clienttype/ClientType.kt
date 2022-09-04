@@ -13,19 +13,23 @@ data class ClientType(
     /** 未判定 */
     constructor() : this(null, null)
 
-    /** ブロックに垂直な面のみサポート (BE版、Geyser) */
-    val isFacingRotationOnly: Boolean
+    /** BE版、Geyser */
+    private val isBedrockEdition: Boolean
         get() = clientBrand == "Geyser"
 
+    /** ブロックに垂直な面のみサポート (BE版、Geyser) */
+    val isFacingRotationOnly get() = isBedrockEdition
+
+    /** 透明な額縁をサポート (BE版、Geyser) */
+    val isInvisibleFrameSupported get() = isBedrockEdition
+
     /** ピッチの回転をサポートするか (1.13以上、ViaVersion) */
-    val isPitchRotationSupported: Boolean
-        get() = clientVersion?.let { it > 340 } ?: true
+    val isPitchRotationSupported get() = clientVersion?.let { it > 340 } ?: true
 
     /** クライアントのクリックしきい値 */
-    val threshold: ClientTypeThreshold
-        get() = if (clientBrand == "Geyser") {
-            ClientTypeThreshold.GEYSER
-        } else {
-            ClientTypeThreshold.VANILLA
+    val threshold
+        get() = when (isBedrockEdition) {
+            true -> ClientTypeThreshold.GEYSER
+            false -> ClientTypeThreshold.VANILLA
         }
 }

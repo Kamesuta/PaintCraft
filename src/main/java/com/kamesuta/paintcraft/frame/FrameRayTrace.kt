@@ -160,7 +160,9 @@ class FrameRayTrace(
         val (canvasYaw, canvasPitch) = getCanvasRotation(itemFrame)
 
         // キャンバスのオフセットを計算
-        val canvasIntersectLocation = canvasLocation.toCanvasPlane(itemFrame.isVisible).intersect(playerEyePos)
+        val canvasIntersectLocation = canvasLocation
+            .toCanvasPlane(itemFrame.isVisible || !clientType.isInvisibleFrameSupported)
+            .intersect(playerEyePos)
             ?: return null
         // UVに変換 → キャンバス内UVを計算、キャンバス範囲外ならばスキップ
         val uv = (canvasIntersectLocation - canvasLocation.origin)
