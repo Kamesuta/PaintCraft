@@ -58,14 +58,13 @@ object DebugLocationVisualizer {
     /** プレイヤーのデバッグ情報 */
     private class PlayerState(private val player: Player) {
         var particles: EnumMap<DebugLocationType, Particle> = EnumMap(DebugLocationType::class.java)
-        private var locations: EnumMap<DebugLocationType, Location> = EnumMap(DebugLocationType::class.java)
+        private var locations: EnumMap<DebugLocationType, MutableList<Location>> =
+            EnumMap(DebugLocationType::class.java)
 
         /** 指定タイプのデバッグ座標を更新 */
         fun location(type: DebugLocationType, location: Location?) {
-            if (location == null) {
-                locations.remove(type)
-            } else {
-                locations[type] = location.clone()
+            if (location != null) {
+                locations.computeIfAbsent(type) { mutableListOf() } += location.clone()
             }
         }
 
@@ -83,7 +82,9 @@ object DebugLocationVisualizer {
             for ((type, location) in locations) {
                 val particle = particles[type]
                 if (particle != null) {
-                    player.spawnParticle(particle, location, 1, 0.0, 0.0, 0.0, 0.0)
+                    location.forEach {
+                        player.spawnParticle(particle, it, 1, 0.0, 0.0, 0.0, 0.0)
+                    }
                 }
             }
         }
