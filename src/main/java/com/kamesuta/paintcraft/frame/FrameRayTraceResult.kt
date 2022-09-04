@@ -10,6 +10,7 @@ import org.bukkit.util.Vector
  * キャンバス上のヒットした位置情報
  * @param itemFrame アイテムフレーム
  * @param mapItem 地図アイテム
+ * @param eyeLocation 目線の位置
  * @param canvasLocation キャンバスの位置
  * @param canvasIntersectLocation キャンバスとレイの交点
  * @param uv UV
@@ -17,6 +18,7 @@ import org.bukkit.util.Vector
 data class FrameRayTraceResult(
     val itemFrame: ItemFrame,
     val mapItem: DrawableMapItem,
+    val eyeLocation: Line3d,
     val canvasLocation: Line3d,
     val canvasIntersectLocation: Vector,
     val uv: Vec2i,

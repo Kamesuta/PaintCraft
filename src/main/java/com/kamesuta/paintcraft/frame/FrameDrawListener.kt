@@ -187,12 +187,12 @@ class FrameDrawListener : Listener, Runnable {
         // レイツールを初期化
         val rayTrace = FrameRayTrace(player, session.clientType)
         // レイを飛ばしてアイテムフレームを取得
-        val playerEyePos = session.eyeLocation.toLine()
-        val ray = rayTrace.rayTraceCanvas(playerEyePos)
+        val eyeLocation = session.eyeLocation.toLine()
+        val ray = rayTrace.rayTraceCanvas(eyeLocation)
             ?: return
 
         // 裏からのクリックは無視
-        if (!rayTrace.isCanvasFrontSide(playerEyePos.direction, ray.canvasLocation)) {
+        if (!rayTrace.isCanvasFrontSide(eyeLocation.direction, ray.canvasLocation)) {
             return
         }
 
@@ -323,15 +323,15 @@ class FrameDrawListener : Listener, Runnable {
         val session = CanvasSessionManager.getSession(player)
 
         // 目線の位置を取得
-        val playerEyePos = session.eyeLocation.toLine()
+        val eyeLocation = session.eyeLocation.toLine()
         // レイツールを初期化
         val rayTrace = FrameRayTrace(player, session.clientType)
         // レイを飛ばしてアイテムフレームを取得
-        val ray = rayTrace.rayTraceCanvas(playerEyePos)
+        val ray = rayTrace.rayTraceCanvas(eyeLocation)
             ?: return isCanvas
 
         // 裏からのクリックは無視
-        if (!rayTrace.isCanvasFrontSide(playerEyePos.direction, ray.canvasLocation)) {
+        if (!rayTrace.isCanvasFrontSide(eyeLocation.direction, ray.canvasLocation)) {
             return isCanvas
         }
 

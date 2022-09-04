@@ -7,8 +7,8 @@ import org.bukkit.entity.Player
 /**
  * プレイヤーがキャンバスに描くときのインタラクション詳細。
  * @param uv クリック場所のUV座標
- * @param player インタラクションを行ったプレイヤー
  * @param ray アイテムフレームへのインタラクションのレイ
+ * @param player インタラクションを行ったプレイヤー
  * @param actionType プレイヤーのアクションタイプ
  */
 data class CanvasInteraction(

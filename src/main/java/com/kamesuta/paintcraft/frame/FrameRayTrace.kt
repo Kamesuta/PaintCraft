@@ -37,16 +37,16 @@ class FrameRayTrace(
 
     /**
      * レイを飛ばしてアイテムフレームを取得
-     * @param playerEyePos プレイヤーの目線の位置
+     * @param eyeLocation プレイヤーの目線の位置
      */
     fun rayTraceCanvas(
-        playerEyePos: Line3d,
+        eyeLocation: Line3d,
     ): FrameRayTraceResult? {
         // 目線と向きからエンティティを取得し、アイテムフレームかどうかを確認する
         player.debugLocation {
-            locate(DebugLocationType.EYE_LOCATION, playerEyePos.origin)
-            locate(DebugLocationType.EYE_DIRECTION, playerEyePos.target)
-            locate(DebugLocationType.EYE_LINE, playerEyePos)
+            locate(DebugLocationType.EYE_LOCATION, eyeLocation.origin)
+            locate(DebugLocationType.EYE_DIRECTION, eyeLocation.target)
+            locate(DebugLocationType.EYE_LINE, eyeLocation)
         }
 
         // 距離は前方8m(半径4)を範囲にする
@@ -54,11 +54,11 @@ class FrameRayTrace(
         // 範囲を全方向にmarginずつ拡張
         val margin = 1.0
         // エンティティを取得する範囲のバウンディングボックス
-        val box = BoundingBox.of(playerEyePos.origin, 0.0, 0.0, 0.0).expand(playerEyePos.direction, distance)
+        val box = BoundingBox.of(eyeLocation.origin, 0.0, 0.0, 0.0).expand(eyeLocation.direction, distance)
         // レイキャストを行い、ヒットしたブロックがあればそのブロック座標と目線の位置から範囲の中心座標とサイズを計算する
         val blockRay = player.world.rayTraceBlocks(
-            playerEyePos.origin.toLocation(player.world),
-            playerEyePos.direction,
+            eyeLocation.origin.toLocation(player.world),
+            eyeLocation.direction,
             distance + margin
         )
         // クリックがヒットした座標
@@ -68,7 +68,7 @@ class FrameRayTrace(
         }
 
         // キャンバスよりも手前にブロックがあるならば探索終了
-        val maxDistance = (blockHitLocation?.distance(playerEyePos.origin) ?: distance)
+        val maxDistance = (blockHitLocation?.distance(eyeLocation.origin) ?: distance)
 
         // 範囲内にあるすべてのアイテムフレームを取得する
         val result = player.world.getNearbyEntities(box.clone().expand(margin)) { it is ItemFrame }
@@ -77,17 +77,17 @@ class FrameRayTrace(
             // その中からアイテムフレームを取得する
             .filter { it.item.type == Material.FILLED_MAP }
             // レイを飛ばす
-            .mapNotNull { rayTraceCanvasByEntity(playerEyePos, it) }
-            .filter { it.canvasIntersectLocation.distanceSquared(playerEyePos.origin) <= maxDistance * maxDistance }
+            .mapNotNull { rayTraceCanvasByEntity(eyeLocation, it) }
+            .filter { it.canvasIntersectLocation.distanceSquared(eyeLocation.origin) <= maxDistance * maxDistance }
             // 一番近いヒットしたキャンバス
             .minByOrNull {
                 // 距離の2条で比較する
-                it.canvasIntersectLocation.distanceSquared(playerEyePos.origin)
+                it.canvasIntersectLocation.distanceSquared(eyeLocation.origin)
             }
             ?: return null
 
         // 最大距離より遠い場合は除外 (ブロックより後ろのアイテムフレームは除外)
-        if (result.canvasIntersectLocation.distanceSquared(playerEyePos.origin) > maxDistance * maxDistance) {
+        if (result.canvasIntersectLocation.distanceSquared(eyeLocation.origin) > maxDistance * maxDistance) {
             return null
         }
 
@@ -137,11 +137,11 @@ class FrameRayTrace(
 
     /**
      * 指定されたアイテムフレームにレイを飛ばして一致する場合は取得
-     * @param playerEyePos プレイヤーの目線の位置
+     * @param eyeLocation プレイヤーの目線の位置
      * @param itemFrame アイテムフレーム
      */
     private fun rayTraceCanvasByEntity(
-        playerEyePos: Line3d,
+        eyeLocation: Line3d,
         itemFrame: ItemFrame,
     ): FrameRayTraceResult? {
         // マップデータを取得、ただの地図ならばスキップ
@@ -162,7 +162,7 @@ class FrameRayTrace(
         // キャンバスのオフセットを計算
         val canvasIntersectLocation = canvasLocation
             .toCanvasPlane(itemFrame.isVisible || !clientType.isInvisibleFrameSupported)
-            .intersect(playerEyePos)
+            .intersect(eyeLocation)
             ?: return null
         // アイテムフレーム内のマップの向き
         val rotation = when (clientType.isLegacyRotation) {
@@ -177,7 +177,7 @@ class FrameRayTrace(
             .transformUV(rotation)
             ?: return null
         // レイの結果を返す
-        return FrameRayTraceResult(itemFrame, mapItem, canvasLocation, canvasIntersectLocation, uv)
+        return FrameRayTraceResult(itemFrame, mapItem, eyeLocation, canvasLocation, canvasIntersectLocation, uv)
     }
 
     /**

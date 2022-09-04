@@ -9,12 +9,11 @@ import com.kamesuta.paintcraft.frame.FrameRayTrace
 import com.kamesuta.paintcraft.map.DrawableMapItem
 import com.kamesuta.paintcraft.map.draw.DrawLine
 import com.kamesuta.paintcraft.map.draw.DrawRollback
-import com.kamesuta.paintcraft.util.vec.debug.DebugLocationType
-import com.kamesuta.paintcraft.util.vec.debug.DebugLocationVisualizer.debugLocation
 import com.kamesuta.paintcraft.util.TimeWatcher
 import com.kamesuta.paintcraft.util.vec.Line3d
-import com.kamesuta.paintcraft.util.vec.Line3d.Companion.toLine
 import com.kamesuta.paintcraft.util.vec.Plane3d
+import com.kamesuta.paintcraft.util.vec.debug.DebugLocationType
+import com.kamesuta.paintcraft.util.vec.debug.DebugLocationVisualizer.debugLocation
 import org.bukkit.inventory.ItemStack
 import org.bukkit.map.MapPalette
 import java.awt.Color
@@ -140,7 +139,7 @@ class PaintLine(override val session: CanvasSession) : PaintTool {
                 // アイテムフレームが違うなら平面を作成しレイキャストする
 
                 // 平面を作成 (プレイヤーの視線と始点、終点を通る平面)
-                val eyeLocation = interact.player.eyeLocation.toLine()
+                val eyeLocation = interact.ray.eyeLocation
                 val segment = Line3d.fromPoints(
                     ev.interact.ray.canvasIntersectLocation,
                     interact.ray.canvasIntersectLocation

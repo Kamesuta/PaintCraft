@@ -76,6 +76,7 @@ class FramePlaneTrace(private val rayTrace: FrameRayTrace) {
             locate(DebugLocationType.INTERSECT_LINE_TARGET, canvasIntersectLine.normalized.target)
             locate(DebugLocationType.INTERSECT_LINE, canvasIntersectLine)
             locate(DebugLocationType.CANVAS_PLANE, canvasPlane)
+            locate(DebugLocationType.INTERSECT_PLANE, plane.plane)
         }
 
         // キャンバスの回転を計算
