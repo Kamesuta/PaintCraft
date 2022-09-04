@@ -5,7 +5,7 @@ import com.comphenix.protocol.ProtocolManager
 import com.kamesuta.paintcraft.frame.FrameDrawListener
 import com.kamesuta.paintcraft.frame.FrameReflection
 import com.kamesuta.paintcraft.map.DrawableMapReflection
-import com.kamesuta.paintcraft.util.DebugLocationVisualizer
+import com.kamesuta.paintcraft.util.vec.debug.DebugLocationVisualizer
 import com.kamesuta.paintcraft.util.clienttype.ClientTypeReflection
 import com.kamesuta.paintcraft.util.clienttype.ClientTypeUpdateListener
 import dev.kotx.flylib.flyLib

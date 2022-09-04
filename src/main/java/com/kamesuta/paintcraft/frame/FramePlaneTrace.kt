@@ -4,8 +4,8 @@ import com.kamesuta.paintcraft.frame.FrameRayTrace.Companion.mapToBlockUV
 import com.kamesuta.paintcraft.frame.FrameRayTrace.Companion.toCanvasPlane
 import com.kamesuta.paintcraft.frame.FrameRayTrace.Companion.transformUV
 import com.kamesuta.paintcraft.map.DrawableMapItem
-import com.kamesuta.paintcraft.util.DebugLocationType
-import com.kamesuta.paintcraft.util.DebugLocationVisualizer.debugLocation
+import com.kamesuta.paintcraft.util.vec.debug.DebugLocationType
+import com.kamesuta.paintcraft.util.vec.debug.DebugLocationVisualizer.debugLocation
 import com.kamesuta.paintcraft.util.vec.Line2d
 import com.kamesuta.paintcraft.util.vec.Vec2d
 import com.kamesuta.paintcraft.util.vec.Vec2i

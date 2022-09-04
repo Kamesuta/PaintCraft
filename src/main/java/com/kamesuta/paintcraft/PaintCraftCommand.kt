@@ -4,15 +4,15 @@ import com.kamesuta.paintcraft.canvas.CanvasSessionManager
 import com.kamesuta.paintcraft.canvas.paint.PaintLine
 import com.kamesuta.paintcraft.canvas.paint.PaintPencil
 import com.kamesuta.paintcraft.map.DrawableMapItem
-import com.kamesuta.paintcraft.util.DebugLocationVisualizer
 import com.kamesuta.paintcraft.util.enumValueOrNull
+import com.kamesuta.paintcraft.util.vec.debug.DebugLocationCommand
 import dev.kotx.flylib.command.Command
 import org.bukkit.entity.Player
 
 class PaintCraftCommand : Command("paintcraft") {
     init {
         children(
-            DebugLocationVisualizer.DebugLocationCommand(),
+            DebugLocationCommand(),
             GiveCanvasCommand(),
             SwitchDrawModeCommand(),
         )

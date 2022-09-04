@@ -1,4 +1,4 @@
-package com.kamesuta.paintcraft.util
+package com.kamesuta.paintcraft.util.vec.debug
 
 import com.kamesuta.paintcraft.util.vec.Line3d
 import org.bukkit.util.Vector

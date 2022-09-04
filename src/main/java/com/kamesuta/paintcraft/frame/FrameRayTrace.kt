@@ -5,8 +5,8 @@ import com.kamesuta.paintcraft.canvas.CanvasInteraction
 import com.kamesuta.paintcraft.canvas.CanvasSession
 import com.kamesuta.paintcraft.map.DrawableMapBuffer.Companion.mapSize
 import com.kamesuta.paintcraft.map.DrawableMapItem
-import com.kamesuta.paintcraft.util.DebugLocationType
-import com.kamesuta.paintcraft.util.DebugLocationVisualizer.debugLocation
+import com.kamesuta.paintcraft.util.vec.debug.DebugLocationType
+import com.kamesuta.paintcraft.util.vec.debug.DebugLocationVisualizer.debugLocation
 import com.kamesuta.paintcraft.util.clienttype.ClientType
 import com.kamesuta.paintcraft.util.vec.*
 import org.bukkit.Material

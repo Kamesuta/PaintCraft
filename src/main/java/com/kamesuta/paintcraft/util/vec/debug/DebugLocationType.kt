@@ -1,6 +1,9 @@
-package com.kamesuta.paintcraft.util
+package com.kamesuta.paintcraft.util.vec.debug
 
-enum class DebugLocationType(val group: DebugLocationGroup = DebugLocationGroup.CANVAS_DRAW) {
+/** デバッグ座標タイプ */
+enum class DebugLocationType(
+    val group: DebugLocationGroup = DebugLocationGroup.CANVAS_DRAW
+) {
     EYE_LOCATION,
     EYE_DIRECTION,
     EYE_LINE,
@@ -20,11 +23,14 @@ enum class DebugLocationType(val group: DebugLocationGroup = DebugLocationGroup.
     INTERSECT_LINE,
     ;
 
+    /** デバッグ座標のグループ、座標をクリアするときに使用 */
     enum class DebugLocationGroup {
+        /** キャンバス描画時 */
         CANVAS_DRAW,
     }
 
     companion object {
+        /* デバッグを有効化 */
         const val ENABLE_DEBUG = true
     }
 }

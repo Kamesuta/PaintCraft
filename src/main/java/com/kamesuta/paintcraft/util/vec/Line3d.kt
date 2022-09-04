@@ -1,6 +1,6 @@
 package com.kamesuta.paintcraft.util.vec
 
-import com.kamesuta.paintcraft.util.DebugLocatable
+import com.kamesuta.paintcraft.util.vec.debug.DebugLocatable
 import org.bukkit.Location
 import org.bukkit.World
 import org.bukkit.util.Vector

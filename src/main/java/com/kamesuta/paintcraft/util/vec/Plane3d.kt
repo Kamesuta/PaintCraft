@@ -1,6 +1,6 @@
 package com.kamesuta.paintcraft.util.vec
 
-import com.kamesuta.paintcraft.util.DebugLocatable
+import com.kamesuta.paintcraft.util.vec.debug.DebugLocatable
 import org.bukkit.util.Vector
 import kotlin.math.abs
 import kotlin.math.sqrt
