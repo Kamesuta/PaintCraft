@@ -93,23 +93,21 @@ data class Plane3d(
      */
     fun intersect(other: Plane3d): Line3d? {
         // https://stackoverflow.com/a/32410473
-        // logically the 3rd plane, but we only use the normal component.
-        val p1_normal = normal
-        val p2_normal = other.normal
-        val p3_normal = p1_normal.getCrossProduct(p2_normal);
-        val det = p3_normal.lengthSquared();
+        // 論理的には3つ目の平面を作るが、法線しか利用しない
+        val normal1 = normal
+        val normal2 = other.normal
+        val normal = normal1.getCrossProduct(normal2);
+        val det = normal.lengthSquared();
 
-        // If the determinant is 0, that means parallel planes, no intersection.
-        // note: you may want to check against an epsilon value here.
-        if (det != 0.0) {
-            // calculate the final (point, normal)
-            val r_point = ((p3_normal.getCrossProduct(p2_normal) * d) +
-                    (p1_normal.getCrossProduct(p3_normal) * other.d)) / det;
-            val r_normal = p3_normal;
-            return Line3d(r_point, r_normal);
-        } else {
+        // detが0の場合は平行な面のため交わらない
+        // 正確にはepsilonと比較するべきだが、厳密に平行を区別する必要がないので省略
+        if (det == 0.0) {
             return null;
         }
+
+        // 平面の座標を計算
+        val origin = ((normal.getCrossProduct(normal2) * d) + (normal1.getCrossProduct(normal) * other.d)) / det;
+        return Line3d(origin, normal);
     }
 
     /**
@@ -142,16 +140,16 @@ data class Plane3d(
 
     companion object {
         /**
-         * 座標と法線から平面を作成する
+         * 座標と法線から平面を作成する (正規化済み)
          * @param point 座標
          * @param normal 法線
          * @return 平面
          */
         fun fromPointNormal(point: Vector, normal: Vector) =
-            Plane3d(normal.normalized, -normal.dot(point))
+            Plane3d(normal, -normal.dot(point)).normalized
 
         /**
-         * 座標と辺から平面を作成する
+         * 座標と辺から平面を作成する (正規化済み)
          * @param point 座標
          * @param v1 辺1
          * @param v2 辺2
@@ -163,7 +161,7 @@ data class Plane3d(
         )
 
         /**
-         * 3つの点から平面を作成する
+         * 3つの点から平面を作成する (正規化済み)
          * @param p0 点0
          * @param p1 点1
          * @param p2 点2
