@@ -15,6 +15,7 @@ import com.kamesuta.paintcraft.util.LocationOperation
 import com.kamesuta.paintcraft.util.TimeWatcher
 import com.kamesuta.paintcraft.util.vec.Line3d.Companion.toLine
 import org.bukkit.Bukkit
+import org.bukkit.GameMode
 import org.bukkit.Location
 import org.bukkit.Material
 import org.bukkit.entity.Entity
@@ -34,7 +35,7 @@ class FrameDrawListener : Listener, Runnable {
         // トロッコなど乗っていた場合はティックイベントで動かす
         for (player in Bukkit.getOnlinePlayers()) {
             // プレイヤーの右手にインクがあるか
-            if (player.hasPencil()) {
+            if (!player.hasPencil()) {
                 continue
             }
 
@@ -75,7 +76,7 @@ class FrameDrawListener : Listener, Runnable {
 
                 try {
                     // プレイヤーの右手にインクがあるか
-                    if (player.hasPencil()) {
+                    if (!player.hasPencil()) {
                         return
                     }
 
@@ -235,7 +236,7 @@ class FrameDrawListener : Listener, Runnable {
 
                 try {
                     // プレイヤーの右手にインクがあるか
-                    if (player.hasPencil()) {
+                    if (!player.hasPencil()) {
                         return
                     }
 
@@ -379,7 +380,8 @@ class FrameDrawListener : Listener, Runnable {
          * プレイヤーがペンを持っているかどうかを確認する
          * @return ペンを持っているかどうか
          */
-        private fun Player.hasPencil() = inventory.itemInMainHand.type != Material.INK_SAC
+        private fun Player.hasPencil() =
+            gameMode != GameMode.SPECTATOR && inventory.itemInMainHand.type == Material.INK_SAC
 
         /**
          * キャンバスかどうか判定
