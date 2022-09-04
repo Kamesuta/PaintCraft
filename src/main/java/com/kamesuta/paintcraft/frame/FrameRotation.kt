@@ -49,5 +49,25 @@ enum class FrameRotation(
                 else -> NONE
             }
         }
+
+        /**
+         * BukkitのRotationから対応するFrameRotationを取得
+         * 1.7.10以下のバージョン用、4方向しかない
+         * @param rotation BukkitのRotation
+         * @return 対応するFrameRotation
+         */
+        fun fromLegacyRotation(rotation: Rotation): FrameRotation {
+            return when (rotation) {
+                Rotation.NONE -> NONE
+                Rotation.CLOCKWISE_45 -> NONE
+                Rotation.CLOCKWISE -> CLOCKWISE_45
+                Rotation.CLOCKWISE_135 -> CLOCKWISE_45
+                Rotation.FLIPPED -> CLOCKWISE
+                Rotation.FLIPPED_45 -> CLOCKWISE
+                Rotation.COUNTER_CLOCKWISE -> CLOCKWISE_135
+                Rotation.COUNTER_CLOCKWISE_45 -> CLOCKWISE_135
+                else -> NONE
+            }
+        }
     }
 }

@@ -81,10 +81,15 @@ class FramePlaneTrace(private val rayTrace: FrameRayTrace) {
         val segment = Line2d.fromPoints(rawUvOrigin, rawUvTarget)
             .clipBlockUV()
             ?: return null
+        // アイテムフレーム内のマップの向き
+        val rotation = when (rayTrace.clientType.isLegacyRotation) {
+            false -> FrameRotation.fromRotation(itemFrame.rotation)
+            true -> FrameRotation.fromLegacyRotation(itemFrame.rotation)
+        }
         // キャンバス内UVを計算、キャンバス範囲外ならばスキップ
-        val uvStart = segment.origin.transformUV(itemFrame.rotation)
+        val uvStart = segment.origin.transformUV(rotation)
             ?: return null
-        val uvEnd = segment.target.transformUV(itemFrame.rotation)
+        val uvEnd = segment.target.transformUV(rotation)
             ?: return null
 
         return FramePlaneTraceEntityResult(itemFrame, mapItem, segment, uvStart, uvEnd)

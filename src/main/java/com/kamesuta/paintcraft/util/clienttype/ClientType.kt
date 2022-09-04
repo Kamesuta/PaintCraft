@@ -26,6 +26,9 @@ data class ClientType(
     /** ピッチの回転をサポートするか (1.13以上、ViaVersion) */
     val isPitchRotationSupported get() = clientVersion?.let { it > 340 } ?: true
 
+    /** 旧仕様の4方向回転であるか (1.7.10以下、ViaVersion) */
+    val isLegacyRotation get() = clientVersion?.let { it <= 5 } ?: true
+
     /** クライアントのクリックしきい値 */
     val threshold
         get() = when (isBedrockEdition) {

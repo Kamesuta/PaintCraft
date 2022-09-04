@@ -10,7 +10,6 @@ import com.kamesuta.paintcraft.util.DebugLocationVisualizer.debugLocation
 import com.kamesuta.paintcraft.util.clienttype.ClientType
 import com.kamesuta.paintcraft.util.vec.*
 import org.bukkit.Material
-import org.bukkit.Rotation
 import org.bukkit.entity.ItemFrame
 import org.bukkit.entity.Player
 import org.bukkit.util.BoundingBox
@@ -164,12 +163,17 @@ class FrameRayTrace(
             .toCanvasPlane(itemFrame.isVisible || !clientType.isInvisibleFrameSupported)
             .intersect(playerEyePos)
             ?: return null
+        // アイテムフレーム内のマップの向き
+        val rotation = when (clientType.isLegacyRotation) {
+            false -> FrameRotation.fromRotation(itemFrame.rotation)
+            true -> FrameRotation.fromLegacyRotation(itemFrame.rotation)
+        }
         // UVに変換 → キャンバス内UVを計算、キャンバス範囲外ならばスキップ
         val uv = (canvasIntersectLocation - canvasLocation.origin)
             // UVに変換(-0.5～+0.5)
             .mapToBlockUV(canvasYaw, canvasPitch)
             // キャンバス内UV(0～127)を計算、キャンバス範囲外ならばスキップ
-            .transformUV(itemFrame.rotation)
+            .transformUV(rotation)
             ?: return null
         // レイの結果を返す
         return FrameRayTraceResult(itemFrame, mapItem, canvasLocation, canvasIntersectLocation, uv)
@@ -184,15 +188,13 @@ class FrameRayTrace(
         return if (clientType.isPitchRotationSupported) {
             // Java版1.13以降はYaw/Pitchの自由回転をサポートしている
             itemFrame.location.let { it.yaw to it.pitch }
+        } else if (clientType.isFacingRotationOnly) {
+            // BE版はブロックに沿った回転のみサポートしている
+            val dir = Line3d(Vector(), itemFrame.facing.direction)
+            dir.yaw to dir.pitch
         } else {
-            if (clientType.isFacingRotationOnly) {
-                // BE版はブロックに沿った回転のみサポートしている
-                val dir = Line3d(Vector(), itemFrame.facing.direction)
-                dir.yaw to dir.pitch
-            } else {
-                // Java版1.12以前はYaw回転のみサポートしている、Pitchは常に0
-                itemFrame.location.yaw to 0.0f
-            }
+            // Java版1.12以前はYaw回転のみサポートしている、Pitchは常に0
+            itemFrame.location.yaw to 0.0f
         }
     }
 
@@ -273,11 +275,9 @@ class FrameRayTrace(
          * @param rotation アイテムフレーム内の地図の回転
          * @return キャンバスピクセルのUV座標
          */
-        fun Vec2d.transformUV(rotation: Rotation): Vec2i? {
-            // BukkitのRotationからCanvasのRotationに変換する
-            val rot: FrameRotation = FrameRotation.fromRotation(rotation)
+        fun Vec2d.transformUV(rotation: FrameRotation): Vec2i? {
             // -0.5～0.5の範囲を0.0～1.0の範囲に変換する
-            val q = rot.uv(this) + Vec2d(0.5, 0.5)
+            val q = rotation.uv(this) + Vec2d(0.5, 0.5)
             // 0～128(ピクセル座標)の範囲に変換する
             val x = (q.x * mapSize).toInt()
             val y = (q.y * mapSize).toInt()
