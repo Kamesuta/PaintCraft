@@ -128,7 +128,13 @@ data class Plane3d(
         val closestPoint = closestPoint(eyeLocation.origin)
         for (y in -10..10) {
             for (x in -10..10) {
-                val pos = closestPoint + (dirC * (x.toDouble() * 0.25)) + (dirD * (y.toDouble() * 0.25))
+                val pos = closestPoint + (dirC * (x.toDouble() * 0.5)) + (dirD * (y.toDouble() * 0.5))
+                locate(pos)
+            }
+        }
+        for (y in -10..10) {
+            for (x in -10..10) {
+                val pos = closestPoint + (dirC * (x.toDouble() * 2.0)) + (dirD * (y.toDouble() * 2.0))
                 locate(pos)
             }
         }

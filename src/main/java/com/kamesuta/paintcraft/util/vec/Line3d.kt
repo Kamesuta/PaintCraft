@@ -52,7 +52,11 @@ data class Line3d(val origin: Vector, val direction: Vector) : DebugLocatable {
         val dir = direction.normalized
         val closestPoint = closestPoint(eyeLocation.origin)
         for (i in -10..10) {
-            val pos = closestPoint + (dir * (i.toDouble() * 0.25))
+            val pos = closestPoint + (dir * (i.toDouble() * 0.5))
+            locate(pos)
+        }
+        for (i in -10..10) {
+            val pos = closestPoint + (dir * (i.toDouble() * 4.0))
             locate(pos)
         }
     }
