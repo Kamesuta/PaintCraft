@@ -1,18 +1,17 @@
 package com.kamesuta.paintcraft.frame
 
+import com.kamesuta.paintcraft.frame.FrameRayTrace.Companion.mapBlockUvToLocation
 import com.kamesuta.paintcraft.frame.FrameRayTrace.Companion.mapToBlockUV
 import com.kamesuta.paintcraft.frame.FrameRayTrace.Companion.toCanvasPlane
 import com.kamesuta.paintcraft.frame.FrameRayTrace.Companion.transformUV
 import com.kamesuta.paintcraft.map.DrawableMapItem
-import com.kamesuta.paintcraft.util.vec.Line2d
-import com.kamesuta.paintcraft.util.vec.Line3d
-import com.kamesuta.paintcraft.util.vec.Vec2d
+import com.kamesuta.paintcraft.util.vec.*
 import com.kamesuta.paintcraft.util.vec.debug.DebugLocationType
 import com.kamesuta.paintcraft.util.vec.debug.DebugLocationVisualizer.debugLocation
-import com.kamesuta.paintcraft.util.vec.minus
 import org.bukkit.Material
 import org.bukkit.entity.ItemFrame
-import org.bukkit.util.BoundingBox
+import org.bukkit.util.Vector
+import kotlin.math.min
 
 /**
  * キャンバスと面の交差判定をします
@@ -26,22 +25,54 @@ object FramePlaneTrace {
     fun FrameRayTrace.planeTraceCanvas(
         plane: FramePlane,
     ): FramePlaneTraceResult {
-        // 範囲を全方向にmarginずつ拡張
-        val margin = 1.0
-        // エンティティを取得する範囲のバウンディングボックス
-        val box = BoundingBox.of(plane.segment.origin, plane.segment.target)
+        // バブルのサイズ
+        val radius = 0.6
 
-        // 範囲内にあるすべてのアイテムフレームを取得する
-        val result = player.world.getNearbyEntities(box.clone().expand(margin)) { it is ItemFrame }
-            .asSequence()
-            .map { it as ItemFrame }
-            // その中からアイテムフレームを取得する
-            .filter { it.item.type == Material.FILLED_MAP }
-            // レイを飛ばす
-            .mapNotNull { planeTraceCanvasByEntity(plane, it) }
-            .toList()
+        // バブル連鎖探索 (仮)
+        // 隣接するアイテムフレームを取得し、レイを飛ばしてヒットしたら、そのアイテムフレームに隣接するアイテムフレームを取得して連鎖する
+        val chain = mutableMapOf<ItemFrame, FramePlaneTraceResult.FramePlaneTraceEntityResult>()
+        // 始点のアイテムフレームを検索
+        val start = planeTraceCanvasByEntity(plane, plane.rayStart.itemFrame)
+        if (start != null) {
+            // 始点のアイテムフレームを追加
+            chain[plane.rayStart.itemFrame] = start
+            // ゴール = 終点の座標
+            val goal = plane.segment.target
+            // 現在の座標 = 始点の座標
+            var current = plane.segment.origin
+            // 終点にたどり着くまで繰り返す
+            while (current.distanceSquared(goal) > 0.01) {
+                // 現在の座標から半径1.1の球体の中にある一番終点に近いアイテムフレームを取得
+                val result = current.toLocation(player.world)
+                    // 現在の座標から半径1.1の球体の中にあるアイテムフレームを取得
+                    .getNearbyEntitiesByType(ItemFrame::class.java, radius)
+                    .asSequence()
+                    // その中からアイテムフレームを取得する
+                    .filter { it.item.type == Material.FILLED_MAP }
+                    // レイを飛ばす
+                    .mapNotNull { planeTraceCanvasByEntity(plane, it) }
+                    // 既に探索済みのアイテムフレームは除外する
+                    .filter { !chain.contains(it.itemFrame) }
+                    // 裏側のアイテムフレームは除外する
+                    .filter { it.itemFrame.location.direction.dot(plane.eyeLocation.direction) < 0 }
+                    // 一番終点に近いアイテムフレームを取得
+                    .minByOrNull {
+                        min(
+                            it.itemFrame.location.origin.distanceSquared(goal),
+                            it.itemFrame.location.target.distanceSquared(goal),
+                        )
+                    }
+                    ?: break
+                // 探索結果に追加
+                chain[result.itemFrame] = result
+                // 現在の座標を更新 (アイテムフレームの線分の始点、終点のうちゴールに近い方)
+                current = minOf(result.segment.origin, result.segment.target) { a: Vector, b: Vector ->
+                    a.distanceSquared(goal).compareTo(b.distanceSquared(goal))
+                }
+            }
+        }
 
-        return FramePlaneTraceResult(plane, result)
+        return FramePlaneTraceResult(plane, chain.values)
     }
 
     /**
@@ -85,6 +116,7 @@ object FramePlaneTrace {
             .mapToBlockUV(canvasYaw, canvasPitch)
         val rawUvTarget = (canvasIntersectSegment.target - canvasLocation.origin)
             .mapToBlockUV(canvasYaw, canvasPitch)
+        // 2Dの線分(未クリップ、キャンバス内の範囲に収まっていない)
         val segment = Line2d.fromPoints(rawUvOrigin, rawUvTarget)
         // キャンバス内の座標に変換
         val clip = segment.clipBlockUV() // キャンバスの正方形内の範囲で線分を取る
@@ -101,7 +133,16 @@ object FramePlaneTrace {
         val uvEnd = clip.target.transformUV(rotation)
             ?: return null
 
-        return FramePlaneTraceResult.FramePlaneTraceEntityResult(itemFrame, mapItem, segment, uvStart, uvEnd)
+        // 3D座標に逆変換
+        val segment3d = Line3d.fromPoints(
+            clip.origin.mapBlockUvToLocation(canvasYaw, canvasPitch) + canvasLocation.origin,
+            clip.target.mapBlockUvToLocation(canvasYaw, canvasPitch) + canvasLocation.origin,
+        )
+        player.debugLocation {
+            locate(DebugLocationType.INTERSECT_SEGMENT_CANVAS, segment3d.toDebug(Line3d.DebugLineType.SEGMENT))
+        }
+
+        return FramePlaneTraceResult.FramePlaneTraceEntityResult(itemFrame, mapItem, segment3d, uvStart, uvEnd)
     }
 
     /**

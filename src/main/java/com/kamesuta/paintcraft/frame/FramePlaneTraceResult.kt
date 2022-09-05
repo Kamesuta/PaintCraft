@@ -2,6 +2,7 @@ package com.kamesuta.paintcraft.frame
 
 import com.kamesuta.paintcraft.map.DrawableMapItem
 import com.kamesuta.paintcraft.util.vec.Line2d
+import com.kamesuta.paintcraft.util.vec.Line3d
 import com.kamesuta.paintcraft.util.vec.Vec2i
 import org.bukkit.entity.ItemFrame
 
@@ -12,7 +13,7 @@ import org.bukkit.entity.ItemFrame
  */
 data class FramePlaneTraceResult(
     val plane: FramePlane,
-    val entities: List<FramePlaneTraceEntityResult>,
+    val entities: Collection<FramePlaneTraceEntityResult>,
 ) {
     /**
      * アイテムフレームごとの平面上のヒットした位置情報
@@ -25,7 +26,7 @@ data class FramePlaneTraceResult(
     data class FramePlaneTraceEntityResult(
         val itemFrame: ItemFrame,
         val mapItem: DrawableMapItem,
-        val segment: Line2d,
+        val segment: Line3d,
         val uvStart: Vec2i,
         val uvEnd: Vec2i,
     )

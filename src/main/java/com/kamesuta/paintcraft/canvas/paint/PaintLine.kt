@@ -155,7 +155,7 @@ class PaintLine(override val session: CanvasSession) : PaintTool {
                     locate(DebugLocationType.SEGMENT_ORIGIN, segment.origin)
                     locate(DebugLocationType.SEGMENT_TARGET, segment.target)
                 }
-                val framePlane = FramePlane(plane, eyeLocation, segment)
+                val framePlane = FramePlane(plane, eyeLocation, segment, ev.interact.ray, interact.ray)
 
                 // 当たり判定
                 val rayTrace = FrameRayTrace(interact.player, session.clientType)

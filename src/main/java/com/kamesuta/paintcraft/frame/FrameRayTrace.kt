@@ -272,6 +272,24 @@ class FrameRayTrace(
         }
 
         /**
+         * mapToBlockUVの逆変換
+         * UV座標を通常の座標に変換する
+         * @receiver キャンバス上のUV座標
+         * @param itemFrameYaw アイテムフレームのYaw角度
+         * @param itemFramePitch アイテムフレームのPitch角度
+         * @return 交点座標
+         */
+        fun Vec2d.mapBlockUvToLocation(
+            itemFrameYaw: Float,
+            itemFramePitch: Float,
+        ): Vector {
+            // mapToBlockUVの逆変換
+            return Vector(x, -y, 0.0)
+                .rotateAroundY(Math.toRadians(-itemFrameYaw.toDouble()))
+                .rotateAroundX(Math.toRadians(itemFramePitch.toDouble()))
+        }
+
+        /**
          * ブロックのUV座標->キャンバスピクセルのUV座標を計算する
          * @receiver ブロックのUV座標
          * @param rotation アイテムフレーム内の地図の回転
