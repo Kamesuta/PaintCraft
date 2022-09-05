@@ -1,5 +1,8 @@
 package com.kamesuta.paintcraft.util.vec
 
+import kotlin.math.max
+import kotlin.math.min
+
 /**
  * 線を表現するクラス
  * 角度ではなく、方向ベクトルで表現する
@@ -19,6 +22,30 @@ data class Line2d(val origin: Vec2d, val direction: Vec2d) {
 
     /** 逆方向に平行移動させた線を取得する */
     operator fun minus(other: Vec2d) = Line2d(origin - other, direction)
+
+    /**
+     * 同一直線状にある2つの線分が交差している部分の線分を取得する
+     * @param other 内積を取る対象
+     */
+    fun intersectSegment(other: Line2d): Line2d? {
+        // 単位ベクトル
+        val dir = direction.normalized
+        // 線同士が混じり合う点の候補
+        val t0 = 0.0 // A線の始点
+        val t1 = dir.dot(direction) // A線の終点
+        val s0 = dir.dot(other.origin - origin) // B線の始点
+        val s1 = dir.dot(other.target - origin) // B線の終点
+        // s0 < s1 になるように入れ替える (t0, t1 は必ず t0 < t1 になる)
+        val u0 = min(s0, s1)
+        val u1 = max(s0, s1)
+        // 交差しているかどうか
+        val intersect = (s0 in t0..t1) || (s1 in t0..t1) || (t0 in u0..u1) || (t1 in u0..u1)
+        if (!intersect) return null // 交差していない
+        // ソートし、内側の2点から線分を作る
+        val intersects = arrayOf(t0, t1, s0, s1)
+        intersects.sort()
+        return fromPoints(origin + dir * intersects[1], origin + dir * intersects[2])
+    }
 
     companion object {
         /**

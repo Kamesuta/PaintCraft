@@ -27,4 +27,24 @@ data class Vec2d(val x: Double, val y: Double) {
 
     /** 逆方向ベクトルを合成 */
     operator fun minus(other: Vec2d) = Vec2d(x - other.x, y - other.y)
+
+    /** ベクトルのスカラー倍 */
+    operator fun times(other: Double) = Vec2d(x * other, y * other)
+
+    /** ベクトルの1/スカラー倍 */
+    operator fun div(other: Double) = Vec2d(x / other, y / other)
+
+    /**
+     * ベクトルの内積
+     * @param other 内積を取るベクトル
+     * @return 内積
+     */
+    fun dot(other: Vec2d) = x * other.x + y * other.y
+
+    /**
+     * ベクトルの外積
+     * @param other 外積を取るベクトル
+     * @return 外積
+     */
+    fun cross(other: Vec2d) = x * other.y - y * other.x
 }

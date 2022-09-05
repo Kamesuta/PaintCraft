@@ -88,9 +88,9 @@ data class Line3d(val origin: Vector, val direction: Vector) {
             val length = direction.length()
             // 線の種類に応じて、範囲内にあれば表示する
             fun locateLinePoint(t: Double) {
-                if (t < 0 && lineType != DebugLineType.LINE) return
-                if (t > length && lineType == DebugLineType.SEGMENT) return
-                locate(dir * (d + t))
+                if (d + t < 0 && lineType != DebugLineType.LINE) return
+                if (d + t > length && lineType == DebugLineType.SEGMENT) return
+                locate(origin + dir * (d + t))
             }
             // 始点と終点を表示する
             locate(origin)

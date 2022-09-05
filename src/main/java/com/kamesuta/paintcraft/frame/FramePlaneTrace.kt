@@ -80,13 +80,15 @@ object FramePlaneTrace {
         // キャンバスの回転を計算
         val (canvasYaw, canvasPitch) = getCanvasRotation(itemFrame)
 
-        // 2D座標に変換
-        val rawUvOrigin = (canvasIntersectLine.origin - canvasLocation.origin)
+        // 線分を2D座標に変換
+        val rawUvOrigin = (canvasIntersectSegment.origin - canvasLocation.origin)
             .mapToBlockUV(canvasYaw, canvasPitch)
-        val rawUvTarget = (canvasIntersectLine.target - canvasLocation.origin)
+        val rawUvTarget = (canvasIntersectSegment.target - canvasLocation.origin)
             .mapToBlockUV(canvasYaw, canvasPitch)
         val segment = Line2d.fromPoints(rawUvOrigin, rawUvTarget)
-            .clipBlockUV()
+        // キャンバス内の座標に変換
+        val clip = segment.clipBlockUV() // キャンバスの正方形内の範囲で線分を取る
+            ?.intersectSegment(segment) // 始点、終点のどちらかがキャンバス内にある場合は線分を取る
             ?: return null
         // アイテムフレーム内のマップの向き
         val rotation = when (clientType.isLegacyRotation) {
@@ -94,9 +96,9 @@ object FramePlaneTrace {
             true -> FrameRotation.fromLegacyRotation(itemFrame.rotation)
         }
         // キャンバス内UVを計算、キャンバス範囲外ならばスキップ
-        val uvStart = segment.origin.transformUV(rotation)
+        val uvStart = clip.origin.transformUV(rotation)
             ?: return null
-        val uvEnd = segment.target.transformUV(rotation)
+        val uvEnd = clip.target.transformUV(rotation)
             ?: return null
 
         return FramePlaneTraceResult.FramePlaneTraceEntityResult(itemFrame, mapItem, segment, uvStart, uvEnd)
