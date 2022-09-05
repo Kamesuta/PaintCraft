@@ -34,6 +34,18 @@ data class Line3d(val origin: Vector, val direction: Vector) {
     val yaw get() = Math.toDegrees(-atan2(direction.x, direction.z)).toFloat()
 
     /**
+     * 点と直線の距離の2乗を求める
+     * @param point 点
+     */
+    fun distanceSquared(point: Vector) = (point - origin).getCrossProduct(direction).lengthSquared()
+
+    /**
+     * 点と直線の距離を求める
+     * @param point 点
+     */
+    fun distance(point: Vector) = (point - origin).getCrossProduct(direction).length()
+
+    /**
      * 点に一番近い直線上の点を返す
      * @param point 点
      * @return 点に一番近い直線上の点
