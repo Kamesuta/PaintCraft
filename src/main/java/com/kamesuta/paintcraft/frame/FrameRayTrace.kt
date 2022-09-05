@@ -48,7 +48,7 @@ class FrameRayTrace(
         player.debugLocation {
             locate(DebugLocationType.EYE_LOCATION, eyeLocation.origin)
             locate(DebugLocationType.EYE_DIRECTION, eyeLocation.target)
-            locate(DebugLocationType.EYE_LINE, eyeLocation)
+            locate(DebugLocationType.EYE_LINE, eyeLocation.toDebug(Line3d.DebugLineType.DIRECTION))
         }
 
         // 距離は前方8m(半径4)を範囲にする

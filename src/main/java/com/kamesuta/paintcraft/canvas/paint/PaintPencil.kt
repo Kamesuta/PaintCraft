@@ -87,7 +87,6 @@ class PaintPencil(override val session: CanvasSession) : PaintTool {
 
     /**
      * 線を描く
-     * @param g 描画する対象
      * @param interact インタラクト
      * @param color 描く色
      */

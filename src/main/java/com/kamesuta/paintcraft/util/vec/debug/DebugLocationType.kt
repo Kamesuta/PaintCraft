@@ -22,6 +22,7 @@ enum class DebugLocationType(
     INTERSECT_LINE_TARGET,
     INTERSECT_LINE,
     INTERSECT_PLANE,
+    INTERSECT_SEGMENT,
     ;
 
     /** デバッグ座標のグループ、座標をクリアするときに使用 */

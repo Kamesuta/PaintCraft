@@ -5,6 +5,7 @@ import com.kamesuta.paintcraft.frame.FrameRayTrace.Companion.toCanvasPlane
 import com.kamesuta.paintcraft.frame.FrameRayTrace.Companion.transformUV
 import com.kamesuta.paintcraft.map.DrawableMapItem
 import com.kamesuta.paintcraft.util.vec.Line2d
+import com.kamesuta.paintcraft.util.vec.Line3d
 import com.kamesuta.paintcraft.util.vec.Vec2d
 import com.kamesuta.paintcraft.util.vec.debug.DebugLocationType
 import com.kamesuta.paintcraft.util.vec.debug.DebugLocationVisualizer.debugLocation
@@ -65,10 +66,13 @@ object FramePlaneTrace {
         // 面の交線を計算
         val canvasIntersectLine = canvasPlane.intersect(plane.plane)
             ?: return null
+        // 始点と終点の線分を交線にマッピングする
+        val canvasIntersectSegment = canvasIntersectLine.closestSegment(plane.segment)
         player.debugLocation {
             locate(DebugLocationType.INTERSECT_LINE_ORIGIN, canvasIntersectLine.origin)
             locate(DebugLocationType.INTERSECT_LINE_TARGET, canvasIntersectLine.normalized.target)
-            locate(DebugLocationType.INTERSECT_LINE, canvasIntersectLine)
+            locate(DebugLocationType.INTERSECT_LINE, canvasIntersectLine.toDebug(Line3d.DebugLineType.LINE))
+            locate(DebugLocationType.INTERSECT_SEGMENT, canvasIntersectSegment.toDebug(Line3d.DebugLineType.SEGMENT))
             locate(DebugLocationType.CANVAS_PLANE, canvasPlane)
             locate(DebugLocationType.INTERSECT_PLANE, plane.plane)
         }
