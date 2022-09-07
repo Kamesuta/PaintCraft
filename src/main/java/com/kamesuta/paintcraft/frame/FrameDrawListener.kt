@@ -22,7 +22,10 @@ import org.bukkit.GameMode
 import org.bukkit.Location
 import org.bukkit.Material
 import org.bukkit.entity.Player
+import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
+import org.bukkit.event.block.Action
+import org.bukkit.event.player.PlayerInteractEvent
 import java.util.logging.Level
 
 /**
@@ -52,6 +55,27 @@ class FrameDrawListener : Listener, Runnable {
                 )
             }
         }
+    }
+
+    /**
+     * プレイヤーがインクを持っていたらイベントをキャンセルする
+     * パケットをキャンセルすることも可能だが、そうするとブロックを壊したときに同期がずれて透明な当たり判定が残ってしまうためBukkitの方法でキャンセルする
+     * @param event イベント
+     */
+    @EventHandler
+    fun onInteract(event: PlayerInteractEvent) {
+        // 物理イベントは無視 (感圧板など)
+        if (event.action == Action.PHYSICAL) {
+            return
+        }
+
+        // プレイヤーの右手にインクがあるか
+        if (!event.player.hasPencil()) {
+            return
+        }
+
+        // インタラクトをキャンセル
+        event.isCancelled = true
     }
 
     /**
