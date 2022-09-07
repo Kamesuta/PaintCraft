@@ -23,6 +23,12 @@ class CanvasSession(val player: Player) {
     /** 最後のエンティティ移動時刻 */
     var lastVehicleMove = 0L
 
+    /** 描画状態 */
+    val clicking = CanvasClicking(this)
+
+    /** 描画状態 */
+    val drawing = CanvasDrawing()
+
     /** クライアントの種類 */
     var clientType: ClientType = ClientType()
 }

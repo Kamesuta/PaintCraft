@@ -10,22 +10,17 @@ import org.bukkit.inventory.ItemStack
  * 描くためのツール
  */
 interface PaintTool {
-    /**
-     * キャンバスに描く
-     * @param itemStack 手に持っているアイテム
-     * @param mapItem　描くマップアイテム
-     * @param interact キャンバスのインタラクション
-     */
-    fun paint(itemStack: ItemStack, mapItem: DrawableMapItem, interact: CanvasInteraction)
+    /** 描き込み開始 */
+    fun beginPainting(event: PaintEvent) {
+    }
 
-    /**
-     * 描く以外のタイミングで呼ぶ
-     */
-    fun tick()
+    /** 描き込み終了 */
+    fun endPainting() {
+    }
+
+    /** キャンバスに描く */
+    fun paint(event: PaintEvent)
 
     /** キャンバスセッション */
     val session: CanvasSession
-
-    /** 現在描画中か */
-    val isDrawing: Boolean
 }

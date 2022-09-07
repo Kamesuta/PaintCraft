@@ -6,11 +6,8 @@ import com.comphenix.protocol.events.PacketAdapter
 import com.comphenix.protocol.events.PacketEvent
 import com.comphenix.protocol.utility.MinecraftReflection
 import com.kamesuta.paintcraft.PaintCraft
-import com.kamesuta.paintcraft.canvas.CanvasActionType
-import com.kamesuta.paintcraft.canvas.CanvasInteraction
-import com.kamesuta.paintcraft.canvas.CanvasSession
-import com.kamesuta.paintcraft.canvas.CanvasSessionManager
-import com.kamesuta.paintcraft.map.DrawableMapItem
+import com.kamesuta.paintcraft.canvas.*
+import com.kamesuta.paintcraft.canvas.paint.PaintEvent
 import com.kamesuta.paintcraft.util.LocationOperation
 import com.kamesuta.paintcraft.util.TimeWatcher
 import com.kamesuta.paintcraft.util.vec.Line3d.Companion.toLine
@@ -24,8 +21,6 @@ import org.bukkit.Bukkit
 import org.bukkit.GameMode
 import org.bukkit.Location
 import org.bukkit.Material
-import org.bukkit.entity.Entity
-import org.bukkit.entity.ItemFrame
 import org.bukkit.entity.Player
 import org.bukkit.event.Listener
 import java.util.logging.Level
@@ -38,7 +33,7 @@ class FrameDrawListener : Listener, Runnable {
      * ティックイベント
      */
     override fun run() {
-        // トロッコなど乗っていた場合はティックイベントで動かす
+        // トロッコなど乗っていた場合などの処理のためにティックイベントも動かす
         for (player in Bukkit.getOnlinePlayers()) {
             // プレイヤーの右手にインクがあるか
             if (!player.hasPencil()) {
@@ -181,14 +176,25 @@ class FrameDrawListener : Listener, Runnable {
         // パケットの座標を合成しプレイヤーの座標と目線を計算し、目線の座標を更新
         session.eyeLocation = locationOperation.operation(session.eyeLocation, eyeLocation)
 
-        // キャンバスが描画中かどうかを確認
-        if (!session.tool.isDrawing) {
-            return
-        }
-
         // スレッドが違うと問題が起こるためここでclear
         // デバッグ座標を初期化
         player.clearDebug()
+
+        // クリック状態の更新
+        session.clicking.updateClick(CanvasActionType.MOUSE_MOVE)
+
+        // クリック中かどうかを確認
+        if (!session.clicking.clickMode.isPressed) {
+            // クリック状態の変化を確認
+            val drawingAction = session.drawing.getDrawingAction(session.clicking.clickMode.isPressed)
+            if (drawingAction == CanvasDrawingActionType.END) {
+                // クリック中でない場合、描画終了時の処理
+                session.drawing.endDrawing()
+                session.tool.endPainting()
+            }
+            // クリック中でない場合は描き込みを行わない
+            return
+        }
 
         // レイツールを初期化
         val rayTrace = FrameRayTrace(player, session.clientType)
@@ -206,7 +212,6 @@ class FrameDrawListener : Listener, Runnable {
         manipulate(
             ray,
             session,
-            CanvasActionType.MOUSE_MOVE
         )
     }
 
@@ -252,8 +257,7 @@ class FrameDrawListener : Listener, Runnable {
                     // パケット解析
                     val packet = event.packet
                     // クリックの種類を解析
-                    var targetEntity: Entity? = null
-                    val clickType = when (event.packetType) {
+                    val actionTypeRightOrLeft = when (event.packetType) {
                         PacketType.Play.Client.BLOCK_PLACE -> CanvasActionType.RIGHT_CLICK
                         PacketType.Play.Client.USE_ITEM -> CanvasActionType.RIGHT_CLICK
                         PacketType.Play.Client.ARM_ANIMATION -> null
@@ -266,8 +270,6 @@ class FrameDrawListener : Listener, Runnable {
                                 .getEnumModifier(PacketEnumEntityUseAction::class.java, enumAction)
                                 .read(0)
                                 ?: return
-                            // エンティティを取得
-                            targetEntity = packet.getEntityModifier(event).read(0)
                             // 右クリックか左クリックか判定
                             when (actionType) {
                                 PacketEnumEntityUseAction.INTERACT -> CanvasActionType.RIGHT_CLICK
@@ -283,7 +285,7 @@ class FrameDrawListener : Listener, Runnable {
                     Bukkit.getScheduler().runTask(PaintCraft.instance) { ->
                         try {
                             // パケットを処理
-                            onClickPacket(player, clickType, targetEntity)
+                            onClickPacket(player, actionTypeRightOrLeft)
                         } catch (e: Throwable) {
                             // スケジューラーに例外を投げないためにキャッチする
                             PaintCraft.instance.logger.log(
@@ -309,28 +311,14 @@ class FrameDrawListener : Listener, Runnable {
      * クリックしたとき
      * @param player プレイヤー
      * @param actionType クリックの種類
-     * @param targetEntity クリックしたエンティティ (イベントの種類によってはない)
      * @return キャンセルしたかどうか
      */
-    private fun onClickPacket(player: Player, actionType: CanvasActionType?, targetEntity: Entity?) {
+    private fun onClickPacket(player: Player, actionType: CanvasActionType?) {
         // デバッグ座標を初期化
         player.clearDebug()
 
         // キャンバスのセッションを取得
         val session = CanvasSessionManager.getSession(player)
-
-        // 目線の位置を取得
-        val eyeLocation = session.eyeLocation.toLine()
-        // レイツールを初期化
-        val rayTrace = FrameRayTrace(player, session.clientType)
-        // レイを飛ばしてアイテムフレームを取得
-        val ray = rayTrace.rayTraceCanvas(eyeLocation)
-            ?: return
-
-        // 裏からのクリックは無視
-        if (!rayTrace.isCanvasFrontSide(eyeLocation.direction, ray.canvasLocation)) {
-            return
-        }
 
         // クリックタイプに応じた処理、判定を行う
         val actionTypeRightOrLeft = when (actionType) {
@@ -357,11 +345,26 @@ class FrameDrawListener : Listener, Runnable {
             else -> return
         }
 
+        // クリック状態を更新
+        session.clicking.updateClick(actionTypeRightOrLeft)
+
+        // 目線の位置を取得
+        val eyeLocation = session.eyeLocation.toLine()
+        // レイツールを初期化
+        val rayTrace = FrameRayTrace(player, session.clientType)
+        // レイを飛ばしてアイテムフレームを取得
+        val ray = rayTrace.rayTraceCanvas(eyeLocation)
+            ?: return
+
+        // 裏からのクリックは無視
+        if (!rayTrace.isCanvasFrontSide(eyeLocation.direction, ray.canvasLocation)) {
+            return
+        }
+
         // キャンバスに描画
         manipulate(
             ray,
             session,
-            actionTypeRightOrLeft,
         )
     }
 
@@ -369,12 +372,10 @@ class FrameDrawListener : Listener, Runnable {
      * キャンバスに描画する
      * @param ray レイ
      * @param session セッション
-     * @param actionType アクションタイプ
      */
     private fun manipulate(
         ray: FrameRayTraceResult,
         session: CanvasSession,
-        actionType: CanvasActionType
     ) {
         // プレイヤーを取得
         val player = session.player
@@ -401,10 +402,18 @@ class FrameDrawListener : Listener, Runnable {
         }
 
         // インタラクトオブジェクトを作成
-        val interact = CanvasInteraction(ray.uv, ray, player, actionType)
+        val interact = CanvasInteraction(ray.uv, ray, player)
+        val paintEvent = PaintEvent(ray.mapItem, interact, session.clicking.clickMode)
+
+        // クリック状態の変化を確認
+        if (!session.drawing.isDrawing) {
+            // 描きこみ開始
+            session.drawing.beginDrawing(paintEvent)
+            session.tool.beginPainting(paintEvent)
+        }
 
         // キャンバスに描画する
-        session.tool.paint(player.inventory.itemInMainHand, ray.mapItem, interact)
+        session.tool.paint(paintEvent)
     }
 
     companion object {
@@ -419,22 +428,5 @@ class FrameDrawListener : Listener, Runnable {
          */
         private fun Player.hasPencil() =
             gameMode != GameMode.SPECTATOR && inventory.itemInMainHand.type == Material.INK_SAC
-
-        /**
-         * キャンバスかどうか判定
-         */
-        private fun Entity.isCanvas(): Boolean {
-            // アイテムフレームを取得
-            val itemFrame = this as? ItemFrame
-                ?: return false
-            // アイテムが地図かどうかを確認
-            if (itemFrame.item.type != Material.FILLED_MAP) {
-                return false
-            }
-            // キャンバスか判定し取得
-            DrawableMapItem.get(itemFrame.item)
-                ?: return false
-            return true
-        }
     }
 }
