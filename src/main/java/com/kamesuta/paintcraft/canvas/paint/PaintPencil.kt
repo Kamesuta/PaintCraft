@@ -40,6 +40,10 @@ class PaintPencil(override val session: CanvasSession) : PaintTool {
                 CanvasActionType.LEFT_CLICK -> {
                     // 全消し
                     g(DrawRect(0, 0, mapSize - 1, mapSize - 1, 0, true))
+                    // クリックを持続させない
+                    session.clicking.stopClicking()
+                    // 描くのを終了
+                    session.drawing.endDrawing()
                 }
                 // 描くモードが右クリックの場合
                 CanvasActionType.RIGHT_CLICK -> {

@@ -23,7 +23,10 @@ class CanvasClicking(private val session: CanvasSession) {
 
     /** クリックボタンを離すまで、クリックを離した状態にする */
     fun stopClicking() {
+        // 離すまで描画を止める
         pauseClick = true
+        // 操作モードをリセット
+        clickMode = CanvasActionType.NONE
     }
 
     /**
