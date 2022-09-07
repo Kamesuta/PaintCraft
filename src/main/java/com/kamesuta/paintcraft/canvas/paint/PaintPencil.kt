@@ -2,10 +2,16 @@ package com.kamesuta.paintcraft.canvas.paint
 
 import com.kamesuta.paintcraft.canvas.CanvasActionType
 import com.kamesuta.paintcraft.canvas.CanvasSession
+import com.kamesuta.paintcraft.frame.FramePlane
+import com.kamesuta.paintcraft.frame.FramePlaneTrace.planeTraceCanvas
+import com.kamesuta.paintcraft.frame.FrameRayTrace
 import com.kamesuta.paintcraft.map.DrawableMapBuffer.Companion.mapSize
 import com.kamesuta.paintcraft.map.draw.DrawLine
 import com.kamesuta.paintcraft.map.draw.DrawRect
-import com.kamesuta.paintcraft.map.draw.Drawable
+import com.kamesuta.paintcraft.util.vec.Line3d
+import com.kamesuta.paintcraft.util.vec.Plane3d
+import com.kamesuta.paintcraft.util.vec.debug.DebugLocationType
+import com.kamesuta.paintcraft.util.vec.debug.DebugLocationVisualizer.debugLocation
 import com.kamesuta.paintcraft.util.vec.origin
 import org.bukkit.map.MapPalette
 import java.awt.Color
@@ -60,8 +66,10 @@ class PaintPencil(override val session: CanvasSession) : PaintTool {
         // 最後の座標を更新
         lastEvent = event
 
-        // プレイヤーに描画を通知する
-        event.mapItem.renderer.updatePlayer(event.interact.ray.itemFrame.location.origin)
+        // 変更箇所をプレイヤーに送信
+        session.drawing.edited.forEach { (itemFrame, drawableMap) ->
+            drawableMap.renderer.updatePlayer(itemFrame.location.origin)
+        }
     }
 
     /**
@@ -69,20 +77,64 @@ class PaintPencil(override val session: CanvasSession) : PaintTool {
      * @param event 描きこむイベント
      * @param color 描く色
      */
-    private fun Drawable.drawLine(
+    private fun drawLine(
         event: PaintEvent,
         color: Byte
     ) {
         lastEvent?.let { ev ->
-            g(
-                DrawLine(
-                    ev.interact.uv.x,
-                    ev.interact.uv.y,
-                    event.interact.uv.x,
-                    event.interact.uv.y,
-                    color
+            if (event.interact.ray.itemFrame == ev.interact.ray.itemFrame) {
+                // マップをプレイヤーへ同期するために記憶しておく
+                session.drawing.edited.computeIfAbsent(event.interact.ray.itemFrame) { event.mapItem }
+                // アイテムフレームが同じならそのまま書き込む
+                event.mapItem.draw {
+                    g(
+                        DrawLine(
+                            ev.interact.uv.x,
+                            ev.interact.uv.y,
+                            event.interact.uv.x,
+                            event.interact.uv.y,
+                            color
+                        )
+                    )
+                }
+            } else {
+                // アイテムフレームが違うなら平面を作成しレイキャストする
+
+                // 平面を作成 (プレイヤーの視線と始点、終点を通る平面)
+                val eyeLocation = event.interact.ray.eyeLocation
+                val segment = Line3d.fromPoints(
+                    ev.interact.ray.canvasIntersectLocation,
+                    event.interact.ray.canvasIntersectLocation
                 )
-            )
+                val plane = Plane3d.fromPoints(eyeLocation.origin, segment.origin, segment.target)
+                event.interact.player.debugLocation {
+                    locate(DebugLocationType.SEGMENT_ORIGIN, segment.origin)
+                    locate(DebugLocationType.SEGMENT_TARGET, segment.target)
+                }
+                val framePlane = FramePlane(plane, eyeLocation, segment, ev.interact.ray, event.interact.ray)
+
+                // 当たり判定
+                val rayTrace = FrameRayTrace(event.interact.player, session.clientType)
+                val result = rayTrace.planeTraceCanvas(framePlane)
+
+                // 線を描く
+                for (entityResult in result.entities) {
+                    // マップをプレイヤーへ同期するために記憶しておく
+                    session.drawing.edited.computeIfAbsent(entityResult.itemFrame) { entityResult.mapItem }
+                    // 線を描く
+                    entityResult.mapItem.draw {
+                        g(
+                            DrawLine(
+                                entityResult.uvStart.x,
+                                entityResult.uvStart.y,
+                                entityResult.uvEnd.x,
+                                entityResult.uvEnd.y,
+                                color
+                            )
+                        )
+                    }
+                }
+            }
         }
     }
 }
