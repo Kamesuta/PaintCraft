@@ -7,6 +7,8 @@ import com.comphenix.protocol.events.PacketEvent
 import com.comphenix.protocol.utility.MinecraftReflection
 import com.kamesuta.paintcraft.PaintCraft
 import com.kamesuta.paintcraft.canvas.CanvasActionType
+import com.kamesuta.paintcraft.canvas.CanvasInteraction
+import com.kamesuta.paintcraft.canvas.CanvasSession
 import com.kamesuta.paintcraft.canvas.CanvasSessionManager
 import com.kamesuta.paintcraft.map.DrawableMapItem
 import com.kamesuta.paintcraft.util.vec.debug.DebugLocationType
@@ -14,6 +16,10 @@ import com.kamesuta.paintcraft.util.vec.debug.DebugLocationVisualizer.clearDebug
 import com.kamesuta.paintcraft.util.LocationOperation
 import com.kamesuta.paintcraft.util.TimeWatcher
 import com.kamesuta.paintcraft.util.vec.Line3d.Companion.toLine
+import com.kamesuta.paintcraft.util.vec.debug.DebugLocationVisualizer.debugLocation
+import com.kamesuta.paintcraft.util.vec.origin
+import com.kamesuta.paintcraft.util.vec.plus
+import com.kamesuta.paintcraft.util.vec.target
 import org.bukkit.Bukkit
 import org.bukkit.GameMode
 import org.bukkit.Location
@@ -197,7 +203,7 @@ class FrameDrawListener : Listener, Runnable {
         }
 
         // キャンバスに描画
-        rayTrace.manipulate(
+        manipulate(
             ray,
             session,
             CanvasActionType.MOUSE_MOVE
@@ -361,13 +367,55 @@ class FrameDrawListener : Listener, Runnable {
         }
 
         // キャンバスに描画
-        rayTrace.manipulate(
+        manipulate(
             ray,
             session,
             actionTypeRightOrLeft,
         )
 
         return true
+    }
+
+    /**
+     * キャンバスに描画する
+     * @param ray レイ
+     * @param session セッション
+     * @param actionType アクションタイプ
+     */
+    private fun manipulate(
+        ray: FrameRayTraceResult,
+        session: CanvasSession,
+        actionType: CanvasActionType
+    ) {
+        // プレイヤーを取得
+        val player = session.player
+
+        // アイテムフレームの位置を取得
+        val itemFrameLocation = ray.itemFrame.location
+        player.debugLocation {
+            // アイテムフレームの位置
+            locate(DebugLocationType.FRAME_LOCATION, itemFrameLocation.origin)
+            // アイテムフレームの方向
+            locate(
+                DebugLocationType.FRAME_DIRECTION,
+                itemFrameLocation.target
+            )
+            // アイテムフレームのブロック上での方向
+            locate(
+                DebugLocationType.FRAME_FACING,
+                itemFrameLocation.origin + ray.itemFrame.facing.direction
+            )
+            // アイテムフレームのブロック
+            locate(DebugLocationType.FRAME_FACING_BLOCK, itemFrameLocation.toCenterLocation().origin)
+            // ヒット位置
+            locate(DebugLocationType.CANVAS_HIT_LOCATION, ray.canvasIntersectLocation)
+        }
+        
+        // インタラクトオブジェクトを作成
+        val interact = CanvasInteraction(ray.uv, ray, player, actionType)
+
+        // キャンバスに描画する
+        session.tool.paint(player.inventory.itemInMainHand, ray.mapItem, interact)
     }
 
     companion object {

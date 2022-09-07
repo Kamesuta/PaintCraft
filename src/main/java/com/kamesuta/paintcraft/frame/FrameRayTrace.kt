@@ -1,8 +1,5 @@
 package com.kamesuta.paintcraft.frame
 
-import com.kamesuta.paintcraft.canvas.CanvasActionType
-import com.kamesuta.paintcraft.canvas.CanvasInteraction
-import com.kamesuta.paintcraft.canvas.CanvasSession
 import com.kamesuta.paintcraft.map.DrawableMapBuffer.Companion.mapSize
 import com.kamesuta.paintcraft.map.DrawableMapItem
 import com.kamesuta.paintcraft.util.clienttype.ClientType
@@ -140,45 +137,6 @@ class FrameRayTrace(
             ?: return null
         // レイの結果を返す
         return FrameRayTraceResult(itemFrame, mapItem, eyeLocation, canvasLocation, canvasIntersectLocation, uv)
-    }
-
-    /**
-     * キャンバスに描画する
-     * @param ray レイ
-     * @param session セッション
-     * @param actionType アクションタイプ
-     */
-    fun manipulate(
-        ray: FrameRayTraceResult,
-        session: CanvasSession,
-        actionType: CanvasActionType
-    ) {
-        // アイテムフレームの位置を取得
-        val itemFrameLocation = ray.itemFrame.location
-        player.debugLocation {
-            // アイテムフレームの位置
-            locate(DebugLocationType.FRAME_LOCATION, itemFrameLocation.origin)
-            // アイテムフレームの方向
-            locate(
-                DebugLocationType.FRAME_DIRECTION,
-                itemFrameLocation.target
-            )
-            // アイテムフレームのブロック上での方向
-            locate(
-                DebugLocationType.FRAME_FACING,
-                itemFrameLocation.origin + ray.itemFrame.facing.direction
-            )
-            // アイテムフレームのブロック
-            locate(DebugLocationType.FRAME_FACING_BLOCK, itemFrameLocation.toCenterLocation().origin)
-            // ヒット位置
-            locate(DebugLocationType.CANVAS_HIT_LOCATION, ray.canvasIntersectLocation)
-        }
-
-        // インタラクトオブジェクトを作成
-        val interact = CanvasInteraction(ray.uv, ray, player, actionType)
-
-        // キャンバスに描画する
-        session.tool.paint(player.inventory.itemInMainHand, ray.mapItem, interact)
     }
 
     /**
