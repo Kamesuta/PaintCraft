@@ -11,6 +11,9 @@ import org.bukkit.entity.Player
  * @param player プレイヤー
  */
 class CanvasSession(val player: Player) {
+    /** 前回の正確な目線の位置 (補完されていない生の位置) */
+    var prevEyeLocation = player.eyeLocation
+
     /** 正確な目線の位置 (補完されていない生の位置) */
     var eyeLocation = player.eyeLocation
 

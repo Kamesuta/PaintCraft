@@ -169,9 +169,9 @@ object FramePlaneTrace {
             true -> FrameRotation.fromLegacyRotation(itemFrame.rotation)
         }
         // キャンバス内UVを計算、キャンバス範囲外ならばスキップ
-        val uvStart = clip.origin.transformUV(rotation)
+        val uvStart = clip.origin.transformUV(rotation, false)
             ?: return null
-        val uvEnd = clip.target.transformUV(rotation)
+        val uvEnd = clip.target.transformUV(rotation, false)
             ?: return null
 
         // 3D座標に逆変換

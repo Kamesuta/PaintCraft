@@ -76,7 +76,7 @@ class FrameRayTrace(
             // その中からアイテムフレームを取得する
             .filter { it.item.type == Material.FILLED_MAP }
             // レイを飛ばす
-            .mapNotNull { rayTraceCanvasByEntity(eyeLocation, it) }
+            .mapNotNull { rayTraceCanvasByEntity(eyeLocation, it, false) }
             .filter { it.canvasIntersectLocation.distanceSquared(eyeLocation.origin) <= maxDistance * maxDistance }
             // 一番近いヒットしたキャンバス
             .minByOrNull {
@@ -97,11 +97,13 @@ class FrameRayTrace(
      * 指定されたアイテムフレームにレイを飛ばして一致する場合は取得
      * @param eyeLocation プレイヤーの目線の位置
      * @param itemFrame アイテムフレーム
+     * @param missHit レイがヒットしなかった場合を含めるかどうか
      * @return 交差した位置情報
      */
-    private fun rayTraceCanvasByEntity(
+    fun rayTraceCanvasByEntity(
         eyeLocation: Line3d,
         itemFrame: ItemFrame,
+        missHit: Boolean,
     ): FrameRayTraceResult? {
         // マップデータを取得、ただの地図ならばスキップ
         val mapItem = DrawableMapItem.get(itemFrame.item)
@@ -133,7 +135,7 @@ class FrameRayTrace(
             // UVに変換(-0.5～+0.5)
             .mapToBlockUV(canvasYaw, canvasPitch)
             // キャンバス内UV(0～127)を計算、キャンバス範囲外ならばスキップ
-            .transformUV(rotation)
+            .transformUV(rotation, missHit)
             ?: return null
         // レイの結果を返す
         return FrameRayTraceResult(itemFrame, mapItem, eyeLocation, canvasLocation, canvasIntersectLocation, uv)
@@ -251,17 +253,20 @@ class FrameRayTrace(
          * ブロックのUV座標->キャンバスピクセルのUV座標を計算する
          * @receiver ブロックのUV座標
          * @param rotation アイテムフレーム内の地図の回転
+         * @param missHit ブロックのUV座標がキャンバスの範囲外の場合にnullの代わりに範囲外のUV座標を返すかどうか
          * @return キャンバスピクセルのUV座標
          */
-        fun Vec2d.transformUV(rotation: FrameRotation): Vec2i? {
+        fun Vec2d.transformUV(rotation: FrameRotation, missHit: Boolean): Vec2i? {
             // -0.5～0.5の範囲を0.0～1.0の範囲に変換する
             val q = rotation.uv(this) + Vec2d(0.5, 0.5)
             // 0～128(ピクセル座標)の範囲に変換する
             val x = round(q.x * (mapSize - 1)).toInt()
             val y = round(q.y * (mapSize - 1)).toInt()
             // 範囲外ならばnullを返す
-            if (x >= mapSize || x < 0) return null
-            if (y >= mapSize || y < 0) return null
+            if (!missHit) {
+                if (x >= mapSize || x < 0) return null
+                if (y >= mapSize || y < 0) return null
+            }
             // 変換した座標を返す
             return Vec2i(x, y)
         }

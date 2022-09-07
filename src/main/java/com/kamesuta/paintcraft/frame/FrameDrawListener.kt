@@ -197,6 +197,8 @@ class FrameDrawListener : Listener, Runnable {
             }
         }
 
+        // 前回の位置を更新
+        session.prevEyeLocation = session.eyeLocation
         // パケットの座標を合成しプレイヤーの座標と目線を計算し、目線の座標を更新
         session.eyeLocation = locationOperation.operation(session.eyeLocation, eyeLocation)
 
@@ -224,8 +226,14 @@ class FrameDrawListener : Listener, Runnable {
         val rayTrace = FrameRayTrace(player, session.clientType)
         // レイを飛ばしてアイテムフレームを取得
         val eyeLocation = session.eyeLocation.toLine()
-        val ray = rayTrace.rayTraceCanvas(eyeLocation)
-            ?: return
+        var ray = rayTrace.rayTraceCanvas(eyeLocation)
+        if (ray == null) {
+            // レイが当たらなかった場合、最後に当たったエンティティの面にレイを飛ばして取得
+            val startEvent = session.drawing.startEvent
+                ?: return
+            ray = rayTrace.rayTraceCanvasByEntity(eyeLocation, startEvent.interact.ray.itemFrame, true)
+                ?: return
+        }
 
         // 裏からのクリックは無視
         if (!rayTrace.isCanvasFrontSide(eyeLocation.direction, ray.canvasLocation)) {
@@ -377,8 +385,14 @@ class FrameDrawListener : Listener, Runnable {
         // レイツールを初期化
         val rayTrace = FrameRayTrace(player, session.clientType)
         // レイを飛ばしてアイテムフレームを取得
-        val ray = rayTrace.rayTraceCanvas(eyeLocation)
-            ?: return
+        var ray = rayTrace.rayTraceCanvas(eyeLocation)
+        if (ray == null) {
+            // レイが当たらなかった場合、最後に当たったエンティティの面にレイを飛ばして取得
+            val startEvent = session.drawing.startEvent
+                ?: return
+            ray = rayTrace.rayTraceCanvasByEntity(eyeLocation, startEvent.interact.ray.itemFrame, true)
+                ?: return
+        }
 
         // 裏からのクリックは無視
         if (!rayTrace.isCanvasFrontSide(eyeLocation.direction, ray.canvasLocation)) {
@@ -425,16 +439,30 @@ class FrameDrawListener : Listener, Runnable {
             locate(DebugLocationType.CANVAS_HIT_LOCATION, ray.canvasIntersectLocation)
         }
 
-        // インタラクトオブジェクトを作成
-        val interact = CanvasInteraction(ray.uv, ray, player)
-        val paintEvent = PaintEvent(ray.mapItem, interact, session.clicking.clickMode)
-
         // クリック状態の変化を確認
         if (!session.drawing.isDrawing) {
+            val prevRay = run {
+                // レイツールを初期化
+                val rayTrace = FrameRayTrace(player, session.clientType)
+                // 前回の目線の位置を取得
+                val prevEyeLocation = session.prevEyeLocation.toLine()
+
+                // レイが当たらなかった場合、最後に当たったエンティティの面にレイを飛ばして取得
+                rayTrace.rayTraceCanvasByEntity(prevEyeLocation, ray.itemFrame, true)
+            } ?: ray
+
+            // インタラクトオブジェクトを作成
+            val interact = CanvasInteraction(prevRay.uv, prevRay, player)
+            val paintEvent = PaintEvent(prevRay.mapItem, interact, session.clicking.clickMode)
+
             // 描きこみ開始
             session.drawing.beginDrawing(paintEvent)
             session.tool.beginPainting(paintEvent)
         }
+
+        // インタラクトオブジェクトを作成
+        val interact = CanvasInteraction(ray.uv, ray, player)
+        val paintEvent = PaintEvent(ray.mapItem, interact, session.clicking.clickMode)
 
         // キャンバスに描画する
         session.tool.paint(paintEvent)
