@@ -12,6 +12,7 @@ import com.kamesuta.paintcraft.util.vec.Line3d
 import com.kamesuta.paintcraft.util.vec.Plane3d
 import com.kamesuta.paintcraft.util.vec.debug.DebugLocationType
 import com.kamesuta.paintcraft.util.vec.debug.DebugLocationVisualizer.debugLocation
+import com.kamesuta.paintcraft.util.vec.origin
 import org.bukkit.entity.ItemFrame
 import org.bukkit.map.MapPalette
 import java.awt.Color
@@ -47,8 +48,8 @@ class PaintLine(override val session: CanvasSession) : PaintTool {
         }
 
         // 変更箇所をプレイヤーに送信
-        session.drawing.edited.values.forEach {
-            it.renderer.updatePlayer(event.interact.player)
+        session.drawing.edited.forEach { (itemFrame, drawableMap) ->
+            drawableMap.renderer.updatePlayer(itemFrame.location.origin)
         }
     }
 

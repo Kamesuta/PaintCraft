@@ -3,10 +3,12 @@ package com.kamesuta.paintcraft.map
 import com.kamesuta.paintcraft.map.draw.Draw
 import com.kamesuta.paintcraft.map.draw.DrawRollback
 import com.kamesuta.paintcraft.map.draw.Drawable
+import com.kamesuta.paintcraft.util.vec.origin
 import org.bukkit.entity.Player
 import org.bukkit.map.MapCanvas
 import org.bukkit.map.MapRenderer
 import org.bukkit.map.MapView
+import org.bukkit.util.Vector
 
 /**
  * 書き込み可能レンダラー
@@ -70,25 +72,29 @@ class DrawableMapRenderer : MapRenderer(), Drawable {
 
     /**
      * プレイヤーに更新を通知する
-     * @param player プレイヤー
      */
-    fun updatePlayer(player: Player) {
-        // プレイヤーカーソルを更新する
-        mapCanvas.updatePlayer(player)
+    fun updatePlayer(location: Vector) {
+        // プレイヤーカーソルを更新する ( TODO: 半径のコンフィグ化 )
+        mapCanvas.updatePlayer(location, 10.0)
     }
 
     companion object {
         /** プレイヤーに更新を通知する */
-        private fun MapCanvas.updatePlayer(player: Player) {
+        private fun MapCanvas.updatePlayer(location: Vector, radius: Double) {
             // 変更箇所を取得する
-            val dirty = DrawableMapReflection.getMapDirtyArea(player, mapView)
+            val updates = DrawableMapReflection.getMapDirtyArea(mapView)
                 ?: return // 変更箇所がなければ何もしない
             // 新しいバッファーを取得
             val buffer = DrawableMapReflection.getCanvasBuffer(this)
                 ?: return
-
-            // プレイヤーに地図を送信する
-            DrawableMapUpdater.sendMap(player, mapView, buffer, dirty)
+            // 更新があるプレイヤーに通知する
+            updates.asSequence().filter { (player, _) ->
+                // 近くのプレイヤーのみに通知する
+                player.location.origin.distanceSquared(location) <= radius * radius
+            }.forEach { (player, updateArea) ->
+                // プレイヤーに地図を送信する
+                DrawableMapUpdater.sendMap(player, mapView, buffer, updateArea)
+            }
         }
 
         /** キャンバスの内容をマップビューに保存し永続化する */

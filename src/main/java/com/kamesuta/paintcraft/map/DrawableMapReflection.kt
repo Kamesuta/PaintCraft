@@ -10,7 +10,6 @@ import org.bukkit.map.MapRenderer
 import org.bukkit.map.MapView
 import java.lang.reflect.Constructor
 import java.lang.reflect.Field
-import java.lang.reflect.Method
 
 /**
  * 地図操作リフレクションクラス
@@ -39,7 +38,6 @@ object DrawableMapReflection {
                     .recover { field.getDeclaredField("g") }
                     .getOrThrow()
             }.apply { isAccessible = true }
-        val craftEntityGetHandle: Method = craftEntity.getDeclaredMethod("getHandle").apply { isAccessible = true }
         val worldMapHumans: Field = worldMap.getDeclaredField("humans").apply { isAccessible = true }
         val humanTrackerIsDirty: Field = humanTracker.getDeclaredField("d").apply { isAccessible = true }
         val humanTrackerMinX: Field = humanTracker.getDeclaredField("e").apply { isAccessible = true }
@@ -101,34 +99,38 @@ object DrawableMapReflection {
     /**
      * キャンバスの更新領域を取得します
      * プレイヤーごとに更新領域が異なるため、player引数を指定して取得します
-     * @param player プレイヤー
      * @param mapView マップビュー
      */
-    fun getMapDirtyArea(player: Player, mapView: MapView): Rect2i? {
+    fun getMapDirtyArea(mapView: MapView): List<Pair<Player, Rect2i>>? {
         return runCatching {
-            val handle = Accessor.craftEntityGetHandle(player)
-                ?: return null
             val worldMap = Accessor.mapViewWorldMap[mapView]
                 ?: return null
             val humanTrackerMap = Accessor.worldMapHumans[worldMap] as HashMap<*, *>?
                 ?: return null
-            val humanTracker = humanTrackerMap[handle]
-                ?: return null
-            val isDirty = Accessor.humanTrackerIsDirty[humanTracker] as Boolean
-            if (!isDirty) {
-                // 変更箇所なし
-                return null
-            }
-            val x1 = Accessor.humanTrackerMinX[humanTracker] as Int
-            val y1 = Accessor.humanTrackerMinY[humanTracker] as Int
-            val x2 = Accessor.humanTrackerMaxX[humanTracker] as Int
-            val y2 = Accessor.humanTrackerMaxY[humanTracker] as Int
-            Rect2i(
-                Vec2i(x1, y1),
-                Vec2i(x2, y2),
-            )
+            return humanTrackerMap
+                .mapNotNull { (human, humanTracker) ->
+                    // プレイヤーを取得
+                    val player = MinecraftReflection.getBukkitEntity(human) as? Player
+                        ?: return@mapNotNull null
+                    // 変更があるか
+                    val isDirty = Accessor.humanTrackerIsDirty[humanTracker] as Boolean
+                    if (!isDirty) {
+                        // 変更箇所なし
+                        return@mapNotNull null
+                    }
+                    // 変更箇所を取得
+                    val x1 = Accessor.humanTrackerMinX[humanTracker] as Int
+                    val y1 = Accessor.humanTrackerMinY[humanTracker] as Int
+                    val x2 = Accessor.humanTrackerMaxX[humanTracker] as Int
+                    val y2 = Accessor.humanTrackerMaxY[humanTracker] as Int
+                    val dirty = Rect2i(
+                        Vec2i(x1, y1),
+                        Vec2i(x2, y2),
+                    )
+                    player to dirty
+                }
         }.onFailure {
-            PaintCraft.instance.logger.warning("Failed to get map dirty area for player ${player.name}")
+            PaintCraft.instance.logger.warning("Failed to get map dirty area")
         }.getOrNull()
     }
 
