@@ -49,11 +49,11 @@ class CanvasClicking(private val session: CanvasSession) {
                 clickMode = CanvasActionType.NONE
             } else if (!pauseClick) {
                 // 描画が一時停止されていない状態で、左右クリックした場合は状態を更新する
-                // クリック時間を更新する
-                lastTime = TimeWatcher.now
                 // 操作モードをセット
                 clickMode = actionType
             }
+            // クリック時間を更新する
+            lastTime = TimeWatcher.now
         }
     }
 }
