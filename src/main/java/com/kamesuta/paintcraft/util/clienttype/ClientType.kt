@@ -10,6 +10,9 @@ data class ClientType(
     /** クライアントのバージョン (ViaVersionがインストールされていないときはnull) */
     var clientVersion: Int?,
 ) {
+    // プロトコルバージョン (ViaVersion Blocked Version Generator)
+    // https://via.krusic22.com/
+
     /** 未判定 */
     constructor() : this(null, null)
 
@@ -21,7 +24,7 @@ data class ClientType(
     val isFacingRotationOnly get() = isBedrockEdition
 
     /** 透明な額縁をサポート (BE版、Geyser) */
-    val isInvisibleFrameSupported get() = isBedrockEdition
+    val isInvisibleFrameSupported get() = !isBedrockEdition && clientVersion?.let { it > 578 } ?: true
 
     /** ピッチの回転をサポートするか (1.13以上、ViaVersion) */
     val isPitchRotationSupported get() = clientVersion?.let { it > 340 } ?: true
