@@ -14,6 +14,19 @@ import java.awt.Color
  * @param session セッション
  */
 class PaintPencil(override val session: CanvasSession) : PaintTool {
+    /** 最後の座標 */
+    private var lastEvent: PaintEvent? = null
+
+    /** 開始時に最後の座標更新 */
+    override fun beginPainting(event: PaintEvent) {
+        lastEvent = event
+    }
+
+    /** 終了時に最後の座標をクリア */
+    override fun endPainting() {
+        lastEvent = null
+    }
+
     override fun paint(event: PaintEvent) {
         // 描く色
         @Suppress("DEPRECATION")
@@ -39,6 +52,9 @@ class PaintPencil(override val session: CanvasSession) : PaintTool {
             }
         }
 
+        // 最後の座標を更新
+        lastEvent = event
+
         // プレイヤーに描画を通知する
         event.mapItem.renderer.updatePlayer(event.interact.player)
     }
@@ -52,7 +68,7 @@ class PaintPencil(override val session: CanvasSession) : PaintTool {
         event: PaintEvent,
         color: Byte
     ) {
-        session.drawing.startEvent?.let { ev ->
+        lastEvent?.let { ev ->
             g(
                 DrawLine(
                     ev.interact.uv.x,
