@@ -11,11 +11,11 @@ import com.kamesuta.paintcraft.canvas.CanvasInteraction
 import com.kamesuta.paintcraft.canvas.CanvasSession
 import com.kamesuta.paintcraft.canvas.CanvasSessionManager
 import com.kamesuta.paintcraft.map.DrawableMapItem
-import com.kamesuta.paintcraft.util.vec.debug.DebugLocationType
-import com.kamesuta.paintcraft.util.vec.debug.DebugLocationVisualizer.clearDebugLocation
 import com.kamesuta.paintcraft.util.LocationOperation
 import com.kamesuta.paintcraft.util.TimeWatcher
 import com.kamesuta.paintcraft.util.vec.Line3d.Companion.toLine
+import com.kamesuta.paintcraft.util.vec.debug.DebugLocationType
+import com.kamesuta.paintcraft.util.vec.debug.DebugLocationVisualizer.clearDebugLocation
 import com.kamesuta.paintcraft.util.vec.debug.DebugLocationVisualizer.debugLocation
 import com.kamesuta.paintcraft.util.vec.origin
 import com.kamesuta.paintcraft.util.vec.plus
@@ -246,6 +246,9 @@ class FrameDrawListener : Listener, Runnable {
                         return
                     }
 
+                    // アイテムを持っていたらクリックはキャンセル
+                    event.isCancelled = true
+
                     // パケット解析
                     val packet = event.packet
                     // クリックの種類を解析
@@ -276,27 +279,18 @@ class FrameDrawListener : Listener, Runnable {
                         else -> return
                     }
 
-                    // setCancelの判断を待ってもらう
-                    val marker = event.asyncMarker
-                    marker.incrementProcessingDelay()
                     // メインスレッド以外でエンティティを取得できないため、メインスレッドで処理
                     Bukkit.getScheduler().runTask(PaintCraft.instance) { ->
                         try {
-                            // パケットを処理し、キャンセルフラグをセット
-                            event.isCancelled = onClickPacket(player, clickType, targetEntity)
+                            // パケットを処理
+                            onClickPacket(player, clickType, targetEntity)
                         } catch (e: Throwable) {
-                            // エラーが発生してもsignalPacketTransmissionを呼ぶ必要があるため、キャッチする
+                            // スケジューラーに例外を投げないためにキャッチする
                             PaintCraft.instance.logger.log(
                                 Level.WARNING,
                                 "Error occurred while click packet event for player " + player.name,
                                 e
                             )
-                        } finally {
-                            // ロック
-                            synchronized(marker.processingLock) {
-                                // 待ってもらっていたsetCancelの判断を続行してもらう
-                                PaintCraft.instance.protocolManager.asynchronousManager.signalPacketTransmission(event)
-                            }
                         }
                     }
                 } catch (e: Throwable) {
@@ -318,12 +312,9 @@ class FrameDrawListener : Listener, Runnable {
      * @param targetEntity クリックしたエンティティ (イベントの種類によってはない)
      * @return キャンセルしたかどうか
      */
-    private fun onClickPacket(player: Player, actionType: CanvasActionType?, targetEntity: Entity?): Boolean {
+    private fun onClickPacket(player: Player, actionType: CanvasActionType?, targetEntity: Entity?) {
         // デバッグ座標を初期化
         player.clearDebug()
-
-        // キャンバスだったら必ず後でキャンセルする (return trueする)
-        val isCanvas = targetEntity?.isCanvas() ?: false
 
         // キャンバスのセッションを取得
         val session = CanvasSessionManager.getSession(player)
@@ -334,11 +325,11 @@ class FrameDrawListener : Listener, Runnable {
         val rayTrace = FrameRayTrace(player, session.clientType)
         // レイを飛ばしてアイテムフレームを取得
         val ray = rayTrace.rayTraceCanvas(eyeLocation)
-            ?: return isCanvas
+            ?: return
 
         // 裏からのクリックは無視
         if (!rayTrace.isCanvasFrontSide(eyeLocation.direction, ray.canvasLocation)) {
-            return isCanvas
+            return
         }
 
         // クリックタイプに応じた処理、判定を行う
@@ -363,7 +354,7 @@ class FrameDrawListener : Listener, Runnable {
             }
 
             CanvasActionType.LEFT_CLICK -> CanvasActionType.LEFT_CLICK
-            else -> return isCanvas
+            else -> return
         }
 
         // キャンバスに描画
@@ -372,8 +363,6 @@ class FrameDrawListener : Listener, Runnable {
             session,
             actionTypeRightOrLeft,
         )
-
-        return true
     }
 
     /**
@@ -410,7 +399,7 @@ class FrameDrawListener : Listener, Runnable {
             // ヒット位置
             locate(DebugLocationType.CANVAS_HIT_LOCATION, ray.canvasIntersectLocation)
         }
-        
+
         // インタラクトオブジェクトを作成
         val interact = CanvasInteraction(ray.uv, ray, player, actionType)
 
