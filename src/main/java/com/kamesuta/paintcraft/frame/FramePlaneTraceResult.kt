@@ -1,7 +1,6 @@
 package com.kamesuta.paintcraft.frame
 
 import com.kamesuta.paintcraft.map.DrawableMapItem
-import com.kamesuta.paintcraft.util.vec.Line2d
 import com.kamesuta.paintcraft.util.vec.Line3d
 import com.kamesuta.paintcraft.util.vec.Vec2i
 import org.bukkit.entity.ItemFrame
@@ -19,6 +18,7 @@ data class FramePlaneTraceResult(
      * アイテムフレームごとの平面上のヒットした位置情報
      * @param itemFrame アイテムフレーム
      * @param mapItem 地図アイテム
+     * @param canvasLocation キャンバスの位置
      * @param segment 平面上の始点と終点を結ぶ線分
      * @param uvStart キャンバス上の始点のUV
      * @param uvEnd キャンバス上の終点のUV
@@ -26,6 +26,7 @@ data class FramePlaneTraceResult(
     data class FramePlaneTraceEntityResult(
         val itemFrame: ItemFrame,
         val mapItem: DrawableMapItem,
+        val canvasLocation: Line3d,
         val segment: Line3d,
         val uvStart: Vec2i,
         val uvEnd: Vec2i,
