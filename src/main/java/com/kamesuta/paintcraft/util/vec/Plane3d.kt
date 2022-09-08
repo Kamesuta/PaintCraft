@@ -114,29 +114,41 @@ data class Plane3d(
      * デバッグ用に平面を描画する
      */
     override fun debugLocate(eyeLocation: Line3d, locate: (Vector) -> Unit) {
-        val norm = normal
-        val dirA = Vector(0.0, 1.0, 0.0)
-        val dirB = norm.getCrossProduct(dirA)
-        val dirC = when (dirB.lengthSquared() > 0.0) {
-            true -> dirB.normalized
-            false -> norm.getCrossProduct(Vector(1.0, 0.0, 0.0))
-        }
-        val dirD = norm.getCrossProduct(dirC).normalized
+        val right = right
+        val up = up
 
         val closestPoint = closestPoint(eyeLocation.origin)
         for (y in -10..10) {
             for (x in -10..10) {
-                val pos = closestPoint + (dirC * (x.toDouble() * 0.5)) + (dirD * (y.toDouble() * 0.5))
+                val pos = closestPoint + (right * (x.toDouble() * 0.5)) + (up * (y.toDouble() * 0.5))
                 locate(pos)
             }
         }
         for (y in -10..10) {
             for (x in -10..10) {
-                val pos = closestPoint + (dirC * (x.toDouble() * 2.0)) + (dirD * (y.toDouble() * 2.0))
+                val pos = closestPoint + (right * (x.toDouble() * 2.0)) + (up * (y.toDouble() * 2.0))
                 locate(pos)
             }
         }
     }
+
+    /** 平面の右方向のベクトル (Y軸と平面の法線の外積) */
+    val right: Vector
+        get() {
+            // 法線
+            val normal = normal
+            // Y軸と直交するベクトル (Y軸と法線が平行の場合0ベクトルになる)
+            val rightVectorOrZero = normal.getCrossProduct(Vector(0.0, 1.0, 0.0))
+            // Y軸と直交するベクトルが0ベクトルの場合はZ軸と直交するベクトルを返す
+            val rightVector = when (rightVectorOrZero.lengthSquared() > 0.0) {
+                true -> rightVectorOrZero.normalized
+                false -> normal.getCrossProduct(Vector(0.0, 0.0, 1.0))
+            }
+            return rightVector
+        }
+
+    /** 平面の上方向のベクトル (法線と右方向ベクトルの外積) */
+    val up get() = normal.getCrossProduct(right).normalized
 
     companion object {
         /**

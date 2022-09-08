@@ -202,10 +202,6 @@ class FrameDrawListener : Listener, Runnable {
         // パケットの座標を合成しプレイヤーの座標と目線を計算し、目線の座標を更新
         session.eyeLocation = locationOperation.operation(session.eyeLocation, eyeLocation)
 
-        // スレッドが違うと問題が起こるためここでclear
-        // デバッグ座標を初期化
-        player.clearDebug()
-
         // クリック状態の更新
         session.clicking.updateClick(CanvasActionType.MOUSE_MOVE)
 
@@ -221,6 +217,10 @@ class FrameDrawListener : Listener, Runnable {
             // クリック中でない場合は描き込みを行わない
             return
         }
+
+        // スレッドが違うと問題が起こるためここでclear
+        // デバッグ座標を初期化
+        player.clearDebug()
 
         // レイツールを初期化
         val rayTrace = FrameRayTrace(player, session.clientType)
