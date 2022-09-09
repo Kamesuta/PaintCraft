@@ -2,9 +2,9 @@ package com.kamesuta.paintcraft.frame
 
 import com.kamesuta.paintcraft.frame.FrameRayTrace.Companion.isUvInMap
 import com.kamesuta.paintcraft.frame.FrameRayTrace.Companion.mapBlockUvToLocation
-import com.kamesuta.paintcraft.frame.FrameRayTrace.Companion.mapToBlockUV
+import com.kamesuta.paintcraft.frame.FrameRayTrace.Companion.mapLocationToBlockUv
 import com.kamesuta.paintcraft.frame.FrameRayTrace.Companion.toCanvasPlane
-import com.kamesuta.paintcraft.frame.FrameRayTrace.Companion.transformUV
+import com.kamesuta.paintcraft.frame.FrameRayTrace.Companion.transformUv
 import com.kamesuta.paintcraft.map.DrawableMapItem
 import com.kamesuta.paintcraft.util.vec.*
 import com.kamesuta.paintcraft.util.vec.debug.DebugLocationType
@@ -155,9 +155,9 @@ object FramePlaneTrace {
 
         // 線分を2D座標に変換
         val rawUvOrigin = (canvasIntersectSegment.origin - canvasLocation.origin)
-            .mapToBlockUV(canvasYaw, canvasPitch)
+            .mapLocationToBlockUv(canvasYaw, canvasPitch)
         val rawUvTarget = (canvasIntersectSegment.target - canvasLocation.origin)
-            .mapToBlockUV(canvasYaw, canvasPitch)
+            .mapLocationToBlockUv(canvasYaw, canvasPitch)
         // 2Dの線分(未クリップ、キャンバス内の範囲に収まっていない)
         val segment = Line2d.fromPoints(rawUvOrigin, rawUvTarget)
         // キャンバス内の座標に変換
@@ -170,9 +170,9 @@ object FramePlaneTrace {
             true -> FrameRotation.fromLegacyRotation(itemFrame.rotation)
         }
         // キャンバス内UVを計算、キャンバス範囲外ならばスキップ
-        val uvStart = clip.origin.transformUV(rotation)
+        val uvStart = clip.origin.transformUv(rotation)
             .run { if (isUvInMap()) this else return null }
-        val uvEnd = clip.target.transformUV(rotation)
+        val uvEnd = clip.target.transformUv(rotation)
             .run { if (isUvInMap()) this else return null }
 
         // 3D座標に逆変換

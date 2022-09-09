@@ -2,8 +2,8 @@ package com.kamesuta.paintcraft.frame
 
 import com.kamesuta.paintcraft.frame.FrameRayTrace.Companion.clampUvInMap
 import com.kamesuta.paintcraft.frame.FrameRayTrace.Companion.mapBlockUvToLocation
-import com.kamesuta.paintcraft.frame.FrameRayTrace.Companion.mapToBlockUV
-import com.kamesuta.paintcraft.frame.FrameRayTrace.Companion.transformUV
+import com.kamesuta.paintcraft.frame.FrameRayTrace.Companion.mapLocationToBlockUv
+import com.kamesuta.paintcraft.frame.FrameRayTrace.Companion.transformUv
 import com.kamesuta.paintcraft.map.DrawableMapItem
 import com.kamesuta.paintcraft.util.vec.Line2d
 import com.kamesuta.paintcraft.util.vec.Line3d
@@ -90,9 +90,9 @@ object FrameRectTrace {
 
         // 線分を2D座標に変換
         val rawUvOrigin = (rectSegment.origin - canvasLocation.origin)
-            .mapToBlockUV(canvasYaw, canvasPitch)
+            .mapLocationToBlockUv(canvasYaw, canvasPitch)
         val rawUvTarget = (rectSegment.target - canvasLocation.origin)
-            .mapToBlockUV(canvasYaw, canvasPitch)
+            .mapLocationToBlockUv(canvasYaw, canvasPitch)
         // 2Dの線分(未クリップ、キャンバス内の範囲に収まっていない)
         val segment = Line2d.fromPoints(rawUvOrigin, rawUvTarget)
         // アイテムフレーム内のマップの向き
@@ -101,9 +101,9 @@ object FrameRectTrace {
             true -> FrameRotation.fromLegacyRotation(itemFrame.rotation)
         }
         // キャンバス内UVを計算、キャンバス範囲外ならば範囲内に納める
-        val uvStart = segment.origin.transformUV(rotation)
+        val uvStart = segment.origin.transformUv(rotation)
             .clampUvInMap()
-        val uvEnd = segment.target.transformUV(rotation)
+        val uvEnd = segment.target.transformUv(rotation)
             .clampUvInMap()
 
         // 3D座標に逆変換

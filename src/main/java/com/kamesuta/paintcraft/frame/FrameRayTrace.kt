@@ -133,9 +133,9 @@ class FrameRayTrace(
         // UVに変換 → キャンバス内UVを計算、キャンバス範囲外ならばスキップ
         val uv = (canvasIntersectLocation - canvasLocation.origin)
             // UVに変換(-0.5～+0.5)
-            .mapToBlockUV(canvasYaw, canvasPitch)
+            .mapLocationToBlockUv(canvasYaw, canvasPitch)
             // キャンバス内UV(0～127)を計算、キャンバス範囲外ならばスキップ
-            .transformUV(rotation)
+            .transformUv(rotation)
             .run { if (missHit || isUvInMap()) this else return null }
         // レイの結果を返す
         return FrameRayTraceResult(itemFrame, mapItem, eyeLocation, canvasLocation, canvasIntersectLocation, uv)
@@ -219,7 +219,7 @@ class FrameRayTrace(
          * @param itemFramePitch アイテムフレームのPitch角度
          * @return キャンバス上のUV座標
          */
-        fun Vector.mapToBlockUV(
+        fun Vector.mapLocationToBlockUv(
             itemFrameYaw: Float,
             itemFramePitch: Float,
         ): Vec2d {
@@ -255,7 +255,7 @@ class FrameRayTrace(
          * @param rotation アイテムフレーム内の地図の回転
          * @return キャンバスピクセルのUV座標
          */
-        fun Vec2d.transformUV(rotation: FrameRotation): Vec2i {
+        fun Vec2d.transformUv(rotation: FrameRotation): Vec2i {
             // -0.5～0.5の範囲を0.0～1.0の範囲に変換する
             val q = rotation.uv(this) + Vec2d(0.5, 0.5)
             // 0～128(ピクセル座標)の範囲に変換する
