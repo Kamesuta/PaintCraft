@@ -1,12 +1,13 @@
 package com.kamesuta.paintcraft.frame
 
-import com.kamesuta.paintcraft.frame.FrameRayTrace.Companion.clampUvInMap
 import com.kamesuta.paintcraft.frame.FrameRayTrace.Companion.mapBlockUvToLocation
 import com.kamesuta.paintcraft.frame.FrameRayTrace.Companion.mapLocationToBlockUv
 import com.kamesuta.paintcraft.frame.FrameRayTrace.Companion.transformUv
 import com.kamesuta.paintcraft.map.DrawableMapItem
 import com.kamesuta.paintcraft.util.vec.Line2d
 import com.kamesuta.paintcraft.util.vec.Line3d
+import com.kamesuta.paintcraft.util.vec.debug.DebugLocationType
+import com.kamesuta.paintcraft.util.vec.debug.DebugLocationVisualizer.debugLocation
 import com.kamesuta.paintcraft.util.vec.minus
 import com.kamesuta.paintcraft.util.vec.plus
 import org.bukkit.Material
@@ -25,33 +26,36 @@ object FrameRectTrace {
     fun FrameRayTrace.rectTraceCanvas(
         plane: FramePlane,
     ): FramePlaneTraceResult {
-        // 現在の座標から半径radiusの球体の中にあるアイテムフレームを取得
-        val target = plane.segment.target.clone()
-        val facing = plane.rayStart.itemFrame.facing
         /*
         // 斜めのキャンバスで矩形を描画するとたしかにおかしな結果になるが、これはこれで面白いのでとりあえずはこれでよしとする
         // → この判定は行わないためコメントアウト
+        val facing = plane.rayStart.itemFrame.facing
         if (!facing.isCartesian || facing.direction != plane.rayStart.itemFrame.location.direction) {
             // 斜めを向いている、またはブロックに対して斜めを向いている場合は無視
             return FramePlaneTraceResult(plane, listOf())
         }
         */
-        // 水平方向以外は無視 (垂直方向の範囲を0にする)
-        if (facing.modX != 0) {
-            target.x = plane.rayEnd.itemFrame.location.x
-        } else if (facing.modY != 0) {
-            target.y = plane.rayEnd.itemFrame.location.y
-        } else if (facing.modZ != 0) {
-            target.z = plane.rayEnd.itemFrame.location.z
-        }
 
         // 範囲 (平面+αの範囲、αの厚み)
-        val box = BoundingBox.of(plane.segment.origin, plane.segment.target).expand(0.3)
-        val entities = player.world.getNearbyEntities(box) { it is ItemFrame }
+        val box = BoundingBox.of(plane.segment.origin, plane.segment.target).expand(0.05)
+        val entities = player.world.getNearbyEntities(box.clone().expand(0.3)) { it is ItemFrame }
             .asSequence()
             .mapNotNull { it as? ItemFrame }
             // その中からアイテムフレームを取得する
             .filter { it.item.type == Material.FILLED_MAP }
+            // 垂直方向の範囲をチェックする
+            .filter {
+                // 水平方向以外は無視 (垂直方向の範囲を0にする)
+                if (it.facing.modX != 0) {
+                    it.location.x in box.minX..box.maxX
+                } else if (it.facing.modY != 0) {
+                    it.location.y in box.minY..box.maxY
+                } else if (it.facing.modZ != 0) {
+                    it.location.z in box.minZ..box.maxZ
+                } else {
+                    true
+                }
+            }
             // レイを飛ばす
             .mapNotNull { rectTraceCanvasByEntity(plane, it) }
             // 裏側のアイテムフレームは除外する
@@ -102,15 +106,18 @@ object FrameRectTrace {
         }
         // キャンバス内UVを計算、キャンバス範囲外ならば範囲内に納める
         val uvStart = segment.origin.transformUv(rotation)
-            //.clampUvInMap() // これは必要ない: DrawRectは範囲外に対応している
+        //.clampUvInMap() // これは必要ない: DrawRectは範囲外に対応している
         val uvEnd = segment.target.transformUv(rotation)
-            //.clampUvInMap() // これは必要ない: DrawRectは範囲外に対応している
+        //.clampUvInMap() // これは必要ない: DrawRectは範囲外に対応している
 
         // 3D座標に逆変換
         val segment3d = Line3d.fromPoints(
             segment.origin.mapBlockUvToLocation(canvasYaw, canvasPitch) + canvasLocation.origin,
             segment.target.mapBlockUvToLocation(canvasYaw, canvasPitch) + canvasLocation.origin,
         )
+        player.debugLocation {
+            locate(DebugLocationType.INTERSECT_SEGMENT_CANVAS, segment3d.toDebug(Line3d.DebugLineType.SEGMENT))
+        }
 
         return FramePlaneTraceResult.FramePlaneTraceEntityResult(
             itemFrame,
