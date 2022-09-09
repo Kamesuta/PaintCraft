@@ -1,35 +1,21 @@
-package com.kamesuta.paintcraft.canvas.paint
+package com.kamesuta.paintcraft.canvas.paint.tool
 
 import com.kamesuta.paintcraft.canvas.CanvasSession
+import com.kamesuta.paintcraft.canvas.paint.PaintEvent
 import com.kamesuta.paintcraft.frame.FramePlane
 import com.kamesuta.paintcraft.frame.FramePlaneTrace.planeTraceCanvas
+import com.kamesuta.paintcraft.frame.FramePlaneTraceResult
 import com.kamesuta.paintcraft.frame.FrameRayTrace
-import com.kamesuta.paintcraft.map.DrawableMapItem
+import com.kamesuta.paintcraft.frame.FrameRectTrace.rectTraceCanvas
 import com.kamesuta.paintcraft.util.vec.Line3d
 import com.kamesuta.paintcraft.util.vec.Plane3d
-import com.kamesuta.paintcraft.util.vec.Vec2i
 import com.kamesuta.paintcraft.util.vec.debug.DebugLocationType
 import com.kamesuta.paintcraft.util.vec.debug.DebugLocationVisualizer.debugLocation
-import org.bukkit.entity.ItemFrame
 
 /**
  * 複数キャンバスをまたいで線を描画するツール
  */
-object PaintLineTool {
-    /**
-     * 線を描く情報
-     * @param itemFrame アイテムフレーム
-     * @param mapItem マップアイテム
-     * @param uvStart 開始座標
-     * @param uvEnd 終了座標
-     */
-    class DrawData(
-        val itemFrame: ItemFrame,
-        val mapItem: DrawableMapItem,
-        val uvStart: Vec2i,
-        val uvEnd: Vec2i,
-    )
-
+object PaintDrawTool {
     /**
      * 線を描く
      * @param session セッション
@@ -41,11 +27,45 @@ object PaintLineTool {
         session: CanvasSession,
         event: PaintEvent,
         prevEvent: PaintEvent,
-        draw: DrawData.() -> Unit
+        draw: PaintDrawData.() -> Unit,
+    ) {
+        drawRaycast(session, event, prevEvent, draw) { planeTraceCanvas(it) }
+    }
+
+    /**
+     * 矩形を描く
+     * @param session セッション
+     * @param event 描きこむイベント
+     * @param prevEvent 前回の描きこむイベント
+     * @param draw 実際に描く処理
+     */
+    fun drawRect(
+        session: CanvasSession,
+        event: PaintEvent,
+        prevEvent: PaintEvent,
+        draw: PaintDrawData.() -> Unit,
+    ) {
+        drawRaycast(session, event, prevEvent, draw) { rectTraceCanvas(it) }
+    }
+
+    /**
+     * レイキャストして描く
+     * @param session セッション
+     * @param event 描きこむイベント
+     * @param prevEvent 前回の描きこむイベント
+     * @param draw 実際に描く処理
+     * @param raycast レイキャストする処理
+     */
+    private fun drawRaycast(
+        session: CanvasSession,
+        event: PaintEvent,
+        prevEvent: PaintEvent,
+        draw: PaintDrawData.() -> Unit,
+        raycast: FrameRayTrace.(FramePlane) -> FramePlaneTraceResult,
     ) {
         if (event.interact.ray.itemFrame == prevEvent.interact.ray.itemFrame) {
             // 絵を描く
-            draw(DrawData(event.interact.ray.itemFrame, event.mapItem, prevEvent.interact.uv, event.interact.uv))
+            draw(PaintDrawData(event.interact.ray.itemFrame, event.mapItem, prevEvent.interact.uv, event.interact.uv))
         } else {
             // アイテムフレームが違うなら平面を作成しレイキャストする
 
@@ -64,12 +84,19 @@ object PaintLineTool {
 
             // 当たり判定
             val rayTrace = FrameRayTrace(event.interact.player, session.clientType)
-            val result = rayTrace.planeTraceCanvas(framePlane)
+            val result = rayTrace.raycast(framePlane)
 
             // 線を描く
             for (entityResult in result.entities) {
                 // 線を描く
-                draw(DrawData(entityResult.itemFrame, entityResult.mapItem, entityResult.uvStart, entityResult.uvEnd))
+                draw(
+                    PaintDrawData(
+                        entityResult.itemFrame,
+                        entityResult.mapItem,
+                        entityResult.uvStart,
+                        entityResult.uvEnd
+                    )
+                )
             }
         }
     }

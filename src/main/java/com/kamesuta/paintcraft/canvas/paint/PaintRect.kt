@@ -4,7 +4,7 @@ import com.kamesuta.paintcraft.canvas.CanvasActionType
 import com.kamesuta.paintcraft.canvas.CanvasSession
 import com.kamesuta.paintcraft.canvas.paint.tool.PaintDrawTool
 import com.kamesuta.paintcraft.map.DrawableMapItem
-import com.kamesuta.paintcraft.map.draw.DrawLine
+import com.kamesuta.paintcraft.map.draw.DrawRect
 import com.kamesuta.paintcraft.map.draw.DrawRollback
 import com.kamesuta.paintcraft.util.vec.origin
 import org.bukkit.entity.ItemFrame
@@ -12,10 +12,10 @@ import org.bukkit.map.MapPalette
 import java.awt.Color
 
 /**
- * 右クリック2点で線が引けるツール
+ * 始点と終点で長方形を描画する
  * @param session セッション
  */
-class PaintLine(override val session: CanvasSession) : PaintTool {
+class PaintRect(override val session: CanvasSession) : PaintTool {
     override fun paint(event: PaintEvent) {
         // 描く色
         @Suppress("DEPRECATION")
@@ -33,7 +33,7 @@ class PaintLine(override val session: CanvasSession) : PaintTool {
                 // 復元
                 rollback(rollbackCanvas = true, deleteRollback = false)
                 // 線を描く
-                drawLine(event, color)
+                drawRect(event, color)
             }
             // その他 (想定外)
             else -> {
@@ -53,29 +53,30 @@ class PaintLine(override val session: CanvasSession) : PaintTool {
     }
 
     /**
-     * 線を描く
+     * 長方形を描く
      * @param event 描きこむイベント
      * @param color 描く色
      */
-    private fun drawLine(
+    private fun drawRect(
         event: PaintEvent,
         color: Byte
     ) {
-        // 最後の点+現在の点を結ぶ線を描く
+        // 最後の点+現在の点を結ぶ長方形を描く
         session.drawing.startEvent?.let {
             // 描画
-            PaintDrawTool.drawLine(session, event, it) {
+            PaintDrawTool.drawRect(session, event, it) {
                 // 後で戻せるよう記憶しておく
                 store(itemFrame, mapItem)
                 // マップに描きこむ
                 mapItem.draw {
                     g(
-                        DrawLine(
+                        DrawRect(
                             uvStart.x,
                             uvStart.y,
                             uvEnd.x,
                             uvEnd.y,
                             color,
+                            true,
                         )
                     )
                 }

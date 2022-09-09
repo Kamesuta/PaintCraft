@@ -1,5 +1,6 @@
 package com.kamesuta.paintcraft.frame
 
+import com.kamesuta.paintcraft.frame.FrameRayTrace.Companion.isUvInMap
 import com.kamesuta.paintcraft.frame.FrameRayTrace.Companion.mapBlockUvToLocation
 import com.kamesuta.paintcraft.frame.FrameRayTrace.Companion.mapToBlockUV
 import com.kamesuta.paintcraft.frame.FrameRayTrace.Companion.toCanvasPlane
@@ -169,10 +170,10 @@ object FramePlaneTrace {
             true -> FrameRotation.fromLegacyRotation(itemFrame.rotation)
         }
         // キャンバス内UVを計算、キャンバス範囲外ならばスキップ
-        val uvStart = clip.origin.transformUV(rotation, false)
-            ?: return null
-        val uvEnd = clip.target.transformUV(rotation, false)
-            ?: return null
+        val uvStart = clip.origin.transformUV(rotation)
+            .run { if (isUvInMap()) this else return null }
+        val uvEnd = clip.target.transformUV(rotation)
+            .run { if (isUvInMap()) this else return null }
 
         // 3D座標に逆変換
         val segment3d = Line3d.fromPoints(

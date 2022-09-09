@@ -2,6 +2,7 @@ package com.kamesuta.paintcraft.canvas.paint
 
 import com.kamesuta.paintcraft.canvas.CanvasActionType
 import com.kamesuta.paintcraft.canvas.CanvasSession
+import com.kamesuta.paintcraft.canvas.paint.tool.PaintDrawTool
 import com.kamesuta.paintcraft.map.DrawableMapBuffer.Companion.mapSize
 import com.kamesuta.paintcraft.map.draw.DrawLine
 import com.kamesuta.paintcraft.map.draw.DrawRect
@@ -77,7 +78,7 @@ class PaintPencil(override val session: CanvasSession) : PaintTool {
         // 最後の点+現在の点を結ぶ線を描く
         lastEvent?.let {
             // 描画
-            PaintLineTool.drawLine(session, event, it) {
+            PaintDrawTool.drawLine(session, event, it) {
                 // マップをプレイヤーへ同期するために記憶しておく
                 session.drawing.edited.computeIfAbsent(itemFrame) { mapItem }
                 // 線を描く

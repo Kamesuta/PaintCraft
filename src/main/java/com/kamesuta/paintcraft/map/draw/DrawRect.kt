@@ -23,28 +23,28 @@ class DrawRect(
 ) : Draw {
     override fun draw(canvas: MapCanvas) {
         // (x1,y1)が(x2,y2)より左上になるようにする
-        val x1 = min(x1, x2)
-        val y1 = min(y1, y2)
-        val x2 = max(x1, x2)
-        val y2 = max(y1, y2)
+        val xMin = min(x1, x2)
+        val yMin = min(y1, y2)
+        val xMax = max(x1, x2)
+        val yMax = max(y1, y2)
 
         // 塗りつぶすかどうか
         if (fill) {
             // 範囲内のピクセルを塗りつぶし
-            for (x in x1..x2) {
-                for (y in y1..y2) {
+            for (x in xMin..xMax) {
+                for (y in yMin..yMax) {
                     canvas.setPixel(x, y, color)
                 }
             }
         } else {
             // 4辺を描画
-            for (x in x1..x2) {
-                canvas.setPixel(x, y1, color)
-                canvas.setPixel(x, y2, color)
+            for (x in xMin..xMax) {
+                canvas.setPixel(x, yMin, color)
+                canvas.setPixel(x, yMax, color)
             }
-            for (y in y1..y2) {
-                canvas.setPixel(x1, y, color)
-                canvas.setPixel(x2, y, color)
+            for (y in yMin..yMax) {
+                canvas.setPixel(xMin, y, color)
+                canvas.setPixel(xMax, y, color)
             }
         }
     }

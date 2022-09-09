@@ -3,6 +3,7 @@ package com.kamesuta.paintcraft
 import com.kamesuta.paintcraft.canvas.CanvasSessionManager
 import com.kamesuta.paintcraft.canvas.paint.PaintLine
 import com.kamesuta.paintcraft.canvas.paint.PaintPencil
+import com.kamesuta.paintcraft.canvas.paint.PaintRect
 import com.kamesuta.paintcraft.map.DrawableMapItem
 import com.kamesuta.paintcraft.util.enumValueOrNull
 import com.kamesuta.paintcraft.util.vec.debug.DebugLocationCommand
@@ -38,6 +39,7 @@ class SwitchDrawModeCommand : Command("switch") {
     enum class DrawMode {
         PEN,
         LINE,
+        RECT,
     }
 
     init {
@@ -59,6 +61,7 @@ class SwitchDrawModeCommand : Command("switch") {
                         session.tool = when (type) {
                             DrawMode.PEN -> PaintPencil(session)
                             DrawMode.LINE -> PaintLine(session)
+                            DrawMode.RECT -> PaintRect(session)
                         }
                     }
                 }
