@@ -76,7 +76,7 @@ class PaintRect(override val session: CanvasSession) : PaintTool {
                             uvEnd.x,
                             uvEnd.y,
                             color,
-                            true,
+                            false,
                         )
                     )
                 }

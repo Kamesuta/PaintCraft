@@ -102,9 +102,9 @@ object FrameRectTrace {
         }
         // キャンバス内UVを計算、キャンバス範囲外ならば範囲内に納める
         val uvStart = segment.origin.transformUv(rotation)
-            .clampUvInMap()
+            //.clampUvInMap() // これは必要ない: DrawRectは範囲外に対応している
         val uvEnd = segment.target.transformUv(rotation)
-            .clampUvInMap()
+            //.clampUvInMap() // これは必要ない: DrawRectは範囲外に対応している
 
         // 3D座標に逆変換
         val segment3d = Line3d.fromPoints(

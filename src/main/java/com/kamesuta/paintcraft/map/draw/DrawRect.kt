@@ -1,15 +1,16 @@
 package com.kamesuta.paintcraft.map.draw
 
+import com.kamesuta.paintcraft.map.DrawableMapBuffer.Companion.mapSize
 import org.bukkit.map.MapCanvas
 import kotlin.math.max
 import kotlin.math.min
 
 /**
  * 矩形を描画するクラス
- * @param x1 始点のX座標
- * @param y1 始点のY座標
- * @param x2 終点のX座標
- * @param y2 終点のY座標
+ * @param x1 始点のX座標 (clamp不要)
+ * @param y1 始点のY座標 (clamp不要)
+ * @param x2 終点のX座標 (clamp不要)
+ * @param y2 終点のY座標 (clamp不要)
  * @param color 描画する色
  * @param fill 矩形の内側を塗りつぶすかどうか
  */
@@ -23,10 +24,11 @@ class DrawRect(
 ) : Draw {
     override fun draw(canvas: MapCanvas) {
         // (x1,y1)が(x2,y2)より左上になるようにする
-        val xMin = min(x1, x2)
-        val yMin = min(y1, y2)
-        val xMax = max(x1, x2)
-        val yMax = max(y1, y2)
+        // 範囲外の縁を描画しないためにマップのサイズより1大きいサイズにする
+        val xMin = max(-1, min(x1, x2))
+        val yMin = max(-1, min(y1, y2))
+        val xMax = min(mapSize, max(x1, x2))
+        val yMax = min(mapSize, max(y1, y2))
 
         // 塗りつぶすかどうか
         if (fill) {
