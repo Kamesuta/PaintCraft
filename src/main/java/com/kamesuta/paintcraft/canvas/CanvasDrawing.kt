@@ -23,6 +23,9 @@ class CanvasDrawing {
     val isDrawing: Boolean
         get() = startEvent != null
 
+    /** 最後にクリックした操作、カーソルがキャンバスから外れたときのため記憶する */
+    var lastEvent: PaintEvent? = null
+
     /**
      * 前回の状態と比較して、クリックの変化を取得する
      * @param isPressed 新しいクリック状態

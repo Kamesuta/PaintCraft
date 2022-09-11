@@ -229,7 +229,7 @@ class FrameDrawListener : Listener, Runnable {
         var ray = rayTrace.rayTraceCanvas(eyeLocation)
         if (ray == null) {
             // レイが当たらなかった場合、最後に当たったエンティティの面にレイを飛ばして取得
-            val startEvent = session.drawing.startEvent
+            val startEvent = session.drawing.lastEvent
                 ?: return
             ray = rayTrace.rayTraceCanvasByEntity(eyeLocation, startEvent.interact.ray.itemFrame, true)
                 ?: return
@@ -388,7 +388,7 @@ class FrameDrawListener : Listener, Runnable {
         var ray = rayTrace.rayTraceCanvas(eyeLocation)
         if (ray == null) {
             // レイが当たらなかった場合、最後に当たったエンティティの面にレイを飛ばして取得
-            val startEvent = session.drawing.startEvent
+            val startEvent = session.drawing.lastEvent
                 ?: return
             ray = rayTrace.rayTraceCanvasByEntity(eyeLocation, startEvent.interact.ray.itemFrame, true)
                 ?: return
@@ -463,6 +463,9 @@ class FrameDrawListener : Listener, Runnable {
         // インタラクトオブジェクトを作成
         val interact = CanvasInteraction(ray.uv, ray, player)
         val paintEvent = PaintEvent(ray.mapItem, interact, session.clicking.clickMode)
+
+        // カーソルがキャンバス外に外れた場合用に記憶
+        session.drawing.lastEvent = paintEvent
 
         // キャンバスに描画する
         session.tool.paint(paintEvent)
