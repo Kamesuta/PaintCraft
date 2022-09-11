@@ -104,9 +104,9 @@ class FrameRayTrace(
         val frameLocation = FrameLocation.fromItemFrame(itemFrame, clientType)
         player.debugLocation {
             // アイテムフレームの位置
-            locate(DebugLocationType.CANVAS_LOCATION, frameLocation.location.origin)
+            locate(DebugLocationType.CANVAS_LOCATION, frameLocation.normal.origin)
             // アイテムフレームの正面ベクトル
-            locate(DebugLocationType.CANVAS_DIRECTION, frameLocation.location.target)
+            locate(DebugLocationType.CANVAS_DIRECTION, frameLocation.normal.target)
         }
 
         // キャンバスのオフセットを計算
@@ -124,6 +124,6 @@ class FrameRayTrace(
             .transformUv(rotation)
             .run { if (missHit || isUvInMap()) this else return null }
         // レイの結果を返す
-        return FrameRayTraceResult(itemFrame, mapItem, eyeLocation, frameLocation.location, intersectLocation, uv)
+        return FrameRayTraceResult(itemFrame, mapItem, eyeLocation, frameLocation, intersectLocation, uv)
     }
 }

@@ -58,8 +58,8 @@ object FrameRectTrace {
             // 裏側のアイテムフレームは除外する
             .filter {
                 // レイ開始時または終了時どちらかの目線の位置から見えているなら除外しない
-                it.canvasLocation.direction.dot(it.canvasLocation.origin - plane.rayStart.eyeLocation.origin) < 0
-                        || it.canvasLocation.direction.dot(it.canvasLocation.origin - plane.rayEnd.eyeLocation.origin) < 0
+                it.frameLocation.forward.dot(it.frameLocation.origin - plane.rayStart.eyeLocation.origin) < 0
+                        || it.frameLocation.forward.dot(it.frameLocation.origin - plane.rayEnd.eyeLocation.origin) < 0
             }
             .toList()
 
@@ -114,7 +114,7 @@ object FrameRectTrace {
         return FramePlaneTraceResult.FramePlaneTraceEntityResult(
             itemFrame,
             mapItem,
-            frameLocation.location,
+            frameLocation,
             segment3d,
             uvStart,
             uvEnd

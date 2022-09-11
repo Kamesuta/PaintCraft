@@ -36,7 +36,17 @@ class FrameLocation(
     val plane = Plane3d.fromPointNormal(origin, forward)
 
     /** 平面の線分 */
-    val location get() = Line3d(origin, forward)
+    val normal get() = Line3d(origin, forward)
+
+    /**
+     * キャンバスが表か判定する
+     * @param playerDirection プレイヤーの方向
+     * @return キャンバスが表かどうか
+     */
+    fun isCanvasFrontSide(playerDirection: Vector): Boolean {
+        // 裏からのクリックを判定
+        return playerDirection.dot(forward) <= 0
+    }
 
     /**
      * 交点座標をキャンバス上のUV座標に変換する (-0.5～+0.5)
@@ -46,7 +56,7 @@ class FrameLocation(
      */
     fun toBlockUv(location: Vector): Vec2d {
         // 交点座標を(0,0)を中心に回転し、UV座標(x,-y)に対応するようにする
-        val unRotated = (location - origin).unrotate(yaw, pitch)
+        val unRotated = (location - origin).unRotate(yaw, pitch)
         // UV座標を返す (3D座標はYが上ほど大きく、UV座標はYが下ほど大きいため、Yを反転する)
         return Vec2d(unRotated.x, -unRotated.y)
     }
@@ -119,20 +129,9 @@ class FrameLocation(
          * @param yaw Yaw角度
          * @param pitch Pitch角度
          */
-        private fun Vector.unrotate(yaw: Float, pitch: Float) = clone()
+        private fun Vector.unRotate(yaw: Float, pitch: Float) = clone()
             .rotateAroundX(Math.toRadians(-pitch.toDouble()))
             .rotateAroundY(Math.toRadians(yaw.toDouble()))
-
-        /**
-         * キャンバスが表か判定する
-         * @param playerDirection プレイヤーの方向
-         * @param canvasLocation アイテムフレーム
-         * @return キャンバスが表かどうか
-         */
-        fun isCanvasFrontSide(playerDirection: Vector, canvasLocation: Line3d): Boolean {
-            // 裏からのクリックを判定
-            return playerDirection.dot(canvasLocation.direction) <= 0
-        }
 
         /**
          * ブロックのUV座標->キャンバスピクセルのUV座標を計算する

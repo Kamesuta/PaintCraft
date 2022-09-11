@@ -62,7 +62,7 @@ object FramePlaneTrace {
                 locate(DebugLocationType.SEARCH_LOCATION, currentChain.origin)
                 locate(
                     DebugLocationType.SEARCH_CANVAS_LINE,
-                    current.canvasLocation.toDebug(Line3d.DebugLineType.SEGMENT)
+                    current.frameLocation.normal.toDebug(Line3d.DebugLineType.SEGMENT)
                 )
             }
             // ゴールからの距離が今の長さ以上なら探索を中止する
@@ -91,8 +91,8 @@ object FramePlaneTrace {
                 // 裏側のアイテムフレームは除外する
                 .filter {
                     // レイ開始時または終了時どちらかの目線の位置から見えているなら除外しない
-                    it.canvasLocation.direction.dot(it.canvasLocation.origin - plane.rayStart.eyeLocation.origin) < 0
-                            || it.canvasLocation.direction.dot(it.canvasLocation.origin - plane.rayEnd.eyeLocation.origin) < 0
+                    it.frameLocation.forward.dot(it.frameLocation.origin - plane.rayStart.eyeLocation.origin) < 0
+                            || it.frameLocation.forward.dot(it.frameLocation.origin - plane.rayEnd.eyeLocation.origin) < 0
                 }
                 // チェーンをつなぐ
                 .map { SearchResult(currentChain, it, currentChain.origin) }
@@ -180,7 +180,7 @@ object FramePlaneTrace {
         return FramePlaneTraceResult.FramePlaneTraceEntityResult(
             itemFrame,
             mapItem,
-            frameLocation.location,
+            frameLocation,
             segment3d,
             uvStart,
             uvEnd

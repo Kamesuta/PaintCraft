@@ -8,7 +8,6 @@ import com.comphenix.protocol.utility.MinecraftReflection
 import com.kamesuta.paintcraft.PaintCraft
 import com.kamesuta.paintcraft.canvas.*
 import com.kamesuta.paintcraft.canvas.paint.PaintEvent
-import com.kamesuta.paintcraft.frame.FrameLocation.Companion.isCanvasFrontSide
 import com.kamesuta.paintcraft.util.LocationOperation
 import com.kamesuta.paintcraft.util.TimeWatcher
 import com.kamesuta.paintcraft.util.vec.Line3d.Companion.toLine
@@ -235,7 +234,7 @@ class FrameDrawListener : Listener, Runnable {
         }
 
         // 裏からのクリックは無視
-        if (!isCanvasFrontSide(eyeLocation.direction, ray.canvasLocation)) {
+        if (!ray.frameLocation.isCanvasFrontSide(eyeLocation.direction)) {
             return
         }
 
@@ -392,7 +391,7 @@ class FrameDrawListener : Listener, Runnable {
         }
 
         // 裏からのクリックは無視
-        if (!isCanvasFrontSide(eyeLocation.direction, ray.canvasLocation)) {
+        if (!ray.frameLocation.isCanvasFrontSide(eyeLocation.direction)) {
             return
         }
 
