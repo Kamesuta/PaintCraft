@@ -5,6 +5,9 @@ import com.kamesuta.paintcraft.frame.FrameLocation.Companion.transformUv
 import com.kamesuta.paintcraft.map.DrawableMapItem
 import com.kamesuta.paintcraft.util.clienttype.ClientType
 import com.kamesuta.paintcraft.util.vec.Line3d
+import com.kamesuta.paintcraft.util.vec.debug.DebugLocatables.DebugLineType.DIRECTION
+import com.kamesuta.paintcraft.util.vec.debug.DebugLocatables.DebugLineType.SEGMENT
+import com.kamesuta.paintcraft.util.vec.debug.DebugLocatables.toDebug
 import com.kamesuta.paintcraft.util.vec.debug.DebugLocationType
 import com.kamesuta.paintcraft.util.vec.debug.DebugLocationVisualizer.debugLocation
 import org.bukkit.Material
@@ -35,9 +38,7 @@ class FrameRayTrace(
     ): FrameRayTraceResult? {
         // 目線と向きからエンティティを取得し、アイテムフレームかどうかを確認する
         player.debugLocation {
-            locate(DebugLocationType.EYE_LOCATION, eyeLocation.origin)
-            locate(DebugLocationType.EYE_DIRECTION, eyeLocation.target)
-            locate(DebugLocationType.EYE_LINE, eyeLocation.toDebug(Line3d.DebugLineType.DIRECTION))
+            locate(DebugLocationType.EYE_LINE, eyeLocation.toDebug(DIRECTION))
         }
 
         // 距離は前方8m(半径4)を範囲にする
@@ -55,7 +56,7 @@ class FrameRayTrace(
         // クリックがヒットした座標
         val blockHitLocation = blockRay?.hitPosition
         player.debugLocation {
-            locate(DebugLocationType.BLOCK_HIT_LOCATION, blockHitLocation)
+            locate(DebugLocationType.BLOCK_HIT_LOCATION, blockHitLocation?.toDebug())
         }
 
         // キャンバスよりも手前にブロックがあるならば探索終了
@@ -104,9 +105,7 @@ class FrameRayTrace(
         val frameLocation = FrameLocation.fromItemFrame(itemFrame, clientType)
         player.debugLocation {
             // アイテムフレームの位置
-            locate(DebugLocationType.CANVAS_LOCATION, frameLocation.normal.origin)
-            // アイテムフレームの正面ベクトル
-            locate(DebugLocationType.CANVAS_DIRECTION, frameLocation.normal.target)
+            locate(DebugLocationType.CANVAS_LINE, frameLocation.normal.toDebug(SEGMENT))
         }
 
         // キャンバスのオフセットを計算

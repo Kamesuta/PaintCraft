@@ -11,12 +11,13 @@ import com.kamesuta.paintcraft.canvas.paint.PaintEvent
 import com.kamesuta.paintcraft.util.LocationOperation
 import com.kamesuta.paintcraft.util.TimeWatcher
 import com.kamesuta.paintcraft.util.vec.Line3d.Companion.toLine
+import com.kamesuta.paintcraft.util.vec.debug.DebugLocatables
+import com.kamesuta.paintcraft.util.vec.debug.DebugLocatables.toDebug
 import com.kamesuta.paintcraft.util.vec.debug.DebugLocationType
 import com.kamesuta.paintcraft.util.vec.debug.DebugLocationVisualizer.clearDebugLocation
 import com.kamesuta.paintcraft.util.vec.debug.DebugLocationVisualizer.debugLocation
 import com.kamesuta.paintcraft.util.vec.origin
 import com.kamesuta.paintcraft.util.vec.plus
-import com.kamesuta.paintcraft.util.vec.target
 import org.bukkit.Bukkit
 import org.bukkit.GameMode
 import org.bukkit.Location
@@ -418,21 +419,19 @@ class FrameDrawListener : Listener, Runnable {
         val itemFrameLocation = ray.itemFrame.location
         player.debugLocation {
             // アイテムフレームの位置
-            locate(DebugLocationType.FRAME_LOCATION, itemFrameLocation.origin)
-            // アイテムフレームの方向
             locate(
-                DebugLocationType.FRAME_DIRECTION,
-                itemFrameLocation.target
+                DebugLocationType.FRAME_LINE,
+                itemFrameLocation.toLine().toDebug(DebugLocatables.DebugLineType.SEGMENT)
             )
             // アイテムフレームのブロック上での方向
             locate(
                 DebugLocationType.FRAME_FACING,
-                itemFrameLocation.origin + ray.itemFrame.facing.direction
+                (itemFrameLocation.origin + ray.itemFrame.facing.direction).toDebug()
             )
             // アイテムフレームのブロック
-            locate(DebugLocationType.FRAME_FACING_BLOCK, itemFrameLocation.toCenterLocation().origin)
+            locate(DebugLocationType.FRAME_FACING_BLOCK, itemFrameLocation.toCenterLocation().origin.toDebug())
             // ヒット位置
-            locate(DebugLocationType.CANVAS_HIT_LOCATION, ray.canvasIntersectLocation)
+            locate(DebugLocationType.CANVAS_HIT_LOCATION, ray.canvasIntersectLocation.toDebug())
         }
 
         // クリック状態の変化を確認

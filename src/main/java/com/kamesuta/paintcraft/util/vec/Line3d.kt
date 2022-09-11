@@ -1,6 +1,5 @@
 package com.kamesuta.paintcraft.util.vec
 
-import com.kamesuta.paintcraft.util.vec.debug.DebugLocatable
 import org.bukkit.Location
 import org.bukkit.World
 import org.bukkit.util.Vector
@@ -66,51 +65,6 @@ data class Line3d(val origin: Vector, val direction: Vector) {
         val p1 = closestPoint(segment.origin)
         val p2 = closestPoint(segment.target)
         return fromPoints(p1, p2)
-    }
-
-    /** デバッグ用の線のタイプ */
-    enum class DebugLineType {
-        /** 直線 */
-        LINE,
-
-        /** 半直線 */
-        DIRECTION,
-
-        /** 線分 */
-        SEGMENT,
-    }
-
-    /**
-     * デバッグ用に線を作成する
-     * @param lineType 線のタイプ
-     */
-    fun toDebug(lineType: DebugLineType = DebugLineType.LINE): DebugLocatable = DebugLine(lineType)
-
-    /** デバッグ用の線 */
-    private inner class DebugLine(val lineType: DebugLineType) : DebugLocatable {
-        /** デバッグ用に線を描画する */
-        override fun debugLocate(eyeLocation: Line3d, locate: (Vector) -> Unit) {
-            // 単位ベクトル
-            val dir = direction.normalized
-            // 最短距離の点を求めるためのdを求める (詳しくはclosestPoint()を参照)
-            // closestPoint = origin + dir * d
-            val v = eyeLocation.origin - origin
-            val d = v.dot(dir)
-            // 線分の長さ
-            val length = direction.length()
-            // 線の種類に応じて、範囲内にあれば表示する
-            fun locateLinePoint(t: Double) {
-                if (d + t < 0 && lineType != DebugLineType.LINE) return
-                if (d + t > length && lineType == DebugLineType.SEGMENT) return
-                locate(origin + dir * (d + t))
-            }
-            // 始点と終点を表示する
-            locate(origin)
-            locate(target)
-            // 目線に近い場所を表示する
-            for (i in -10..10) locateLinePoint(i.toDouble() * 0.5)
-            for (i in -10..10) locateLinePoint(i.toDouble() * 4.0)
-        }
     }
 
     /**

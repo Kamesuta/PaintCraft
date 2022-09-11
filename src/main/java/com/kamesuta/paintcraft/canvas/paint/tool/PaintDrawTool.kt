@@ -9,6 +9,8 @@ import com.kamesuta.paintcraft.frame.FrameRayTrace
 import com.kamesuta.paintcraft.frame.FrameRectTrace.rectTraceCanvas
 import com.kamesuta.paintcraft.util.vec.Line3d
 import com.kamesuta.paintcraft.util.vec.Plane3d
+import com.kamesuta.paintcraft.util.vec.debug.DebugLocatables.DebugLineType.SEGMENT
+import com.kamesuta.paintcraft.util.vec.debug.DebugLocatables.toDebug
 import com.kamesuta.paintcraft.util.vec.debug.DebugLocationType
 import com.kamesuta.paintcraft.util.vec.debug.DebugLocationVisualizer.debugLocation
 
@@ -85,8 +87,7 @@ object PaintDrawTool {
             )
             val plane = Plane3d.fromPoints(eyeLocation.origin, segment.origin, segment.target)
             event.interact.player.debugLocation {
-                locate(DebugLocationType.SEGMENT_ORIGIN, segment.origin)
-                locate(DebugLocationType.SEGMENT_TARGET, segment.target)
+                locate(DebugLocationType.SEGMENT_LINE, segment.toDebug(SEGMENT))
             }
             val framePlane = FramePlane(plane, eyeLocation, segment, prevEvent.interact.ray, event.interact.ray)
 

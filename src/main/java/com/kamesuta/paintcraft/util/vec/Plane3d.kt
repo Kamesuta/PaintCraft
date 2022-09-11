@@ -1,6 +1,5 @@
 package com.kamesuta.paintcraft.util.vec
 
-import com.kamesuta.paintcraft.util.vec.debug.DebugLocatable
 import org.bukkit.util.Vector
 import kotlin.math.abs
 import kotlin.math.sqrt
@@ -17,7 +16,7 @@ data class Plane3d(
     val b: Double,
     val c: Double,
     val d: Double,
-) : DebugLocatable {
+) {
     /**
      * 正規化された法線と距離で初期化する
      */
@@ -108,28 +107,6 @@ data class Plane3d(
         // 平面の座標を計算
         val origin = ((normal.getCrossProduct(normal2) * d) + (normal1.getCrossProduct(normal) * other.d)) / det;
         return Line3d(origin, normal);
-    }
-
-    /**
-     * デバッグ用に平面を描画する
-     */
-    override fun debugLocate(eyeLocation: Line3d, locate: (Vector) -> Unit) {
-        val right = right
-        val up = up
-
-        val closestPoint = closestPoint(eyeLocation.origin)
-        for (y in -10..10) {
-            for (x in -10..10) {
-                val pos = closestPoint + (right * (x.toDouble() * 0.5)) + (up * (y.toDouble() * 0.5))
-                locate(pos)
-            }
-        }
-        for (y in -10..10) {
-            for (x in -10..10) {
-                val pos = closestPoint + (right * (x.toDouble() * 2.0)) + (up * (y.toDouble() * 2.0))
-                locate(pos)
-            }
-        }
     }
 
     /** 平面の右方向のベクトル (Y軸と平面の法線の外積) */

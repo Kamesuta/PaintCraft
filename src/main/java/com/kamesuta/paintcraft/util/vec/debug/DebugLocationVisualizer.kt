@@ -3,7 +3,6 @@ package com.kamesuta.paintcraft.util.vec.debug
 import com.kamesuta.paintcraft.PaintCraft
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
-import org.bukkit.util.Vector
 import java.util.*
 
 /**
@@ -29,19 +28,6 @@ object DebugLocationVisualizer {
         get(player).location(type, location)
     }
 
-    /** デバッグ座標を更新するツール */
-    class DebugLocatorImpl(private val player: Player) : DebugLocator {
-        /** Vector型の座標を更新 */
-        override fun locate(type: DebugLocationType, location: Vector?) {
-            location?.let { locate(player, type) { _, locate -> locate(it) } }
-        }
-
-        /** DebugLocatable型の座標を更新 */
-        override fun locate(type: DebugLocationType, location: DebugLocatable?) {
-            location?.let { locate(player, type, it) }
-        }
-    }
-
     /** デバッグ座標を更新 */
     inline fun Player.debugLocation(f: DebugLocator.() -> Unit) {
         if (!DebugLocationType.ENABLE_DEBUG) {
@@ -49,7 +35,9 @@ object DebugLocationVisualizer {
         }
 
         // デバッグ座標を更新
-        f(DebugLocatorImpl(this))
+        f(DebugLocator { type, location ->
+            location?.let { locate(this, type, it) }
+        })
     }
 
     /** デバッグ座標をクリア */

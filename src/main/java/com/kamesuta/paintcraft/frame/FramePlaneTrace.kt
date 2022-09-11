@@ -6,6 +6,9 @@ import com.kamesuta.paintcraft.frame.FrameLocation.Companion.transformUv
 import com.kamesuta.paintcraft.map.DrawableMapItem
 import com.kamesuta.paintcraft.util.vec.Line2d
 import com.kamesuta.paintcraft.util.vec.Line3d
+import com.kamesuta.paintcraft.util.vec.debug.DebugLocatables.DebugLineType.LINE
+import com.kamesuta.paintcraft.util.vec.debug.DebugLocatables.DebugLineType.SEGMENT
+import com.kamesuta.paintcraft.util.vec.debug.DebugLocatables.toDebug
 import com.kamesuta.paintcraft.util.vec.debug.DebugLocationType
 import com.kamesuta.paintcraft.util.vec.debug.DebugLocationVisualizer.debugLocation
 import com.kamesuta.paintcraft.util.vec.minus
@@ -58,11 +61,11 @@ object FramePlaneTrace {
             // 現在の座標を更新 (もとの座標からの距離が遠いものを優先)
             val current = currentChain.result
             player.debugLocation {
-                locate(DebugLocationType.SEARCH_SEGMENT, current.segment.toDebug(Line3d.DebugLineType.SEGMENT))
-                locate(DebugLocationType.SEARCH_LOCATION, currentChain.origin)
+                locate(DebugLocationType.SEARCH_SEGMENT, current.segment.toDebug(SEGMENT))
+                locate(DebugLocationType.SEARCH_LOCATION, currentChain.origin.toDebug())
                 locate(
                     DebugLocationType.SEARCH_CANVAS_LINE,
-                    current.frameLocation.normal.toDebug(Line3d.DebugLineType.SEGMENT)
+                    current.frameLocation.normal.toDebug(SEGMENT)
                 )
             }
             // ゴールからの距離が今の長さ以上なら探索を中止する
@@ -140,12 +143,10 @@ object FramePlaneTrace {
         // 始点と終点の線分を交線にマッピングする
         val intersectSegment = intersectLine.closestSegment(plane.segment)
         player.debugLocation {
-            locate(DebugLocationType.INTERSECT_LINE_ORIGIN, intersectLine.origin)
-            locate(DebugLocationType.INTERSECT_LINE_TARGET, intersectLine.normalized.target)
-            locate(DebugLocationType.INTERSECT_LINE, intersectLine.toDebug(Line3d.DebugLineType.LINE))
-            locate(DebugLocationType.INTERSECT_SEGMENT, intersectSegment.toDebug(Line3d.DebugLineType.SEGMENT))
-            locate(DebugLocationType.CANVAS_PLANE, frameLocation.plane)
-            locate(DebugLocationType.INTERSECT_PLANE, plane.plane)
+            locate(DebugLocationType.INTERSECT_LINE, intersectLine.toDebug(LINE))
+            locate(DebugLocationType.INTERSECT_SEGMENT, intersectSegment.toDebug(SEGMENT))
+            locate(DebugLocationType.CANVAS_PLANE, frameLocation.plane.toDebug())
+            locate(DebugLocationType.INTERSECT_PLANE, plane.plane.toDebug())
         }
 
         // 線分を2D座標に変換
@@ -174,7 +175,7 @@ object FramePlaneTrace {
             frameLocation.fromBlockUv(clip.target),
         )
         player.debugLocation {
-            locate(DebugLocationType.INTERSECT_SEGMENT_CANVAS, segment3d.toDebug(Line3d.DebugLineType.SEGMENT))
+            locate(DebugLocationType.INTERSECT_SEGMENT_CANVAS, segment3d.toDebug(SEGMENT))
         }
 
         return FramePlaneTraceResult.FramePlaneTraceEntityResult(
