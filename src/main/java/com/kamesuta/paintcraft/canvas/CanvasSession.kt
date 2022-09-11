@@ -2,8 +2,8 @@ package com.kamesuta.paintcraft.canvas
 
 import com.kamesuta.paintcraft.canvas.paint.PaintLine
 import com.kamesuta.paintcraft.canvas.paint.PaintTool
+import com.kamesuta.paintcraft.frame.FrameRayTrace
 import com.kamesuta.paintcraft.util.clienttype.ClientType
-import com.kamesuta.paintcraft.util.clienttype.ClientTypeThreshold
 import org.bukkit.entity.Player
 
 /**
@@ -33,5 +33,8 @@ class CanvasSession(val player: Player) {
     val drawing = CanvasDrawing()
 
     /** クライアントの種類 */
-    var clientType: ClientType = ClientType()
+    var clientType = ClientType()
+
+    /** レイツール */
+    val rayTrace = FrameRayTrace(player) { clientType }
 }

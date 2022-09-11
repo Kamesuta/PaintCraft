@@ -16,12 +16,16 @@ import kotlin.math.round
 /**
  * キャンバスと目線の交差判定をし、UVを計算します
  * @param player プレイヤー
- * @param clientType クライアントの種類
+ * @param getClientType クライアントの種類を取得
  */
 class FrameRayTrace(
     val player: Player,
-    val clientType: ClientType
+    val getClientType: () -> ClientType
 ) {
+    /** クライアントの種類 */
+    val clientType: ClientType
+        get() = getClientType()
+
     /**
      * キャンバスが表か判定する
      * @param playerDirection プレイヤーの方向

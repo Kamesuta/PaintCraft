@@ -91,8 +91,7 @@ object PaintDrawTool {
             val framePlane = FramePlane(plane, eyeLocation, segment, prevEvent.interact.ray, event.interact.ray)
 
             // 当たり判定
-            val rayTrace = FrameRayTrace(event.interact.player, session.clientType)
-            val result = rayTrace.raycast(framePlane)
+            val result = session.rayTrace.raycast(framePlane)
 
             // 線を描く
             for (entityResult in result.entities) {
