@@ -65,7 +65,7 @@ object PaintDrawTool {
         draw: PaintDrawData.() -> Unit,
         raycast: FrameRayTrace.(FramePlane) -> FramePlaneTraceResult,
     ) {
-        if (event.interact.ray.itemFrame == prevEvent.interact.ray.itemFrame) {
+        if (event.interact.ray.itemFrame == prevEvent.interact.ray.itemFrame && event.interact.ray.isHit) {
             // アイテムフレームが同じならそのまま描く
             draw(
                 PaintDrawData(

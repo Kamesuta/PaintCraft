@@ -14,6 +14,7 @@ import org.bukkit.util.Vector
  * @param frameLocation キャンバスの位置
  * @param canvasIntersectLocation キャンバスとレイの交点
  * @param uv UV
+ * @param isHit レイがアイテムフレームにヒットしたか
  */
 data class FrameRayTraceResult(
     val itemFrame: ItemFrame,
@@ -22,4 +23,5 @@ data class FrameRayTraceResult(
     val frameLocation: FrameLocation,
     val canvasIntersectLocation: Vector,
     val uv: Vec2i,
+    val isHit: Boolean,
 )

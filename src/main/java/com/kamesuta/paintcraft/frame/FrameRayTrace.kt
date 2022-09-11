@@ -121,8 +121,12 @@ class FrameRayTrace(
         val uv = frameLocation.toBlockUv(intersectLocation)
             // キャンバス内UV(0～127)を計算、キャンバス範囲外ならばスキップ
             .transformUv(rotation)
-            .run { if (missHit || isUvInMap()) this else return null }
+
+        // キャンバス範囲外＆missHitがfalseならばスキップ
+        val uvInMap = uv.isUvInMap()
+        if (!missHit && !uvInMap) return null
+
         // レイの結果を返す
-        return FrameRayTraceResult(itemFrame, mapItem, eyeLocation, frameLocation, intersectLocation, uv)
+        return FrameRayTraceResult(itemFrame, mapItem, eyeLocation, frameLocation, intersectLocation, uv, uvInMap)
     }
 }
