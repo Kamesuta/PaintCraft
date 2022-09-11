@@ -20,6 +20,7 @@ enum class DebugLocationType(
     SEARCH_LOCATION,
     SEARCH_SEGMENT,
     SEARCH_CANVAS_LINE,
+    SNAP_SEGMENT,
     ;
 
     /** デバッグ座標のグループ、座標をクリアするときに使用 */

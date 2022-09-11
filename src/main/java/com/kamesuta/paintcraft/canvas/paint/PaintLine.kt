@@ -6,7 +6,7 @@ import com.kamesuta.paintcraft.canvas.paint.tool.PaintDrawTool
 import com.kamesuta.paintcraft.map.DrawableMapItem
 import com.kamesuta.paintcraft.map.draw.DrawLine
 import com.kamesuta.paintcraft.map.draw.DrawRollback
-import com.kamesuta.paintcraft.util.vec.origin
+import com.kamesuta.paintcraft.util.vec.*
 import org.bukkit.entity.ItemFrame
 import org.bukkit.map.MapPalette
 import java.awt.Color
@@ -50,6 +50,35 @@ class PaintLine(override val session: CanvasSession) : PaintTool {
     override fun endPainting() {
         // 前回の状態に破棄
         rollback(rollbackCanvas = false, deleteRollback = true)
+    }
+
+    override fun getGuideLine(line: Line3d): Line3d {
+        // 始点のイベント
+        val startEvent = session.drawing.startEvent
+            ?: return line
+
+        // 上方向と右方向
+        val right = startEvent.interact.ray.frameLocation.right
+        val up = startEvent.interact.ray.frameLocation.up
+
+        // 各方向を列挙
+        val minDirection = sequence {
+            for (y in -1..1) {
+                for (x in -1..1) {
+                    // 0,0,0 は除外
+                    if (x == 0 && y == 0) continue
+                    // 各方向の方向ベクトルを返す
+                    yield((right * x.toDouble() + up * -y.toDouble()).normalized)
+                }
+            }
+        }.minBy {
+            // 各方向のベクトルと線の方向ベクトルの内積が最小のベクトル
+            it.dot(line.direction)
+        }
+        // 方向が一番近い方向に伸びている先の点
+        val minLocation = Line3d(line.origin, minDirection).closestPoint(line.target)
+        // 線分を作成
+        return Line3d.fromPoints(line.origin, minLocation)
     }
 
     /**

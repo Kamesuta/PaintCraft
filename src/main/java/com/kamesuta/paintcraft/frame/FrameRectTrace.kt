@@ -37,7 +37,7 @@ object FrameRectTrace {
 
         // 範囲 (平面+αの範囲、αの厚み)
         val box = BoundingBox.of(plane.segment.origin, plane.segment.target).expand(0.05)
-        val entities = player.world.getNearbyEntities(box.clone().expand(0.3)) { it is ItemFrame }
+        val entities = player.world.getNearbyEntities(box.clone().expand(0.5)) { it is ItemFrame }
             .asSequence()
             .mapNotNull { it as? ItemFrame }
             // その中からアイテムフレームを取得する

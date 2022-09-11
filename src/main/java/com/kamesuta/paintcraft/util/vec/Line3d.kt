@@ -45,6 +45,18 @@ data class Line3d(val origin: Vector, val direction: Vector) {
     fun distance(point: Vector) = (point - origin).getCrossProduct(direction).length()
 
     /**
+     * 点に一番近い直線上の点までの符号付き距離
+     * closestPoint = closestPointSignedDistance * direction.normalized
+     * @param point 点
+     * @return 点に一番近い直線上の点までの距離
+     */
+    fun closestPointSignedDistance(point: Vector): Double {
+        val dir = direction.normalized
+        val v = point - origin
+        return v.dot(dir)
+    }
+
+    /**
      * 点に一番近い直線上の点を返す
      * @param point 点
      * @return 点に一番近い直線上の点

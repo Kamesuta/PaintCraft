@@ -111,7 +111,7 @@ class FrameRayTrace(
         // キャンバスのオフセットを計算
         val intersectLocation = frameLocation.plane
             .intersect(eyeLocation)
-            ?: return null
+            ?: return null // レイがキャンバスと平行
         // アイテムフレーム内のマップの向き
         val rotation = when (clientType.isLegacyRotation) {
             false -> FrameRotation.fromRotation(itemFrame.rotation)

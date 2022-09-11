@@ -10,8 +10,9 @@ import com.kamesuta.paintcraft.canvas.*
 import com.kamesuta.paintcraft.canvas.paint.PaintEvent
 import com.kamesuta.paintcraft.util.LocationOperation
 import com.kamesuta.paintcraft.util.TimeWatcher
+import com.kamesuta.paintcraft.util.vec.Line3d
 import com.kamesuta.paintcraft.util.vec.Line3d.Companion.toLine
-import com.kamesuta.paintcraft.util.vec.debug.DebugLocatables
+import com.kamesuta.paintcraft.util.vec.debug.DebugLocatables.DebugLineType.SEGMENT
 import com.kamesuta.paintcraft.util.vec.debug.DebugLocatables.toDebug
 import com.kamesuta.paintcraft.util.vec.debug.DebugLocationType
 import com.kamesuta.paintcraft.util.vec.debug.DebugLocationVisualizer.clearDebugLocation
@@ -405,15 +406,47 @@ class FrameDrawListener : Listener, Runnable {
 
     /**
      * キャンバスに描画する
-     * @param ray レイ
+     * @param frameRay レイ
      * @param session セッション
      */
     private fun manipulate(
-        ray: FrameRayTraceResult,
+        frameRay: FrameRayTraceResult,
         session: CanvasSession,
     ) {
         // プレイヤーを取得
         val player = session.player
+
+        // Shiftキー押したらスナップするようにする
+        var ray = frameRay
+        if (player.isSneaking) {
+            // 始点がある場合
+            session.drawing.startEvent?.let {
+                // 始点と終点を結んだ線分を取得
+                val startLocation = it.interact.ray.canvasIntersectLocation
+                val endLocation = frameRay.canvasIntersectLocation
+                val line = Line3d.fromPoints(startLocation, endLocation)
+                // スナップした線分を取得
+                val snapLine = session.tool.getGuideLine(line)
+                player.debugLocation {
+                    locate(DebugLocationType.SNAP_SEGMENT, snapLine.toDebug(SEGMENT))
+                }
+                // スナップした線分の先端と目線をつなぐ直線を取得
+                val snapEyeLocation = Line3d.fromPoints(session.eyeLocation.origin, snapLine.target)
+                // レイを飛ばす
+                var newRay = session.rayTrace.rayTraceCanvas(snapEyeLocation)
+                if (newRay == null) {
+                    // レイが当たらなかった場合、最後に当たったエンティティの面にレイを飛ばして取得
+                    val startEvent = session.drawing.lastEvent
+                        ?: return@let
+                    newRay = session.rayTrace.rayTraceCanvasByEntity(
+                        snapEyeLocation,
+                        startEvent.interact.ray.itemFrame,
+                        true
+                    ) ?: return@let
+                }
+                ray = newRay
+            }
+        }
 
         // アイテムフレームの位置を取得
         val itemFrameLocation = ray.itemFrame.location
@@ -421,7 +454,7 @@ class FrameDrawListener : Listener, Runnable {
             // アイテムフレームの位置
             locate(
                 DebugLocationType.FRAME_LINE,
-                itemFrameLocation.toLine().toDebug(DebugLocatables.DebugLineType.SEGMENT)
+                itemFrameLocation.toLine().toDebug(SEGMENT)
             )
             // アイテムフレームのブロック上での方向
             locate(

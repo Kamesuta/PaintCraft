@@ -6,10 +6,13 @@ import com.kamesuta.paintcraft.canvas.paint.tool.PaintDrawTool
 import com.kamesuta.paintcraft.map.DrawableMapItem
 import com.kamesuta.paintcraft.map.draw.DrawRect
 import com.kamesuta.paintcraft.map.draw.DrawRollback
-import com.kamesuta.paintcraft.util.vec.origin
+import com.kamesuta.paintcraft.util.vec.*
 import org.bukkit.entity.ItemFrame
 import org.bukkit.map.MapPalette
 import java.awt.Color
+import kotlin.math.abs
+import kotlin.math.min
+import kotlin.math.pow
 
 /**
  * 始点と終点で長方形を描画する
@@ -50,6 +53,36 @@ class PaintRect(override val session: CanvasSession) : PaintTool {
     override fun endPainting() {
         // 前回の状態に破棄
         rollback(rollbackCanvas = false, deleteRollback = true)
+    }
+
+    override fun getGuideLine(line: Line3d): Line3d {
+        // 始点のイベント
+        val startEvent = session.drawing.startEvent
+            ?: return line
+
+        // 上方向と右方向
+        val right = startEvent.interact.ray.frameLocation.right
+        val up = startEvent.interact.ray.frameLocation.up
+
+        // 各方向を列挙
+        val closestDirection = sequence {
+            for (y in arrayOf(-1, 1)) {
+                for (x in arrayOf(-1, 1)) {
+                    // 各方向の方向ベクトルを返す
+                    yield((right * x.toDouble() + up * -y.toDouble()).normalized)
+                }
+            }
+        }.maxBy {
+            // 各方向のベクトルと線の方向ベクトルの内積が最小のベクトル
+            it.dot(line.direction)
+        }
+        // 方向が一番近い方向に伸びている先の点
+        val closestLength = min(
+            abs(Line3d(line.origin, right).closestPointSignedDistance(line.target)),
+            abs(Line3d(line.origin, up).closestPointSignedDistance(line.target)),
+        )
+        // 線分を作成
+        return Line3d(line.origin, closestDirection * closestLength * 2.0.pow(0.5))
     }
 
     /**
