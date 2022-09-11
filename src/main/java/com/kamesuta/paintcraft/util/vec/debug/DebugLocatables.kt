@@ -1,8 +1,12 @@
 package com.kamesuta.paintcraft.util.vec.debug
 
+import com.kamesuta.paintcraft.frame.FrameLocation
 import com.kamesuta.paintcraft.util.vec.*
 import org.bukkit.util.Vector
 
+/**
+ * デバッグの座標表示関数郡
+ */
 object DebugLocatables {
     /** デバッグ用の線のタイプ */
     enum class DebugLineType {
@@ -57,8 +61,25 @@ object DebugLocatables {
     fun Plane3d.toDebug() = DebugLocatable { eyeLocation, locate ->
         val right = right
         val up = up
-
         val closestPoint = closestPoint(eyeLocation.origin)
+        locatePlane(locate, closestPoint, right, up)
+    }
+
+    /**
+     * デバッグ用に平面を作成する
+     */
+    fun FrameLocation.toDebug() = DebugLocatable { eyeLocation, locate ->
+        val right = right
+        val up = up
+        val closestPoint = plane.closestPoint(eyeLocation.origin)
+        locatePlane(locate, closestPoint, right, up)
+    }
+
+    /**
+     * デバッグ用に平面を描画する
+     * @param locate
+     */
+    private fun locatePlane(locate: (Vector) -> Unit, closestPoint: Vector, right: Vector, up: Vector) {
         for (y in -10..10) {
             for (x in -10..10) {
                 val pos = closestPoint + (right * (x.toDouble() * 0.5)) + (up * (y.toDouble() * 0.5))

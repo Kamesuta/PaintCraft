@@ -2,6 +2,10 @@ package com.kamesuta.paintcraft.util.vec.debug
 
 /** デバッグの座標の更新を行うツールです */
 fun interface DebugLocator {
-    /** DebugLocatable型の座標を更新 */
+    /**
+     * デバッグシェープを描画
+     * @param type 表示するデバッグの種類
+     * @param location 描画するシェープ
+     */
     fun locate(type: DebugLocationType, location: DebugLocatable?)
 }

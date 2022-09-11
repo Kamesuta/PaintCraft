@@ -145,7 +145,7 @@ object FramePlaneTrace {
         player.debugLocation {
             locate(DebugLocationType.INTERSECT_LINE, intersectLine.toDebug(LINE))
             locate(DebugLocationType.INTERSECT_SEGMENT, intersectSegment.toDebug(SEGMENT))
-            locate(DebugLocationType.CANVAS_PLANE, frameLocation.plane.toDebug())
+            locate(DebugLocationType.CANVAS_PLANE, frameLocation.toDebug())
             locate(DebugLocationType.INTERSECT_PLANE, plane.plane.toDebug())
         }
 
