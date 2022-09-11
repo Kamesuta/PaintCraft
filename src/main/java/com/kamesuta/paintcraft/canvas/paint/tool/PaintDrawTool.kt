@@ -64,8 +64,16 @@ object PaintDrawTool {
         raycast: FrameRayTrace.(FramePlane) -> FramePlaneTraceResult,
     ) {
         if (event.interact.ray.itemFrame == prevEvent.interact.ray.itemFrame) {
-            // 絵を描く
-            draw(PaintDrawData(event.interact.ray.itemFrame, event.mapItem, prevEvent.interact.uv, event.interact.uv))
+            // アイテムフレームが同じならそのまま描く
+            draw(
+                PaintDrawData(
+                    event.interact.ray.itemFrame,
+                    event.mapItem,
+                    prevEvent.interact.uv,
+                    event.interact.uv,
+                    null
+                )
+            )
         } else {
             // アイテムフレームが違うなら平面を作成しレイキャストする
 
@@ -94,7 +102,8 @@ object PaintDrawTool {
                         entityResult.itemFrame,
                         entityResult.mapItem,
                         entityResult.uvStart,
-                        entityResult.uvEnd
+                        entityResult.uvEnd,
+                        result,
                     )
                 )
             }
