@@ -1,10 +1,9 @@
 package com.kamesuta.paintcraft.frame
 
-import com.kamesuta.paintcraft.frame.FrameRayTrace.Companion.isUvInMap
-import com.kamesuta.paintcraft.frame.FrameRayTrace.Companion.mapBlockUvToLocation
-import com.kamesuta.paintcraft.frame.FrameRayTrace.Companion.mapLocationToBlockUv
-import com.kamesuta.paintcraft.frame.FrameRayTrace.Companion.toCanvasPlane
-import com.kamesuta.paintcraft.frame.FrameRayTrace.Companion.transformUv
+import com.kamesuta.paintcraft.frame.FrameLocation.Companion.isUvInMap
+import com.kamesuta.paintcraft.frame.FrameLocation.Companion.mapBlockUvToLocation
+import com.kamesuta.paintcraft.frame.FrameLocation.Companion.mapLocationToBlockUv
+import com.kamesuta.paintcraft.frame.FrameLocation.Companion.transformUv
 import com.kamesuta.paintcraft.map.DrawableMapItem
 import com.kamesuta.paintcraft.util.vec.*
 import com.kamesuta.paintcraft.util.vec.debug.DebugLocationType
@@ -131,34 +130,28 @@ object FramePlaneTrace {
         // マップデータを取得、ただの地図ならばスキップ
         val mapItem = DrawableMapItem.get(itemFrame.item)
             ?: return null
-        // キャンバス平面の位置
-        val canvasLocation = toCanvasLocation(itemFrame)
-        // キャンバスの平面
-        val canvasPlane =
-            canvasLocation.toCanvasPlane(itemFrame.isVisible || !clientType.isInvisibleFrameSupported)
+        // フレーム平面の作成
+        val frameLocation = FrameLocation.fromItemFrame(itemFrame, clientType)
 
         // 面の交線を計算
-        val canvasIntersectLine = canvasPlane.intersect(plane.plane)
+        val intersectLine = frameLocation.plane.intersect(plane.plane)
             ?: return null
         // 始点と終点の線分を交線にマッピングする
-        val canvasIntersectSegment = canvasIntersectLine.closestSegment(plane.segment)
+        val intersectSegment = intersectLine.closestSegment(plane.segment)
         player.debugLocation {
-            locate(DebugLocationType.INTERSECT_LINE_ORIGIN, canvasIntersectLine.origin)
-            locate(DebugLocationType.INTERSECT_LINE_TARGET, canvasIntersectLine.normalized.target)
-            locate(DebugLocationType.INTERSECT_LINE, canvasIntersectLine.toDebug(Line3d.DebugLineType.LINE))
-            locate(DebugLocationType.INTERSECT_SEGMENT, canvasIntersectSegment.toDebug(Line3d.DebugLineType.SEGMENT))
-            locate(DebugLocationType.CANVAS_PLANE, canvasPlane)
+            locate(DebugLocationType.INTERSECT_LINE_ORIGIN, intersectLine.origin)
+            locate(DebugLocationType.INTERSECT_LINE_TARGET, intersectLine.normalized.target)
+            locate(DebugLocationType.INTERSECT_LINE, intersectLine.toDebug(Line3d.DebugLineType.LINE))
+            locate(DebugLocationType.INTERSECT_SEGMENT, intersectSegment.toDebug(Line3d.DebugLineType.SEGMENT))
+            locate(DebugLocationType.CANVAS_PLANE, frameLocation.plane)
             locate(DebugLocationType.INTERSECT_PLANE, plane.plane)
         }
 
-        // キャンバスの回転を計算
-        val (canvasYaw, canvasPitch) = getCanvasRotation(itemFrame)
-
         // 線分を2D座標に変換
-        val rawUvOrigin = (canvasIntersectSegment.origin - canvasLocation.origin)
-            .mapLocationToBlockUv(canvasYaw, canvasPitch)
-        val rawUvTarget = (canvasIntersectSegment.target - canvasLocation.origin)
-            .mapLocationToBlockUv(canvasYaw, canvasPitch)
+        val rawUvOrigin = (intersectSegment.origin - frameLocation.origin)
+            .mapLocationToBlockUv(frameLocation.yaw, frameLocation.pitch)
+        val rawUvTarget = (intersectSegment.target - frameLocation.origin)
+            .mapLocationToBlockUv(frameLocation.yaw, frameLocation.pitch)
         // 2Dの線分(未クリップ、キャンバス内の範囲に収まっていない)
         val segment = Line2d.fromPoints(rawUvOrigin, rawUvTarget)
         // キャンバス内の座標に変換
@@ -178,8 +171,8 @@ object FramePlaneTrace {
 
         // 3D座標に逆変換
         val segment3d = Line3d.fromPoints(
-            clip.origin.mapBlockUvToLocation(canvasYaw, canvasPitch) + canvasLocation.origin,
-            clip.target.mapBlockUvToLocation(canvasYaw, canvasPitch) + canvasLocation.origin,
+            clip.origin.mapBlockUvToLocation(frameLocation.yaw, frameLocation.pitch) + frameLocation.origin,
+            clip.target.mapBlockUvToLocation(frameLocation.yaw, frameLocation.pitch) + frameLocation.origin,
         )
         player.debugLocation {
             locate(DebugLocationType.INTERSECT_SEGMENT_CANVAS, segment3d.toDebug(Line3d.DebugLineType.SEGMENT))
@@ -188,7 +181,7 @@ object FramePlaneTrace {
         return FramePlaneTraceResult.FramePlaneTraceEntityResult(
             itemFrame,
             mapItem,
-            canvasLocation,
+            frameLocation.location,
             segment3d,
             uvStart,
             uvEnd

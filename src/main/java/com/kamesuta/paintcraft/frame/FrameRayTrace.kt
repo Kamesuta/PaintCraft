@@ -1,17 +1,19 @@
 package com.kamesuta.paintcraft.frame
 
-import com.kamesuta.paintcraft.map.DrawableMapBuffer.Companion.mapSize
+import com.kamesuta.paintcraft.frame.FrameLocation.Companion.isUvInMap
+import com.kamesuta.paintcraft.frame.FrameLocation.Companion.mapLocationToBlockUv
+import com.kamesuta.paintcraft.frame.FrameLocation.Companion.transformUv
 import com.kamesuta.paintcraft.map.DrawableMapItem
 import com.kamesuta.paintcraft.util.clienttype.ClientType
-import com.kamesuta.paintcraft.util.vec.*
+import com.kamesuta.paintcraft.util.vec.Line3d
 import com.kamesuta.paintcraft.util.vec.debug.DebugLocationType
 import com.kamesuta.paintcraft.util.vec.debug.DebugLocationVisualizer.debugLocation
+import com.kamesuta.paintcraft.util.vec.minus
 import org.bukkit.Material
 import org.bukkit.entity.ItemFrame
 import org.bukkit.entity.Player
 import org.bukkit.util.BoundingBox
 import org.bukkit.util.Vector
-import kotlin.math.round
 
 /**
  * キャンバスと目線の交差判定をし、UVを計算します
@@ -112,21 +114,17 @@ class FrameRayTrace(
         // マップデータを取得、ただの地図ならばスキップ
         val mapItem = DrawableMapItem.get(itemFrame.item)
             ?: return null
-        // キャンバス平面の位置
-        val canvasLocation = toCanvasLocation(itemFrame)
+        // フレーム平面の作成
+        val frameLocation = FrameLocation.fromItemFrame(itemFrame, clientType)
         player.debugLocation {
             // アイテムフレームの位置
-            locate(DebugLocationType.CANVAS_LOCATION, canvasLocation.origin)
+            locate(DebugLocationType.CANVAS_LOCATION, frameLocation.location.origin)
             // アイテムフレームの正面ベクトル
-            locate(DebugLocationType.CANVAS_DIRECTION, canvasLocation.target)
+            locate(DebugLocationType.CANVAS_DIRECTION, frameLocation.location.target)
         }
 
-        // キャンバスの回転を計算
-        val (canvasYaw, canvasPitch) = getCanvasRotation(itemFrame)
-
         // キャンバスのオフセットを計算
-        val canvasIntersectLocation = canvasLocation
-            .toCanvasPlane(itemFrame.isVisible || !clientType.isInvisibleFrameSupported)
+        val intersectLocation = frameLocation.plane
             .intersect(eyeLocation)
             ?: return null
         // アイテムフレーム内のマップの向き
@@ -135,161 +133,13 @@ class FrameRayTrace(
             true -> FrameRotation.fromLegacyRotation(itemFrame.rotation)
         }
         // UVに変換 → キャンバス内UVを計算、キャンバス範囲外ならばスキップ
-        val uv = (canvasIntersectLocation - canvasLocation.origin)
+        val uv = (intersectLocation - frameLocation.origin)
             // UVに変換(-0.5～+0.5)
-            .mapLocationToBlockUv(canvasYaw, canvasPitch)
+            .mapLocationToBlockUv(frameLocation.yaw, frameLocation.pitch)
             // キャンバス内UV(0～127)を計算、キャンバス範囲外ならばスキップ
             .transformUv(rotation)
             .run { if (missHit || isUvInMap()) this else return null }
         // レイの結果を返す
-        return FrameRayTraceResult(itemFrame, mapItem, eyeLocation, canvasLocation, canvasIntersectLocation, uv)
-    }
-
-    /**
-     * キャンバスの回転を計算
-     * @param itemFrame アイテムフレーム
-     * @return キャンバスの回転
-     */
-    fun getCanvasRotation(itemFrame: ItemFrame): Pair<Float, Float> {
-        return if (clientType.isPitchRotationSupported) {
-            // Java版1.13以降はYaw/Pitchの自由回転をサポートしている
-            itemFrame.location.let { it.yaw to it.pitch }
-        } else if (clientType.isFacingRotationOnly) {
-            // BE版はブロックに沿った回転のみサポートしている
-            val dir = Line3d(Vector(), itemFrame.facing.direction)
-            dir.yaw to dir.pitch
-        } else {
-            // Java版1.12以前はYaw回転のみサポートしている、Pitchは常に0
-            itemFrame.location.yaw to 0.0f
-        }
-    }
-
-    /**
-     * キャンバスフレームの平面の座標を求める
-     * アイテムフレームの座標からキャンバス平面の座標を計算する
-     * (tpでアイテムフレームを回転したときにずれる)
-     * @receiver アイテムフレームの座標
-     * @return キャンバスフレームの平面の座標
-     */
-    fun toCanvasLocation(itemFrame: ItemFrame): Line3d {
-        // キャンバスの回転を計算
-        val (canvasYaw, canvasPitch) = getCanvasRotation(itemFrame)
-        // ブロックの中心座標
-        val centerLocation = itemFrame.location.toCenterLocation()
-        // キャンバスの面を合成して座標と向きを返す
-        return centerLocation.origin.toCanvasLocation(canvasYaw, canvasPitch)
-    }
-
-    companion object {
-        /**
-         * キャンバスフレームの平面の座標を求める
-         * アイテムフレームの座標からキャンバス平面の座標を計算する
-         * (tpでアイテムフレームを回転したときにずれる)
-         * @receiver キャンバスの中心座標
-         * @return キャンバスフレームの平面の座標
-         */
-        fun Vector.toCanvasLocation(yaw: Float, pitch: Float): Line3d {
-            // キャンバスの向き。通常のdirectionとはpitchが反転していることに注意
-            // Y軸回転→X軸回転をX軸回転→Y軸回転にするために、一旦単位方向ベクトルに変換
-            val dir = Vector(0.0, 0.0, 1.0)
-                .rotateAroundY(Math.toRadians(-yaw.toDouble()))
-                .rotateAroundX(Math.toRadians(pitch.toDouble()))
-            // 中心の座標ををキャンバスの向き方向にずらす
-            val origin = this - (dir * 0.5)
-            // キャンバスの面を合成して座標と向きを返す
-            return Line3d(origin, dir)
-        }
-
-        /**
-         * キャンバス平面の位置からキャンバスの平面を取得する
-         * @receiver キャンバス平面の位置
-         * @param isFrameVisible アイテムフレームが見えるかどうか
-         * @return キャンバスの平面
-         */
-        fun Line3d.toCanvasPlane(isFrameVisible: Boolean): Plane3d {
-            // キャンバス平面とアイテムフレームの差 = アイテムフレームの厚さ/2
-            val canvasOffsetZ = if (isFrameVisible) 0.07 else 0.0075
-            // キャンバスの表面の平面の座標 = アイテムフレームエンティティの中心からアイテムフレームの厚さ/2だけずらした位置
-            val canvasPlane = this + (direction * canvasOffsetZ)
-            // 平面を作成
-            return Plane3d.fromPointNormal(canvasPlane.origin, canvasPlane.direction)
-        }
-
-        /**
-         * 交点座標をキャンバス上のUV座標に変換する
-         * UV座標は中央が(0,0)になる
-         * @receiver 交点座標
-         * @param itemFrameYaw アイテムフレームのYaw角度
-         * @param itemFramePitch アイテムフレームのPitch角度
-         * @return キャンバス上のUV座標
-         */
-        fun Vector.mapLocationToBlockUv(
-            itemFrameYaw: Float,
-            itemFramePitch: Float,
-        ): Vec2d {
-            // 交点座標を(0,0)を中心に回転し、UV座標(x,-y)に対応するようにする
-            val unRotated = clone()
-                .rotateAroundX(Math.toRadians(-itemFramePitch.toDouble()))
-                .rotateAroundY(Math.toRadians(itemFrameYaw.toDouble()))
-            // UV座標を返す (3D座標はYが上ほど大きく、UV座標はYが下ほど大きいため、Yを反転する)
-            return Vec2d(unRotated.x, -unRotated.y)
-        }
-
-        /**
-         * mapToBlockUVの逆変換
-         * UV座標を通常の座標に変換する
-         * @receiver キャンバス上のUV座標
-         * @param itemFrameYaw アイテムフレームのYaw角度
-         * @param itemFramePitch アイテムフレームのPitch角度
-         * @return 交点座標
-         */
-        fun Vec2d.mapBlockUvToLocation(
-            itemFrameYaw: Float,
-            itemFramePitch: Float,
-        ): Vector {
-            // mapToBlockUVの逆変換
-            return Vector(x, -y, 0.0)
-                .rotateAroundY(Math.toRadians(-itemFrameYaw.toDouble()))
-                .rotateAroundX(Math.toRadians(itemFramePitch.toDouble()))
-        }
-
-        /**
-         * ブロックのUV座標->キャンバスピクセルのUV座標を計算する
-         * @receiver ブロックのUV座標
-         * @param rotation アイテムフレーム内の地図の回転
-         * @return キャンバスピクセルのUV座標
-         */
-        fun Vec2d.transformUv(rotation: FrameRotation): Vec2i {
-            // -0.5～0.5の範囲を0.0～1.0の範囲に変換する
-            val q = rotation.uv(this) + Vec2d(0.5, 0.5)
-            // 0～128(ピクセル座標)の範囲に変換する
-            val x = round(q.x * (mapSize - 1)).toInt()
-            val y = round(q.y * (mapSize - 1)).toInt()
-            // 変換した座標を返す
-            return Vec2i(x, y)
-        }
-
-        /**
-         * キャンバスピクセルのUV座標がキャンバス内にあるかどうかを判定する
-         * @receiver キャンバスピクセルのUV座標
-         * @return キャンバス内にあるかどうか
-         */
-        fun Vec2i.isUvInMap(): Boolean {
-            if (x >= mapSize || x < 0) return false
-            if (y >= mapSize || y < 0) return false
-            return true
-        }
-
-        /**
-         * キャンバスピクセルのUV座標をキャンバスの範囲内に収める
-         * @receiver キャンバスピクセルのUV座標
-         * @return ClampされたキャンバスピクセルのUV座標
-         */
-        fun Vec2i.clampUvInMap(): Vec2i {
-            return Vec2i(
-                x.coerceIn(0, mapSize - 1),
-                y.coerceIn(0, mapSize - 1)
-            )
-        }
+        return FrameRayTraceResult(itemFrame, mapItem, eyeLocation, frameLocation.location, intersectLocation, uv)
     }
 }
