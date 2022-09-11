@@ -1,19 +1,16 @@
 package com.kamesuta.paintcraft.frame
 
 import com.kamesuta.paintcraft.frame.FrameLocation.Companion.isUvInMap
-import com.kamesuta.paintcraft.frame.FrameLocation.Companion.mapLocationToBlockUv
 import com.kamesuta.paintcraft.frame.FrameLocation.Companion.transformUv
 import com.kamesuta.paintcraft.map.DrawableMapItem
 import com.kamesuta.paintcraft.util.clienttype.ClientType
 import com.kamesuta.paintcraft.util.vec.Line3d
 import com.kamesuta.paintcraft.util.vec.debug.DebugLocationType
 import com.kamesuta.paintcraft.util.vec.debug.DebugLocationVisualizer.debugLocation
-import com.kamesuta.paintcraft.util.vec.minus
 import org.bukkit.Material
 import org.bukkit.entity.ItemFrame
 import org.bukkit.entity.Player
 import org.bukkit.util.BoundingBox
-import org.bukkit.util.Vector
 
 /**
  * キャンバスと目線の交差判定をし、UVを計算します
@@ -27,17 +24,6 @@ class FrameRayTrace(
     /** クライアントの種類 */
     val clientType: ClientType
         get() = getClientType()
-
-    /**
-     * キャンバスが表か判定する
-     * @param playerDirection プレイヤーの方向
-     * @param canvasLocation アイテムフレーム
-     * @return キャンバスが表かどうか
-     */
-    fun isCanvasFrontSide(playerDirection: Vector, canvasLocation: Line3d): Boolean {
-        // 裏からのクリックを判定
-        return playerDirection.dot(canvasLocation.direction) <= 0
-    }
 
     /**
      * レイを飛ばしてアイテムフレームを取得
@@ -133,9 +119,7 @@ class FrameRayTrace(
             true -> FrameRotation.fromLegacyRotation(itemFrame.rotation)
         }
         // UVに変換 → キャンバス内UVを計算、キャンバス範囲外ならばスキップ
-        val uv = (intersectLocation - frameLocation.origin)
-            // UVに変換(-0.5～+0.5)
-            .mapLocationToBlockUv(frameLocation.yaw, frameLocation.pitch)
+        val uv = frameLocation.toBlockUv(intersectLocation)
             // キャンバス内UV(0～127)を計算、キャンバス範囲外ならばスキップ
             .transformUv(rotation)
             .run { if (missHit || isUvInMap()) this else return null }

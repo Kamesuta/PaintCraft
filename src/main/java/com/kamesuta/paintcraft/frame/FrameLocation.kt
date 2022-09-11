@@ -21,13 +21,13 @@ class FrameLocation(
     val offsetZ: Double,
 ) {
     /** 前方向の向き */
-    val forward = Vector(0.0, 0.0, 1.0).rotateYawPitch(yaw, pitch)
+    val forward = Vector(0.0, 0.0, 1.0).rotate(yaw, pitch)
 
     /** 上方向の向き */
-    val up = Vector(0.0, 1.0, 0.0).rotateYawPitch(yaw, pitch)
+    val up = Vector(0.0, 1.0, 0.0).rotate(yaw, pitch)
 
     /** 右方向の向き */
-    val right = Vector(1.0, 0.0, 0.0).rotateYawPitch(yaw, pitch)
+    val right = Vector(1.0, 0.0, 0.0).rotate(yaw, pitch)
 
     /** アイテムフレームの座標 */
     val origin = center + (forward * (offsetZ - 0.5))
@@ -37,6 +37,30 @@ class FrameLocation(
 
     /** 平面の線分 */
     val location get() = Line3d(origin, forward)
+
+    /**
+     * 交点座標をキャンバス上のUV座標に変換する (-0.5～+0.5)
+     * UV座標は中央が(0,0)になる
+     * @param location 交点座標
+     * @return キャンバス上のUV座標 (-0.5～+0.5)
+     */
+    fun toBlockUv(location: Vector): Vec2d {
+        // 交点座標を(0,0)を中心に回転し、UV座標(x,-y)に対応するようにする
+        val unRotated = (location - origin).unrotate(yaw, pitch)
+        // UV座標を返す (3D座標はYが上ほど大きく、UV座標はYが下ほど大きいため、Yを反転する)
+        return Vec2d(unRotated.x, -unRotated.y)
+    }
+
+    /**
+     * mapToBlockUVの逆変換
+     * UV座標を通常の座標に変換する
+     * @param blockUv キャンバス上のUV座標 (-0.5～+0.5)
+     * @return 交点座標
+     */
+    fun fromBlockUv(blockUv: Vec2d): Vector {
+        // mapToBlockUVの逆変換
+        return Vector(blockUv.x, -blockUv.y, 0.0).rotate(yaw, pitch) + origin
+    }
 
     companion object {
         /**
@@ -82,50 +106,32 @@ class FrameLocation(
 
         /**
          * YawとPitchで回転する
+         * @param yaw Yaw角度
+         * @param pitch Pitch角度
          */
-        private fun Vector.rotateYawPitch(yaw: Float, pitch: Float): Vector {
+        private fun Vector.rotate(yaw: Float, pitch: Float) = clone()
             // Y軸回転→X軸回転をX軸回転→Y軸回転にするために、一旦単位方向ベクトルに変換
-            return clone()
-                .rotateAroundY(Math.toRadians(-yaw.toDouble()))
-                .rotateAroundX(Math.toRadians(pitch.toDouble()))
-        }
+            .rotateAroundY(Math.toRadians(-yaw.toDouble()))
+            .rotateAroundX(Math.toRadians(pitch.toDouble()))
 
         /**
-         * 交点座標をキャンバス上のUV座標に変換する
-         * UV座標は中央が(0,0)になる
-         * @receiver 交点座標
-         * @param itemFrameYaw アイテムフレームのYaw角度
-         * @param itemFramePitch アイテムフレームのPitch角度
-         * @return キャンバス上のUV座標
+         * YawとPitchの回転を戻す
+         * @param yaw Yaw角度
+         * @param pitch Pitch角度
          */
-        fun Vector.mapLocationToBlockUv(
-            itemFrameYaw: Float,
-            itemFramePitch: Float,
-        ): Vec2d {
-            // 交点座標を(0,0)を中心に回転し、UV座標(x,-y)に対応するようにする
-            val unRotated = clone()
-                .rotateAroundX(Math.toRadians(-itemFramePitch.toDouble()))
-                .rotateAroundY(Math.toRadians(itemFrameYaw.toDouble()))
-            // UV座標を返す (3D座標はYが上ほど大きく、UV座標はYが下ほど大きいため、Yを反転する)
-            return Vec2d(unRotated.x, -unRotated.y)
-        }
+        private fun Vector.unrotate(yaw: Float, pitch: Float) = clone()
+            .rotateAroundX(Math.toRadians(-pitch.toDouble()))
+            .rotateAroundY(Math.toRadians(yaw.toDouble()))
 
         /**
-         * mapToBlockUVの逆変換
-         * UV座標を通常の座標に変換する
-         * @receiver キャンバス上のUV座標
-         * @param itemFrameYaw アイテムフレームのYaw角度
-         * @param itemFramePitch アイテムフレームのPitch角度
-         * @return 交点座標
+         * キャンバスが表か判定する
+         * @param playerDirection プレイヤーの方向
+         * @param canvasLocation アイテムフレーム
+         * @return キャンバスが表かどうか
          */
-        fun Vec2d.mapBlockUvToLocation(
-            itemFrameYaw: Float,
-            itemFramePitch: Float,
-        ): Vector {
-            // mapToBlockUVの逆変換
-            return Vector(x, -y, 0.0)
-                .rotateAroundY(Math.toRadians(-itemFrameYaw.toDouble()))
-                .rotateAroundX(Math.toRadians(itemFramePitch.toDouble()))
+        fun isCanvasFrontSide(playerDirection: Vector, canvasLocation: Line3d): Boolean {
+            // 裏からのクリックを判定
+            return playerDirection.dot(canvasLocation.direction) <= 0
         }
 
         /**
@@ -165,6 +171,44 @@ class FrameLocation(
                 x.coerceIn(0, DrawableMapBuffer.mapSize - 1),
                 y.coerceIn(0, DrawableMapBuffer.mapSize - 1)
             )
+        }
+
+        /**
+         * 直線との正方形の線分を計算します
+         * @receiver 直線
+         * @param range 正方形の半径
+         * @return 線分
+         */
+        @Suppress("LocalVariableName", "FunctionName")
+        fun Line2d.clipBlockUV(range: Double = 0.5): Line2d? {
+            // 以下の式を使用して交点を計算する
+            // https://www.desmos.com/calculator/rqjlphqe2b
+
+            // 座標の計算式
+            val A = origin
+            val B = target
+            fun Y(x: Double) = (B.y - A.y) / (B.x - A.x) * (x - A.x) + A.y
+            fun X(y: Double) = (B.x - A.x) / (B.y - A.y) * (y - A.y) + A.x
+
+            // 辺の交点の座標を計算する
+            val x0 = X(-range)  // y = -0.5 上辺の交点のx座標
+            val x1 = X(range)   // y = 0.5  下辺の交点のx座標
+            val y0 = Y(-range)  // x = -0.5 左辺の交点のy座標
+            val y1 = Y(range)   // x = 0.5  右辺の交点のy座標
+
+            // 交点をリストにする
+            val crossPoints = mutableListOf<Vec2d>()
+            if (x0 in -range..range) crossPoints.add(Vec2d(x0, -range))
+            if (x1 in -range..range) crossPoints.add(Vec2d(x1, range))
+            if (y0 in -range..range) crossPoints.add(Vec2d(-range, y0))
+            if (y1 in -range..range) crossPoints.add(Vec2d(range, y1))
+
+            // 交点リストから線分を計算する
+            return when (crossPoints.size) {
+                1 -> Line2d.fromPoints(crossPoints[0], crossPoints[0])
+                2 -> Line2d.fromPoints(crossPoints[0], crossPoints[1])
+                else -> null
+            }
         }
     }
 }

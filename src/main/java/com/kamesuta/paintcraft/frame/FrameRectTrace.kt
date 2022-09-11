@@ -1,7 +1,5 @@
 package com.kamesuta.paintcraft.frame
 
-import com.kamesuta.paintcraft.frame.FrameLocation.Companion.mapBlockUvToLocation
-import com.kamesuta.paintcraft.frame.FrameLocation.Companion.mapLocationToBlockUv
 import com.kamesuta.paintcraft.frame.FrameLocation.Companion.transformUv
 import com.kamesuta.paintcraft.map.DrawableMapItem
 import com.kamesuta.paintcraft.util.vec.Line2d
@@ -9,7 +7,6 @@ import com.kamesuta.paintcraft.util.vec.Line3d
 import com.kamesuta.paintcraft.util.vec.debug.DebugLocationType
 import com.kamesuta.paintcraft.util.vec.debug.DebugLocationVisualizer.debugLocation
 import com.kamesuta.paintcraft.util.vec.minus
-import com.kamesuta.paintcraft.util.vec.plus
 import org.bukkit.Material
 import org.bukkit.entity.ItemFrame
 import org.bukkit.util.BoundingBox
@@ -90,10 +87,8 @@ object FrameRectTrace {
         val rectSegment = plane.segment
 
         // 線分を2D座標に変換
-        val rawUvOrigin = (rectSegment.origin - frameLocation.origin)
-            .mapLocationToBlockUv(frameLocation.yaw, frameLocation.pitch)
-        val rawUvTarget = (rectSegment.target - frameLocation.origin)
-            .mapLocationToBlockUv(frameLocation.yaw, frameLocation.pitch)
+        val rawUvOrigin = frameLocation.toBlockUv(rectSegment.origin)
+        val rawUvTarget = frameLocation.toBlockUv(rectSegment.target)
         // 2Dの線分(未クリップ、キャンバス内の範囲に収まっていない)
         val segment = Line2d.fromPoints(rawUvOrigin, rawUvTarget)
         // アイテムフレーム内のマップの向き
@@ -109,8 +104,8 @@ object FrameRectTrace {
 
         // 3D座標に逆変換
         val segment3d = Line3d.fromPoints(
-            segment.origin.mapBlockUvToLocation(frameLocation.yaw, frameLocation.pitch) + frameLocation.origin,
-            segment.target.mapBlockUvToLocation(frameLocation.yaw, frameLocation.pitch) + frameLocation.origin,
+            frameLocation.fromBlockUv(segment.origin),
+            frameLocation.fromBlockUv(segment.target),
         )
         player.debugLocation {
             locate(DebugLocationType.INTERSECT_SEGMENT_CANVAS, segment3d.toDebug(Line3d.DebugLineType.SEGMENT))
