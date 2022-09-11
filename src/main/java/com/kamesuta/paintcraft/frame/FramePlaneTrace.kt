@@ -38,19 +38,23 @@ object FramePlaneTrace {
         // ゴール = 終点の座標
         val goal = plane.segment.target
 
-        // バブル連鎖探索用の結果格納クラス
+        /** バブル連鎖探索用の結果格納クラス */
         class SearchResult(
             val parent: SearchResult?,
             val result: FramePlaneTraceResult.FramePlaneTraceEntityResult,
             val prevOrigin: Vector,
         ) {
+            /** 中心座標 */
             val origin = maxOf(result.segment.origin, result.segment.target) { a: Vector, b: Vector ->
                 a.distanceSquared(prevOrigin).compareTo(b.distanceSquared(prevOrigin))
             }
+
+            /** ゴールに到着済み */
+            val isGoal = origin.distanceSquared(goal) < 0.01
         }
 
         // 終点にたどり着くまで繰り返す
-        fun searchAround(currentChain: SearchResult): SearchResult? {
+        fun searchAround(currentChain: SearchResult): SearchResult {
             // 現在の座標を更新 (もとの座標からの距離が遠いものを優先)
             val current = currentChain.result
             player.debugLocation {
@@ -65,18 +69,17 @@ object FramePlaneTrace {
             if ((currentChain.parent != null) &&
                 (currentChain.origin.distanceSquared(goal) >= currentChain.parent.origin.distanceSquared(goal))
             ) {
-                return null
+                return currentChain
             }
 
             // 終点までの距離
-            val currentDistance = currentChain.origin.distanceSquared(goal)
-            if (currentDistance < 0.01) {
+            if (currentChain.isGoal) {
                 // 終点にたどり着いたら終了
                 return currentChain
             }
 
             // 現在の座標から半径radiusの球体の中にあるアイテムフレームを取得
-            currentChain.origin.toLocation(player.world)
+            val results = currentChain.origin.toLocation(player.world)
                 .getNearbyEntitiesByType(ItemFrame::class.java, radius)
                 .asSequence()
                 // その中からアイテムフレームを取得する
@@ -91,20 +94,18 @@ object FramePlaneTrace {
                     it.canvasLocation.direction.dot(it.canvasLocation.origin - plane.rayStart.eyeLocation.origin) < 0
                             || it.canvasLocation.direction.dot(it.canvasLocation.origin - plane.rayEnd.eyeLocation.origin) < 0
                 }
-                .forEach {
-                    // 再帰的に探索
-                    val resultChain = searchAround(SearchResult(currentChain, it, currentChain.origin))
-                    if (resultChain != null) {
-                        // 終点にたどり着いたら終了
-                        return resultChain
-                    }
-                }
+                // チェーンをつなぐ
+                .map { SearchResult(currentChain, it, currentChain.origin) }
+                // 再帰的に探索
+                .map { searchAround(it) }
+                .toList()
 
-            return null
+            // ゴールとの距離が近いものを優先
+            return results.minByOrNull { it.origin.distanceSquared(goal) } ?: currentChain
         }
 
         // 始点のアイテムフレーム/座標から探索を開始
-        var current = searchAround(SearchResult(null, start, plane.segment.origin))
+        var current: SearchResult? = searchAround(SearchResult(null, start, plane.segment.origin))
 
         // チェーンをたどって結果を取得
         val chain = mutableListOf<FramePlaneTraceResult.FramePlaneTraceEntityResult>()
