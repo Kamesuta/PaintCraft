@@ -215,6 +215,8 @@ class FrameDrawListener : Listener, Runnable {
                 // クリック中でない場合、描画終了時の処理
                 session.drawing.endDrawing()
                 session.tool.endPainting()
+                // 前回の状態に破棄
+                session.drawing.edited.clear()
             }
             // クリック中でない場合は描き込みを行わない
             return
@@ -495,6 +497,9 @@ class FrameDrawListener : Listener, Runnable {
 
         // キャンバスに描画する
         session.tool.paint(paintEvent)
+
+        // 変更箇所をプレイヤーに送信
+        session.drawing.edited.build().updatePlayer()
     }
 
     companion object {

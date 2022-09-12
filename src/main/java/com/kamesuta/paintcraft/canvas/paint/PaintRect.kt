@@ -44,14 +44,6 @@ class PaintRect(override val session: CanvasSession) : PaintTool {
                 // 何もしない
             }
         }
-
-        // 変更箇所をプレイヤーに送信
-        session.drawing.edited.build().updatePlayer()
-    }
-
-    override fun endPainting() {
-        // 前回の状態に破棄
-        session.drawing.edited.clear()
     }
 
     override fun getGuideLine(line: Line3d): Line3d {

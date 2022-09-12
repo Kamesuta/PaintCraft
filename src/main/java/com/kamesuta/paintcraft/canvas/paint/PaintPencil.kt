@@ -58,9 +58,6 @@ class PaintPencil(override val session: CanvasSession) : PaintTool {
 
         // 最後の座標を更新
         lastEvent = event
-
-        // 変更箇所をプレイヤーに送信
-        session.drawing.edited.build().updatePlayer()
     }
 
     /**
