@@ -23,9 +23,6 @@ class DrawableMapRenderer : MapRenderer(), Drawable {
     /** 変更フラグ */
     private var dirty = false
 
-    /** 前回の状態 */
-    var previewBefore: DrawRollback? = null
-
     /**
      * addRenderer() された時に呼ばれるため、必ず使えるはず
      * @param map マップビュー

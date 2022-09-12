@@ -9,7 +9,7 @@ import org.bukkit.entity.ItemFrame
  * キャンバスのスナップショット
  * @param entries 変更されたキャンバスのエントリー
  */
-data class CanvasMemento(val entries: List<Entry>) {
+data class CanvasMemento(val entries: Collection<Entry>) {
     /**
      * キャンバスのスナップショットの1アイテムフレーム分
      * @param itemFrame アイテムフレーム
@@ -21,7 +21,7 @@ data class CanvasMemento(val entries: List<Entry>) {
     /**
      * スナップショットを反映する
      */
-    fun apply() {
+    fun rollback() {
         entries.forEach { (_, mapItem, data) ->
             mapItem.draw {
                 g(data)
@@ -36,5 +36,29 @@ data class CanvasMemento(val entries: List<Entry>) {
         entries.forEach { (itemFrame, mapItem, _) ->
             mapItem.renderer.updatePlayer(itemFrame.location.origin)
         }
+    }
+
+    /** スナップショットを記憶するツール */
+    class Builder {
+        /** マップID: スナップショット の記録 */
+        private val entries = mutableMapOf<Int, Entry>()
+
+        /**
+         * 描く前の内容を保存する
+         * @param itemFrame アイテムフレーム
+         * @param mapItem マップ
+         */
+        fun store(itemFrame: ItemFrame, mapItem: DrawableMapItem) {
+            entries.computeIfAbsent(mapItem.mapView.id) {
+                // 新たに描いたマップアイテムのみ記憶
+                CanvasMemento.Entry(itemFrame, mapItem, DrawRollback(mapItem.renderer.mapCanvas))
+            }
+        }
+
+        /** スナップショットを作成する */
+        fun build() = CanvasMemento(entries.values)
+
+        /** 描いた内容の記憶をクリアする */
+        fun clear() = entries.clear()
     }
 }

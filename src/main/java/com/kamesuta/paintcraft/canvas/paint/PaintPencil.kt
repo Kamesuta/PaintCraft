@@ -6,7 +6,6 @@ import com.kamesuta.paintcraft.canvas.paint.tool.PaintDrawTool
 import com.kamesuta.paintcraft.map.DrawableMapBuffer.Companion.mapSize
 import com.kamesuta.paintcraft.map.draw.DrawLine
 import com.kamesuta.paintcraft.map.draw.DrawRect
-import com.kamesuta.paintcraft.util.vec.origin
 import org.bukkit.map.MapPalette
 import java.awt.Color
 
@@ -61,9 +60,7 @@ class PaintPencil(override val session: CanvasSession) : PaintTool {
         lastEvent = event
 
         // 変更箇所をプレイヤーに送信
-        session.drawing.edited.values.forEach { (itemFrame, drawableMap) ->
-            drawableMap.renderer.updatePlayer(itemFrame.location.origin)
-        }
+        session.drawing.edited.build().updatePlayer()
     }
 
     /**
@@ -80,7 +77,7 @@ class PaintPencil(override val session: CanvasSession) : PaintTool {
             // 描画
             PaintDrawTool.drawLine(session, event, it) {
                 // マップをプレイヤーへ同期するために記憶しておく
-                session.drawing.edited.computeIfAbsent(mapItem.mapView.id) { itemFrame to mapItem }
+                session.drawing.edited.store(itemFrame, mapItem)
                 // 線を描く
                 mapItem.draw {
                     g(

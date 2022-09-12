@@ -20,7 +20,7 @@ class CanvasHistory(private val drawing: CanvasDrawing) {
     /** 履歴を戻す */
     fun undo() {
         val memento = history.removeLastOrNull() ?: return
-        memento.apply()
+        memento.rollback()
         memento.updatePlayer()
     }
 }

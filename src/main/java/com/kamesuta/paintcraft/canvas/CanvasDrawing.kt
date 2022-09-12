@@ -1,8 +1,6 @@
 package com.kamesuta.paintcraft.canvas
 
 import com.kamesuta.paintcraft.canvas.paint.PaintEvent
-import com.kamesuta.paintcraft.map.DrawableMapItem
-import org.bukkit.entity.ItemFrame
 
 /**
  * キャンバスの描画状態
@@ -17,7 +15,7 @@ class CanvasDrawing {
         private set
 
     /** 編集したマップアイテム (mapId: (編集した箇所のアイテムフレーム, マップ)) */
-    val edited = mutableMapOf<Int, Pair<ItemFrame, DrawableMapItem>>()
+    val edited = CanvasMemento.Builder()
 
     /** 描画中か */
     val isDrawing: Boolean

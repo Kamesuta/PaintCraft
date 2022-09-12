@@ -3,11 +3,11 @@ package com.kamesuta.paintcraft.canvas.paint
 import com.kamesuta.paintcraft.canvas.CanvasActionType
 import com.kamesuta.paintcraft.canvas.CanvasSession
 import com.kamesuta.paintcraft.canvas.paint.tool.PaintDrawTool
-import com.kamesuta.paintcraft.map.DrawableMapItem
 import com.kamesuta.paintcraft.map.draw.DrawLine
-import com.kamesuta.paintcraft.map.draw.DrawRollback
-import com.kamesuta.paintcraft.util.vec.*
-import org.bukkit.entity.ItemFrame
+import com.kamesuta.paintcraft.util.vec.Line3d
+import com.kamesuta.paintcraft.util.vec.normalized
+import com.kamesuta.paintcraft.util.vec.plus
+import com.kamesuta.paintcraft.util.vec.times
 import org.bukkit.map.MapPalette
 import java.awt.Color
 
@@ -26,12 +26,13 @@ class PaintLine(override val session: CanvasSession) : PaintTool {
             // 描くモードが左クリックの場合
             CanvasActionType.LEFT_CLICK -> {
                 // 復元 (前回の状態を破棄)
-                rollback(rollbackCanvas = true, deleteRollback = true)
+                session.drawing.edited.build().rollback()
+                session.drawing.edited.clear()
             }
             // 描くモードが右クリックの場合
             CanvasActionType.RIGHT_CLICK -> {
                 // 復元
-                rollback(rollbackCanvas = true, deleteRollback = false)
+                session.drawing.edited.build().rollback()
                 // 線を描く
                 drawLine(event, color)
             }
@@ -42,14 +43,12 @@ class PaintLine(override val session: CanvasSession) : PaintTool {
         }
 
         // 変更箇所をプレイヤーに送信
-        session.drawing.edited.values.forEach { (itemFrame, drawableMap) ->
-            drawableMap.renderer.updatePlayer(itemFrame.location.origin)
-        }
+        session.drawing.edited.build().updatePlayer()
     }
 
     override fun endPainting() {
         // 前回の状態に破棄
-        rollback(rollbackCanvas = false, deleteRollback = true)
+        session.drawing.edited.clear()
     }
 
     override fun getGuideLine(line: Line3d): Line3d {
@@ -95,7 +94,7 @@ class PaintLine(override val session: CanvasSession) : PaintTool {
             // 描画
             PaintDrawTool.drawLine(session, event, it) {
                 // 後で戻せるよう記憶しておく
-                store(itemFrame, mapItem)
+                session.drawing.edited.store(itemFrame, mapItem)
                 // マップに描きこむ
                 mapItem.draw {
                     g(
@@ -109,46 +108,6 @@ class PaintLine(override val session: CanvasSession) : PaintTool {
                     )
                 }
             }
-        }
-    }
-
-    /**
-     * 描く前の内容を保存する
-     * @param itemFrame アイテムフレーム
-     * @param mapItem マップ
-     */
-    private fun store(itemFrame: ItemFrame, mapItem: DrawableMapItem) {
-        session.drawing.edited.computeIfAbsent(mapItem.mapView.id) {
-            // 新たに描いたマップアイテムのみ記憶
-            mapItem.renderer.previewBefore = DrawRollback(mapItem.renderer.mapCanvas)
-            itemFrame to mapItem
-        }
-    }
-
-    /**
-     * 新たに描いた内容を取り消す
-     * @param rollbackCanvas trueならキャンバスを復元する
-     * @param deleteRollback 前回の状態を破棄するかどうか
-     */
-    private fun rollback(rollbackCanvas: Boolean, deleteRollback: Boolean) {
-        session.drawing.edited.values.forEach { (_, mapItem) ->
-            if (rollbackCanvas) {
-                // キャンバスを復元
-                mapItem.renderer.previewBefore?.let {
-                    mapItem.draw {
-                        // キャンバスに描く
-                        g(it)
-                    }
-                }
-            }
-            // 前回の状態を消す
-            if (deleteRollback) {
-                mapItem.renderer.previewBefore = null
-            }
-        }
-        if (deleteRollback) {
-            // 描いた内容の記憶を消す
-            session.drawing.edited.clear()
         }
     }
 }
