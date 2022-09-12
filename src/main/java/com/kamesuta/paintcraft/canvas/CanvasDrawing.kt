@@ -14,8 +14,11 @@ class CanvasDrawing {
     var drawMode: CanvasActionType = CanvasActionType.NONE
         private set
 
-    /** 編集したマップアイテム (mapId: (編集した箇所のアイテムフレーム, マップ)) */
+    /** 編集したマップアイテム */
     val edited = CanvasMemento.Builder()
+
+    /** 編集履歴 */
+    val history = CanvasHistory(this)
 
     /** 描画中か */
     val isDrawing: Boolean

@@ -40,7 +40,7 @@ data class CanvasMemento(val entries: Collection<Entry>) {
 
     /** スナップショットを記憶するツール */
     class Builder {
-        /** マップID: スナップショット の記録 */
+        /** スナップショットの記録 (mapId: (編集した箇所のアイテムフレーム, マップ)) */
         private val entries = mutableMapOf<Int, Entry>()
 
         /**

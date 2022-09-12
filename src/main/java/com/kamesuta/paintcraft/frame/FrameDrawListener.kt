@@ -28,6 +28,7 @@ import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.block.Action
 import org.bukkit.event.player.PlayerInteractEvent
+import org.bukkit.inventory.ItemStack
 import java.util.logging.Level
 
 /**
@@ -215,6 +216,8 @@ class FrameDrawListener : Listener, Runnable {
                 // クリック中でない場合、描画終了時の処理
                 session.drawing.endDrawing()
                 session.tool.endPainting()
+                // 履歴に保存
+                session.drawing.history.add(session.drawing.edited.build())
                 // 前回の状態に破棄
                 session.drawing.edited.clear()
             }
@@ -505,14 +508,23 @@ class FrameDrawListener : Listener, Runnable {
     companion object {
         /**
          * デバッグ座標を初期化
+         * @receiver プレイヤー
          */
         private fun Player.clearDebug() = clearDebugLocation(DebugLocationType.DebugLocationGroup.CANVAS_DRAW)
 
         /**
+         * これはペンかどうか
+         * @receiver アイテム
+         * @return ペンならtrue
+         */
+        private fun ItemStack.isPencil() = type == Material.INK_SAC
+
+        /**
          * プレイヤーがペンを持っているかどうかを確認する
+         * @receiver プレイヤー
          * @return ペンを持っているかどうか
          */
         private fun Player.hasPencil() =
-            gameMode != GameMode.SPECTATOR && inventory.itemInMainHand.type == Material.INK_SAC
+            gameMode != GameMode.SPECTATOR && inventory.itemInMainHand.isPencil()
     }
 }
