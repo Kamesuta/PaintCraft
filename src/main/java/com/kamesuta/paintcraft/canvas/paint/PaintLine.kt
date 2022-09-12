@@ -42,7 +42,7 @@ class PaintLine(override val session: CanvasSession) : PaintTool {
         }
 
         // 変更箇所をプレイヤーに送信
-        session.drawing.edited.forEach { (itemFrame, drawableMap) ->
+        session.drawing.edited.values.forEach { (itemFrame, drawableMap) ->
             drawableMap.renderer.updatePlayer(itemFrame.location.origin)
         }
     }
@@ -118,10 +118,10 @@ class PaintLine(override val session: CanvasSession) : PaintTool {
      * @param mapItem マップ
      */
     private fun store(itemFrame: ItemFrame, mapItem: DrawableMapItem) {
-        session.drawing.edited.computeIfAbsent(itemFrame) {
+        session.drawing.edited.computeIfAbsent(mapItem.mapView.id) {
             // 新たに描いたマップアイテムのみ記憶
             mapItem.renderer.previewBefore = DrawRollback(mapItem.renderer.mapCanvas)
-            mapItem
+            itemFrame to mapItem
         }
     }
 
@@ -131,7 +131,7 @@ class PaintLine(override val session: CanvasSession) : PaintTool {
      * @param deleteRollback 前回の状態を破棄するかどうか
      */
     private fun rollback(rollbackCanvas: Boolean, deleteRollback: Boolean) {
-        session.drawing.edited.values.forEach { mapItem ->
+        session.drawing.edited.values.forEach { (_, mapItem) ->
             if (rollbackCanvas) {
                 // キャンバスを復元
                 mapItem.renderer.previewBefore?.let {

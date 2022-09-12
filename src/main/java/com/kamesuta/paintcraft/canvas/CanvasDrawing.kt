@@ -16,8 +16,8 @@ class CanvasDrawing {
     var drawMode: CanvasActionType = CanvasActionType.NONE
         private set
 
-    /** 編集したマップアイテム */
-    val edited = mutableMapOf<ItemFrame, DrawableMapItem>()
+    /** 編集したマップアイテム (mapId: (編集した箇所のアイテムフレーム, マップ)) */
+    val edited = mutableMapOf<Int, Pair<ItemFrame, DrawableMapItem>>()
 
     /** 描画中か */
     val isDrawing: Boolean

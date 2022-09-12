@@ -61,7 +61,7 @@ class PaintPencil(override val session: CanvasSession) : PaintTool {
         lastEvent = event
 
         // 変更箇所をプレイヤーに送信
-        session.drawing.edited.forEach { (itemFrame, drawableMap) ->
+        session.drawing.edited.values.forEach { (itemFrame, drawableMap) ->
             drawableMap.renderer.updatePlayer(itemFrame.location.origin)
         }
     }
@@ -80,7 +80,7 @@ class PaintPencil(override val session: CanvasSession) : PaintTool {
             // 描画
             PaintDrawTool.drawLine(session, event, it) {
                 // マップをプレイヤーへ同期するために記憶しておく
-                session.drawing.edited.computeIfAbsent(itemFrame) { mapItem }
+                session.drawing.edited.computeIfAbsent(mapItem.mapView.id) { itemFrame to mapItem }
                 // 線を描く
                 mapItem.draw {
                     g(
