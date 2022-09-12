@@ -1,6 +1,7 @@
 package com.kamesuta.paintcraft
 
 import com.kamesuta.paintcraft.canvas.CanvasSessionManager
+import com.kamesuta.paintcraft.canvas.paint.PaintFill
 import com.kamesuta.paintcraft.canvas.paint.PaintLine
 import com.kamesuta.paintcraft.canvas.paint.PaintPencil
 import com.kamesuta.paintcraft.canvas.paint.PaintRect
@@ -40,6 +41,7 @@ class SwitchDrawModeCommand : Command("switch") {
         PEN,
         LINE,
         RECT,
+        FILL,
     }
 
     init {
@@ -62,6 +64,7 @@ class SwitchDrawModeCommand : Command("switch") {
                             DrawMode.PEN -> PaintPencil(session)
                             DrawMode.LINE -> PaintLine(session)
                             DrawMode.RECT -> PaintRect(session)
+                            DrawMode.FILL -> PaintFill(session)
                         }
                     }
                 }
