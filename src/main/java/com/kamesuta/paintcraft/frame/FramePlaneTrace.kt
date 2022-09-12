@@ -15,6 +15,7 @@ import com.kamesuta.paintcraft.util.vec.minus
 import org.bukkit.Material
 import org.bukkit.entity.ItemFrame
 import org.bukkit.util.Vector
+import kotlin.math.abs
 
 /**
  * キャンバスと面の交差判定をします
@@ -91,6 +92,15 @@ object FramePlaneTrace {
                 .mapNotNull { planeTraceCanvasByEntity(plane, it) }
                 // 現在のアイテムフレームは除外
                 .filter { it.itemFrame != current.itemFrame }
+                // 線がつながっているかチェック
+                .filter {
+                    // 角度からアイテムフレーム同士が最低限つながる距離を計算 (0°=0.0, 45°=0.7071, 90°=1.0)+α
+                    val thresholdDistance =
+                        0.01 + 0.1 * (1.0 - abs(currentChain.result.frameLocation.forward.dot(it.frameLocation.forward)))
+                    // 終点と次のアイテムフレーム上の始点の距離がthresholdDistance以下ならつながっている
+                    currentChain.origin.distanceSquared(it.segment.origin) < thresholdDistance
+                            || currentChain.origin.distanceSquared(it.segment.target) < thresholdDistance
+                }
                 // 裏側のアイテムフレームは除外する
                 .filter {
                     // レイ開始時または終了時どちらかの目線の位置から見えているなら除外しない
