@@ -84,8 +84,9 @@ class FrameDrawListener : Listener, Runnable {
 
     @EventHandler
     fun onItemDrop(event: PlayerDropItemEvent) {
-        // プレイヤーの右手にインクがあるか
-        if (!event.player.hasPencil()) {
+        // プレイヤーの右手にインクがある、または空だったら
+        val player = event.player
+        if (!player.hasPencil() && player.inventory.itemInMainHand.type != Material.AIR) {
             return
         }
 
@@ -98,7 +99,7 @@ class FrameDrawListener : Listener, Runnable {
         event.isCancelled = true
 
         // キャンバスのセッションを取得
-        val session = CanvasSessionManager.getSession(event.player)
+        val session = CanvasSessionManager.getSession(player)
 
         // 最後のアイテムドロップ時刻を取得
         session.lastDropItem = TimeWatcher.now
@@ -511,7 +512,7 @@ class FrameDrawListener : Listener, Runnable {
             // インタラクトオブジェクトを作成
             val interact = CanvasInteraction(prevRay.uv, prevRay, player)
             val paintEvent = PaintEvent(prevRay.mapItem, interact, session.clicking.clickMode)
-            
+
             // 描きこみ開始
             session.drawing.beginDrawing(paintEvent)
             session.tool.beginPainting(paintEvent)

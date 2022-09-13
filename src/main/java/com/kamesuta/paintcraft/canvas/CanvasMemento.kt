@@ -43,6 +43,9 @@ data class CanvasMemento(val entries: Collection<Entry>) {
         /** スナップショットの記録 (mapId: (編集した箇所のアイテムフレーム, マップ)) */
         private val entries = mutableMapOf<Int, Entry>()
 
+        /** 変更があるかどうか */
+        val isDirty get() = entries.isNotEmpty()
+
         /**
          * 現在編集中のマップ (Builderに連動する)
          */

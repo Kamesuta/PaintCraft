@@ -6,7 +6,7 @@ package com.kamesuta.paintcraft.canvas
  */
 class CanvasHistory(private val drawing: CanvasDrawing) {
     /** 履歴 */
-    private val history = mutableListOf<CanvasMemento>()
+    private val history = ArrayDeque<CanvasMemento>()
 
     /**
      * 履歴に追加
@@ -22,9 +22,21 @@ class CanvasHistory(private val drawing: CanvasDrawing) {
 
     /** 履歴を戻す */
     fun undo() {
-        val memento = history.removeLastOrNull() ?: return
-        memento.rollback()
-        memento.updatePlayer()
+        if (drawing.edited.isDirty) {
+            // 編集中の変更点がある場合は戻す
+            drawing.edited.editing.rollback()
+            // 更新を通知
+            drawing.edited.editing.updatePlayer()
+            // 編集中の変更点をクリア
+            drawing.edited.clear()
+        } else {
+            // 履歴を取り出す
+            val memento = history.removeLastOrNull() ?: return
+            // 変更点を戻す
+            memento.rollback()
+            // 更新を通知
+            memento.updatePlayer()
+        }
     }
 
     companion object {
