@@ -15,7 +15,7 @@ class CanvasHistory(private val drawing: CanvasDrawing) {
     fun add(memento: CanvasMemento) {
         history.add(memento)
         // 履歴の最大数を超えたら古いものから削除する
-        if (history.size > MAX_HISTORY) {
+        if (history.size > MAX_HISTORY - 1) {
             history.removeFirst()
         }
     }
