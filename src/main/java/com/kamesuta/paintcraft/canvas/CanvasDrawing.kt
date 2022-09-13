@@ -52,7 +52,9 @@ class CanvasDrawing {
      * @param event クリック開始時の操作
      */
     fun beginDrawing(event: PaintEvent) {
-        // 編集したマップアイテムを初期化
+        // 前回の状態を履歴に保存
+        history.add(edited.build())
+        // 前回の状態に破棄
         edited.clear()
         // クリック開始時の操作を記録
         startEvent = event

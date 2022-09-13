@@ -511,12 +511,7 @@ class FrameDrawListener : Listener, Runnable {
             // インタラクトオブジェクトを作成
             val interact = CanvasInteraction(prevRay.uv, prevRay, player)
             val paintEvent = PaintEvent(prevRay.mapItem, interact, session.clicking.clickMode)
-
-            // 前回の状態を履歴に保存
-            session.drawing.history.add(session.drawing.edited.build())
-            // 前回の状態に破棄
-            session.drawing.edited.clear()
-
+            
             // 描きこみ開始
             session.drawing.beginDrawing(paintEvent)
             session.tool.beginPainting(paintEvent)

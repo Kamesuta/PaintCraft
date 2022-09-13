@@ -6,7 +6,6 @@ package com.kamesuta.paintcraft.canvas
  */
 class CanvasHistory(private val drawing: CanvasDrawing) {
     /** 履歴 */
-    // TODO: 最大履歴数を設定できるようにする
     private val history = mutableListOf<CanvasMemento>()
 
     /**
@@ -15,6 +14,10 @@ class CanvasHistory(private val drawing: CanvasDrawing) {
      */
     fun add(memento: CanvasMemento) {
         history.add(memento)
+        // 履歴の最大数を超えたら古いものから削除する
+        if (history.size > MAX_HISTORY) {
+            history.removeFirst()
+        }
     }
 
     /** 履歴を戻す */
@@ -22,5 +25,11 @@ class CanvasHistory(private val drawing: CanvasDrawing) {
         val memento = history.removeLastOrNull() ?: return
         memento.rollback()
         memento.updatePlayer()
+    }
+
+    companion object {
+        /** 履歴の最大保持数 */
+        // TODO: configで設定できるようにする
+        const val MAX_HISTORY = 10
     }
 }
