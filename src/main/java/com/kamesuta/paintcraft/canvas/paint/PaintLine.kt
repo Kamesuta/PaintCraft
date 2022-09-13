@@ -26,13 +26,13 @@ class PaintLine(override val session: CanvasSession) : PaintTool {
             // 描くモードが左クリックの場合
             CanvasActionType.LEFT_CLICK -> {
                 // 復元 (前回の状態を破棄)
-                session.drawing.edited.build().rollback()
+                session.drawing.edited.editing.rollback()
                 session.drawing.edited.clear()
             }
             // 描くモードが右クリックの場合
             CanvasActionType.RIGHT_CLICK -> {
                 // 復元
-                session.drawing.edited.build().rollback()
+                session.drawing.edited.editing.rollback()
                 // 線を描く
                 drawLine(event, color)
             }

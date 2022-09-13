@@ -533,7 +533,7 @@ class FrameDrawListener : Listener, Runnable {
         session.tool.paint(paintEvent)
 
         // 変更箇所をプレイヤーに送信
-        session.drawing.edited.build().updatePlayer()
+        session.drawing.edited.editing.updatePlayer()
     }
 
     companion object {

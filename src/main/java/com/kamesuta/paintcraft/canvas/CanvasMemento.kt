@@ -9,7 +9,7 @@ import org.bukkit.entity.ItemFrame
  * キャンバスのスナップショット
  * @param entries 変更されたキャンバスのエントリー
  */
-data class CanvasMemento(val entries: List<Entry>) {
+data class CanvasMemento(val entries: Collection<Entry>) {
     /**
      * キャンバスのスナップショットの1アイテムフレーム分
      * @param itemFrame アイテムフレーム
@@ -42,6 +42,11 @@ data class CanvasMemento(val entries: List<Entry>) {
     class Builder {
         /** スナップショットの記録 (mapId: (編集した箇所のアイテムフレーム, マップ)) */
         private val entries = mutableMapOf<Int, Entry>()
+
+        /**
+         * 現在編集中のマップ (Builderに連動する)
+         */
+        val editing = CanvasMemento(entries.values)
 
         /**
          * 描く前の内容を保存する
