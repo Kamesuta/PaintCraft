@@ -1,7 +1,6 @@
 package com.kamesuta.paintcraft.canvas.paint
 
 import com.kamesuta.paintcraft.canvas.CanvasSession
-import com.kamesuta.paintcraft.frame.FrameRayTraceResult
 import com.kamesuta.paintcraft.util.vec.Line3d
 
 /**

@@ -1,7 +1,6 @@
 package com.kamesuta.paintcraft.map
 
 import com.kamesuta.paintcraft.map.draw.Draw
-import com.kamesuta.paintcraft.map.draw.DrawRollback
 import com.kamesuta.paintcraft.map.draw.Drawable
 import com.kamesuta.paintcraft.util.vec.origin
 import org.bukkit.entity.Player

@@ -95,18 +95,18 @@ data class Plane3d(
         // 論理的には3つ目の平面を作るが、法線しか利用しない
         val normal1 = normal
         val normal2 = other.normal
-        val normal = normal1.getCrossProduct(normal2);
-        val det = normal.lengthSquared();
+        val normal = normal1.getCrossProduct(normal2)
+        val det = normal.lengthSquared()
 
         // detが0の場合は平行な面のため交わらない
         // 正確にはepsilonと比較するべきだが、厳密に平行を区別する必要がないので省略
         if (det == 0.0) {
-            return null;
+            return null
         }
 
         // 平面の座標を計算
-        val origin = ((normal.getCrossProduct(normal2) * d) + (normal1.getCrossProduct(normal) * other.d)) / det;
-        return Line3d(origin, normal);
+        val origin = ((normal.getCrossProduct(normal2) * d) + (normal1.getCrossProduct(normal) * other.d)) / det
+        return Line3d(origin, normal)
     }
 
     /** 平面の右方向のベクトル (Y軸と平面の法線の外積) */
