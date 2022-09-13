@@ -27,6 +27,7 @@ import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.block.Action
+import org.bukkit.event.player.PlayerDropItemEvent
 import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.inventory.ItemStack
 import java.util.logging.Level
@@ -79,6 +80,31 @@ class FrameDrawListener : Listener, Runnable {
 
         // インタラクトをキャンセル
         event.isCancelled = true
+    }
+
+    @EventHandler
+    fun onItemDrop(event: PlayerDropItemEvent) {
+        // プレイヤーの右手にインクがあるか
+        if (!event.player.hasPencil()) {
+            return
+        }
+
+        // 落としたアイテムがインクかどうか
+        if (!event.itemDrop.itemStack.isPencil()) {
+            return
+        }
+
+        // アイテムドロップをキャンセル
+        event.isCancelled = true
+
+        // キャンバスのセッションを取得
+        val session = CanvasSessionManager.getSession(event.player)
+
+        // 最後のアイテムドロップ時刻を取得
+        session.lastDropItem = TimeWatcher.now
+
+        // 履歴から戻す
+        session.drawing.history.undo()
     }
 
     /**
@@ -211,15 +237,11 @@ class FrameDrawListener : Listener, Runnable {
         // クリック中かどうかを確認
         if (!session.clicking.clickMode.isPressed) {
             // クリック状態の変化を確認
-            val drawingAction = session.drawing.getDrawingAction(session.clicking.clickMode.isPressed)
+            val drawingAction = session.drawing.getDrawingAction(false)
             if (drawingAction == CanvasDrawingActionType.END) {
                 // クリック中でない場合、描画終了時の処理
                 session.drawing.endDrawing()
                 session.tool.endPainting()
-                // 履歴に保存
-                session.drawing.history.add(session.drawing.edited.build())
-                // 前回の状態に破棄
-                session.drawing.edited.clear()
             }
             // クリック中でない場合は描き込みを行わない
             return
@@ -367,6 +389,10 @@ class FrameDrawListener : Listener, Runnable {
             }
 
             null -> {
+                // アイテムのドロップによるアームスイングはクリックではない
+                if (session.clientType.threshold.dropItemDuration.isInTime(session.lastDropItem)) {
+                    return
+                }
                 // PacketType.Play.Client.ARM_ANIMATIONの場合、エンティティを右クリックすると左クリック判定になることがある
                 // 対策として、直前で右クリックが行われていれば右クリックだと判定する
                 if (session.clientType.threshold.interactEntityDuration.isInTime(session.lastInteract)) {
@@ -485,6 +511,11 @@ class FrameDrawListener : Listener, Runnable {
             // インタラクトオブジェクトを作成
             val interact = CanvasInteraction(prevRay.uv, prevRay, player)
             val paintEvent = PaintEvent(prevRay.mapItem, interact, session.clicking.clickMode)
+
+            // 前回の状態を履歴に保存
+            session.drawing.history.add(session.drawing.edited.build())
+            // 前回の状態に破棄
+            session.drawing.edited.clear()
 
             // 描きこみ開始
             session.drawing.beginDrawing(paintEvent)

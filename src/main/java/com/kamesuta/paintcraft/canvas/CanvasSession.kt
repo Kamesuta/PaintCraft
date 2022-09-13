@@ -23,6 +23,9 @@ class CanvasSession(val player: Player) {
     /** 最後のエンティティ右クリック時刻 */
     var lastInteract = 0L
 
+    /** 最後のアイテムドロップ時刻 */
+    var lastDropItem = 0L
+
     /** 最後のエンティティ移動時刻 */
     var lastVehicleMove = 0L
 

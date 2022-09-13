@@ -9,7 +9,7 @@ import org.bukkit.entity.ItemFrame
  * キャンバスのスナップショット
  * @param entries 変更されたキャンバスのエントリー
  */
-data class CanvasMemento(val entries: Collection<Entry>) {
+data class CanvasMemento(val entries: List<Entry>) {
     /**
      * キャンバスのスナップショットの1アイテムフレーム分
      * @param itemFrame アイテムフレーム
@@ -51,12 +51,12 @@ data class CanvasMemento(val entries: Collection<Entry>) {
         fun store(itemFrame: ItemFrame, mapItem: DrawableMapItem) {
             entries.computeIfAbsent(mapItem.mapView.id) {
                 // 新たに描いたマップアイテムのみ記憶
-                CanvasMemento.Entry(itemFrame, mapItem, DrawRollback(mapItem.renderer.mapCanvas))
+                Entry(itemFrame, mapItem, DrawRollback(mapItem.renderer.mapCanvas))
             }
         }
 
         /** スナップショットを作成する */
-        fun build() = CanvasMemento(entries.values)
+        fun build() = CanvasMemento(entries.values.toList())
 
         /** 描いた内容の記憶をクリアする */
         fun clear() = entries.clear()
