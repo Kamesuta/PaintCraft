@@ -19,4 +19,7 @@ enum class PaletteAdjustingType {
 
     /** ピッカー */
     COLOR_PICKER_COLOR,
+
+    /** カラーコード */
+    COLOR_CODE,
 }

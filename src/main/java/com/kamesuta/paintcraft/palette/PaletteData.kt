@@ -1,6 +1,8 @@
 package com.kamesuta.paintcraft.palette
 
+import com.kamesuta.paintcraft.canvas.CanvasMode
 import com.kamesuta.paintcraft.util.color.RGBColor
+import com.kamesuta.paintcraft.util.color.RGBColor.MapColors.transparent
 
 class PaletteData {
     /** 現在の操作中の色相 or 明度/彩度 */
@@ -11,6 +13,16 @@ class PaletteData {
 
     /** 選択中のパレットスロット */
     var selectedPaletteIndex = 0
+
+    /**
+     * 選択中の色を変更する
+     */
+    fun storeToPalette(mode: CanvasMode) {
+        // 色を保存
+        if (mode.mapColor != transparent && selectedPaletteIndex in 0 until storedPalettes.size) {
+            storedPalettes[selectedPaletteIndex] = mode.mapColor
+        }
+    }
 
     companion object {
         /** 保存できるパレットの色の数 */

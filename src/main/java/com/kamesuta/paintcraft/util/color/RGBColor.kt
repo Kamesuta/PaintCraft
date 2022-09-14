@@ -34,16 +34,16 @@ class RGBColor(private val color: Color) {
     }
 
     /**
-     * カラーコードを取得
-     * @return カラーコード
+     * 16進数カラーコードを取得
+     * @return 16進数カラーコード
      */
     fun toCode(): Int {
         return color.rgb
     }
 
     /**
-     * カラーコード文字列を取得
-     * @return カラーコード文字列
+     * 16進数カラーコード文字列を取得
+     * @return 16進数カラーコード文字列
      */
     fun toHexCode(): String {
         return String.format("#%02X%02X%02X", color.red, color.green, color.blue)
@@ -97,6 +97,38 @@ class RGBColor(private val color: Color) {
          */
         fun fromCode(rgb: Int): RGBColor {
             return RGBColor(Color(rgb))
+        }
+
+        /**
+         * カラーコード文字列からRGBカラーに変換
+         * @param rgb 16進数カラーコード文字列
+         * @return RGBカラー
+         */
+        fun fromHexCode(rgb: String): RGBColor? {
+            var rgbHexCode = rgb
+            if (rgbHexCode.startsWith("#")) {
+                // 先頭の#は除外
+                rgbHexCode = rgbHexCode.substring(1)
+            }
+            if (rgbHexCode.startsWith("0x")) {
+                // 先頭の0xは除外
+                rgbHexCode = rgbHexCode.substring(2)
+            }
+            // 数値に変換し、できなかったらnullを返す
+            val rgbHex = rgbHexCode.toIntOrNull(16)
+                ?: return null
+            return when (rgbHexCode.length) {
+                // 3桁の場合
+                3 -> fromCode(
+                    (rgbHex and 0xf00 shl 8 * 0x11)
+                            or (rgbHex and 0xf0 shl 4 * 0x11)
+                            or (rgbHex and 0xf * 0x11)
+                )
+                // 6桁の場合
+                6 -> fromCode(rgbHex)
+                // それ以外の場合は非対応
+                else -> null
+            }
         }
     }
 }

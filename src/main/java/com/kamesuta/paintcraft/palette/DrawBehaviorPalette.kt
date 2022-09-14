@@ -1,17 +1,18 @@
 package com.kamesuta.paintcraft.palette
 
 import com.kamesuta.paintcraft.canvas.CanvasDrawingActionType
-import com.kamesuta.paintcraft.canvas.CanvasMode
 import com.kamesuta.paintcraft.canvas.CanvasSession
 import com.kamesuta.paintcraft.canvas.paint.PaintEvent
 import com.kamesuta.paintcraft.map.DrawableMapRenderer
 import com.kamesuta.paintcraft.map.behavior.DrawBehavior
 import com.kamesuta.paintcraft.map.draw.Drawable
 import com.kamesuta.paintcraft.palette.DrawPalette.Companion.loadPalette
-import com.kamesuta.paintcraft.util.color.HSBColor
 import com.kamesuta.paintcraft.util.color.RGBColor
-import com.kamesuta.paintcraft.util.color.RGBColor.Companion.toRGB
 import com.kamesuta.paintcraft.util.color.RGBColor.MapColors.transparent
+import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.event.ClickEvent
+import net.kyori.adventure.text.event.HoverEvent
+import net.kyori.adventure.text.format.TextColor
 
 /**
  * パレット
@@ -43,16 +44,14 @@ class DrawBehaviorPalette(private val renderer: DrawableMapRenderer) : DrawBehav
                         // 選択中のスロット番号を変更
                         paletteData.selectedPaletteIndex = paletteIndex
                         // 色を変更
-                        val rgbColor = RGBColor.fromMapColor(color)
-                        session.mode.hsbColor = rgbColor.toHSB()
-                        session.mode.color = color
+                        session.mode.setMapColor(color)
                     }
                 }
 
                 // 透明ボタンを選択した場合
                 PaletteAdjustingType.TRANSPARENT_COLOR -> {
                     // 透明ボタンを押した場合は色を透明にする
-                    session.mode.color = 0
+                    session.mode.setMapColor(transparent)
                 }
 
                 // カラーピッカーボタンを選択した場合
@@ -61,15 +60,72 @@ class DrawBehaviorPalette(private val renderer: DrawableMapRenderer) : DrawBehav
                     if (session.mode.tool !is PaintColorPicker) {
                         // カラーピッカーツールに変更
                         val prevTool = session.mode.tool
-                        session.mode.tool = PaintColorPicker(session) {
+                        session.mode.tool = PaintColorPicker(session)
+                        // コールバックを設定
+                        session.mode.onColorChanged = {
                             // カラーピッカーを終了した場合は元のツールに戻す
                             session.mode.tool = prevTool
-                            // カラーピッカーで選択した色を設定
-                            session.mode.applyColor(null, it)
+                            // パレットに保存
+                            paletteData.storeToPalette(session.mode)
                             // パレットを描画
                             event.mapItem.renderer.g(DrawPalette(paletteData, session.mode))
+                            // コールバックを解除
+                            //session.mode.onColorChanged = null
                         }
                     }
+                }
+
+                // カラーコードを選択した場合
+                PaletteAdjustingType.COLOR_CODE -> {
+                    // コールバックを設定
+                    session.mode.onColorChanged = {
+                        // パレットに保存
+                        paletteData.storeToPalette(session.mode)
+                        // パレットを描画
+                        event.mapItem.renderer.g(DrawPalette(paletteData, session.mode))
+                        // コールバックを解除
+                        //session.mode.onColorChanged = null
+                    }
+                    // カラーコードテキスト
+                    val mapColor = RGBColor.fromMapColor(session.mode.mapColor)
+                    val hexCode = mapColor.toHexCode()
+                    // チャット生成
+                    val text = Component.text("Color Code: ")
+                        .color(TextColor.color(0x00FFFF))
+                        .append(Component.text(hexCode).color(TextColor.color(mapColor.toCode())))
+                        .append(Component.text(" "))
+                        .append(
+                            Component.text("[Copy]")
+                                .color(TextColor.color(0xFF7700))
+                                .hoverEvent(
+                                    HoverEvent.hoverEvent(
+                                        HoverEvent.Action.SHOW_TEXT,
+                                        Component.text("Click to copy: $hexCode")
+                                    )
+                                )
+                                .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, hexCode))
+                        )
+                        .append(Component.text(" "))
+                        .append(
+                            Component.text("[Replace]")
+                                .color(TextColor.color(0xFF7700))
+                                .hoverEvent(
+                                    HoverEvent.hoverEvent(
+                                        HoverEvent.Action.SHOW_TEXT,
+                                        Component.text("Click and type color code to replace")
+                                    )
+                                )
+                                .clickEvent(
+                                    ClickEvent.clickEvent(
+                                        ClickEvent.Action.SUGGEST_COMMAND,
+                                        "/paintcraft color @s "
+                                    )
+                                )
+                        )
+                    // チャット送信
+                    session.player.sendMessage("")
+                    session.player.sendMessage(text)
+                    session.player.sendMessage("")
                 }
 
                 else -> {}
@@ -79,26 +135,12 @@ class DrawBehaviorPalette(private val renderer: DrawableMapRenderer) : DrawBehav
         val color = DrawPalette.getColor(uv.x, uv.y, paletteData.adjustingType, hsb)
         // 色が変更されている場合のみ色を設定
         if (color != null) {
-            session.mode.applyColor(color, null)
+            session.mode.setHsbColor(color)
+            // パレットに保存
+            paletteData.storeToPalette(session.mode)
         }
         // パレットを描画
         event.mapItem.renderer.g(DrawPalette(paletteData, session.mode))
-    }
-
-    /**
-     * 選択中の色を変更する
-     */
-    private fun CanvasMode.applyColor(newHsbColor: HSBColor?, newMapColor: Byte?) {
-        // どちらかの色があればもう一方の色を計算
-        hsbColor = newHsbColor ?: newMapColor?.let { RGBColor.fromMapColor(it).toHSB() }
-                ?: return
-        color = newMapColor ?: newHsbColor?.toRGB()?.toMapColor()
-                ?: return
-
-        // 色を保存
-        if (color != transparent && paletteData.selectedPaletteIndex in 0 until paletteData.storedPalettes.size) {
-            paletteData.storedPalettes[paletteData.selectedPaletteIndex] = color
-        }
     }
 
     override fun draw(f: Drawable.() -> Unit) {

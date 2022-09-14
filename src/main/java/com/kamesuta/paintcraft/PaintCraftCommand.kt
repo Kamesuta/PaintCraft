@@ -8,9 +8,11 @@ import com.kamesuta.paintcraft.canvas.paint.PaintRect
 import com.kamesuta.paintcraft.map.DrawableMapItem
 import com.kamesuta.paintcraft.map.behavior.DrawBehaviorTypes.DrawBehaviorPaintDesc
 import com.kamesuta.paintcraft.map.behavior.DrawBehaviorTypes.DrawBehaviorPaletteDesc
+import com.kamesuta.paintcraft.util.color.RGBColor
 import com.kamesuta.paintcraft.util.enumValueOrNull
 import com.kamesuta.paintcraft.util.vec.debug.DebugLocationCommand
 import dev.kotx.flylib.command.Command
+import dev.kotx.flylib.command.arguments.StringArgument
 import org.bukkit.NamespacedKey
 import org.bukkit.entity.ItemFrame
 import org.bukkit.entity.Player
@@ -24,6 +26,7 @@ class PaintCraftCommand : Command("paintcraft") {
             SwitchDrawModeCommand(),
             PaletteCanvasCommand(),
             MigrateCanvasCommand(),
+            ColorCommand(),
         )
     }
 }
@@ -122,6 +125,30 @@ class SwitchDrawModeCommand : Command("switch") {
                             DrawMode.FILL -> PaintFill(session)
                         }
                     }
+                }
+            }
+        }
+    }
+}
+
+class ColorCommand : Command("color") {
+    init {
+        usage {
+            // 設定対象のプレイヤー
+            entityArgument("player")
+            // 設定対象のプレイヤー
+            stringArgument("color", StringArgument.Type.PHRASE)
+            executes {
+                val entities = typedArgs[0] as List<*>
+                val colorName = typedArgs[1] as String
+                val color = RGBColor.fromHexCode(colorName)
+                if (color == null) {
+                    sender.sendMessage("Invalid color: $colorName")
+                    return@executes
+                }
+                entities.filterIsInstance<Player>().forEach {
+                    val session = CanvasSessionManager.getSession(it)
+                    session.mode.setMapColor(color.toMapColor())
                 }
             }
         }

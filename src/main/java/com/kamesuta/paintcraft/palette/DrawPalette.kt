@@ -52,12 +52,12 @@ class DrawPalette(
                 canvas.drawCursor(storedPaletteOffsetX, y, color, color, storedPaletteSize / 2 - 1)
             }
             // 透明が選択されていないときのみカーソルを描画
-            if (mode?.color != transparent) {
+            if (mode?.mapColor != transparent) {
                 // 選択中のスロットを描画する
                 val y = start + palette.selectedPaletteIndex * storedPaletteSize
                 val color = palette.storedPalettes.getOrNull(palette.selectedPaletteIndex)
                     ?: return@run
-                if (mode?.color == color) {
+                if (mode?.mapColor == color) {
                     val oppositeColor = RGBColor.fromMapColor(color).toOpposite().toMapColor()
                     canvas.drawCursor(storedPaletteOffsetX, y, color, oppositeColor, storedPaletteSize / 2)
                 }
@@ -70,7 +70,7 @@ class DrawPalette(
         // 透明ボタンを描画する
         run {
             // 反対色
-            val oppositeColor: Byte = if (mode?.color == transparent) white else transparent
+            val oppositeColor: Byte = if (mode?.mapColor == transparent) white else transparent
 
             // 四角と塗りつぶしを描画
             canvas.drawCursor(
@@ -120,7 +120,7 @@ class DrawPalette(
             val color = rgbColor.toMapColor()
 
             // 透明が選択されていないときのみカーソルを描画
-            if (mode.color != transparent) {
+            if (mode.mapColor != transparent) {
                 // 明度と彩度のカーソルを描画する
                 run {
                     // 反対色
@@ -168,8 +168,8 @@ class DrawPalette(
             // カラーコードを描画する
             val mapColorHex = String.format("%02X", color)
             canvas.drawText(
-                mapSize / 2 - 33,
-                17,
+                colorCodePosition.x - colorCodeSize.x / 2,
+                colorCodePosition.y - colorCodeSize.y / 2,
                 MinecraftFont.Font,
                 "§$color;${rgbColor.toHexCode()} ($mapColorHex)",
             )
@@ -200,6 +200,12 @@ class DrawPalette(
 
         /** カラーピッカーボタンの位置 */
         private val colorPickerButtonPosition = Vec2i(mapSize - 30, 30)
+
+        /** カラーコードの位置 */
+        private val colorCodePosition = Vec2i(mapSize / 2, 21)
+
+        /** カラーコードのサイズ */
+        private val colorCodeSize = Vec2i(66, 9)
 
         /** 色相ごとのパレットを事前に計算しておく */
         private val cachedPalette = (0..255).associateWith { hue ->
@@ -243,6 +249,13 @@ class DrawPalette(
                 && y - colorPickerButtonPosition.y in -buttonSize / 2..buttonSize / 2
             ) {
                 return PaletteAdjustingType.COLOR_PICKER_COLOR
+            }
+
+            // カラーコードの位置
+            if (x - colorCodePosition.x in -colorCodeSize.x / 2..colorCodeSize.x / 2
+                && y - colorCodePosition.y in -colorCodeSize.y / 2..colorCodeSize.y / 2
+            ) {
+                return PaletteAdjustingType.COLOR_CODE
             }
 
             // -1.0 ~ 1.0

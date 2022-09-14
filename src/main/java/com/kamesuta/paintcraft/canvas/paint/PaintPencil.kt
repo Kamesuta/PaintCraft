@@ -27,7 +27,7 @@ class PaintPencil(override val session: CanvasSession) : PaintTool {
 
     override fun paint(event: PaintEvent) {
         // 描く色
-        val color = session.mode.color
+        val color = session.mode.mapColor
 
         // キャンバスに描く
         event.mapItem.draw {
