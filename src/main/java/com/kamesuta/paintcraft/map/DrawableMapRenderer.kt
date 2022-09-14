@@ -1,7 +1,9 @@
 package com.kamesuta.paintcraft.map
 
+import com.kamesuta.paintcraft.map.behavior.DrawBehavior
 import com.kamesuta.paintcraft.map.draw.Draw
 import com.kamesuta.paintcraft.map.draw.Drawable
+import com.kamesuta.paintcraft.map.behavior.DrawBehaviorTypes
 import com.kamesuta.paintcraft.util.vec.origin
 import org.bukkit.entity.Player
 import org.bukkit.map.MapCanvas
@@ -11,8 +13,9 @@ import org.bukkit.util.Vector
 
 /**
  * 書き込み可能レンダラー
+ * @param behavior 描画ツール
  */
-class DrawableMapRenderer : MapRenderer(), Drawable {
+class DrawableMapRenderer(val behavior: DrawBehavior) : MapRenderer(), Drawable {
     /** マップビュー */
     private lateinit var mapView: MapView
 

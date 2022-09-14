@@ -1,6 +1,8 @@
 package com.kamesuta.paintcraft.map
 
 import com.kamesuta.paintcraft.PaintCraft
+import com.kamesuta.paintcraft.map.behavior.DrawBehavior
+import com.kamesuta.paintcraft.map.behavior.DrawBehaviorTypes
 import com.kamesuta.paintcraft.map.draw.Drawable
 import org.bukkit.Bukkit
 import org.bukkit.Material
@@ -18,7 +20,11 @@ import org.bukkit.persistence.PersistentDataType
  * @param mapView マップ
  * @param renderer レンダラー
  */
-class DrawableMapItem(val itemStack: ItemStack, val mapView: MapView, val renderer: DrawableMapRenderer) {
+class DrawableMapItem(
+    val itemStack: ItemStack,
+    val mapView: MapView,
+    val renderer: DrawableMapRenderer,
+) {
     /**
      * マップに描画する
      * @param f 描画する関数
@@ -29,19 +35,24 @@ class DrawableMapItem(val itemStack: ItemStack, val mapView: MapView, val render
 
     companion object {
         /**
-         * アイテムをマップとして認識するためのキー
+         * アイテムのビヘイビア、マップとして認識するためのキー
          */
-        private val PAINT_GROUP_ID = NamespacedKey(PaintCraft.instance, "paint_group_id")
+        private val PAINT_BEHAVIOR = NamespacedKey(PaintCraft.instance, "type")
+
+        /**
+         * アイテムのグループID
+         */
+        private val PAINT_GROUP_ID = NamespacedKey(PaintCraft.instance, "group_id")
 
         /**
          * 書き込み可能マップを作成する
          * @param world ワールド
          */
-        fun create(world: World): DrawableMapItem {
+        fun create(world: World, type: DrawBehavior): DrawableMapItem {
             // マップを作成する
             val mapView = Bukkit.getServer().createMap(world)
             // レンダラーを初期化
-            val renderer = DrawableMapRenderer()
+            val renderer = DrawableMapRenderer(type)
             // レンダラーを設定
             mapView.setRenderer(renderer)
 
@@ -54,6 +65,7 @@ class DrawableMapItem(val itemStack: ItemStack, val mapView: MapView, val render
             item.editMeta {
                 it as MapMeta
                 it.mapView = mapView
+                it.paintBehavior = type.name
                 it.paintGroupId = 1
             }
             // インスタンスを作成
@@ -70,7 +82,8 @@ class DrawableMapItem(val itemStack: ItemStack, val mapView: MapView, val render
             if (item.type != Material.FILLED_MAP)
                 return null
             // メタデータからマップを取得
-            val mapView = (item.itemMeta as? MapMeta)?.mapView
+            val itemMeta = item.itemMeta
+            val mapView = (itemMeta as? MapMeta)?.mapView
                 ?: return null
             // レンダラーを取得
             val drawableMapRenderer = mapView.getRenderer()
@@ -78,11 +91,11 @@ class DrawableMapItem(val itemStack: ItemStack, val mapView: MapView, val render
                 // レンダラーがあれば使用
                 drawableMapRenderer
             } else {
-                // グループIDがあるか確認
-                item.itemMeta.paintGroupId
+                // 描きこむツール
+                val type = DrawBehaviorTypes.types[itemMeta.paintBehavior]
                     ?: return null
                 // レンダラーを初期化
-                val renderer = DrawableMapRenderer()
+                val renderer = DrawableMapRenderer(type)
                 // レンダラーを設定
                 mapView.setRenderer(renderer)
                 renderer
@@ -90,6 +103,21 @@ class DrawableMapItem(val itemStack: ItemStack, val mapView: MapView, val render
             // インスタンスを作成
             return DrawableMapItem(item, mapView, renderer)
         }
+
+        /**
+         * マップのビヘイビア
+         */
+        private var ItemMeta.paintBehavior: String?
+            get() {
+                return persistentDataContainer.get(PAINT_BEHAVIOR, PersistentDataType.STRING)
+            }
+            set(value) {
+                if (value != null) {
+                    persistentDataContainer.set(PAINT_BEHAVIOR, PersistentDataType.STRING, value)
+                } else {
+                    persistentDataContainer.remove(PAINT_BEHAVIOR)
+                }
+            }
 
         /**
          * マップのグループID
