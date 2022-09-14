@@ -33,6 +33,22 @@ class RGBColor(private val color: Color) {
         return RGBColor(Color(255 - color.red, 255 - color.green, 255 - color.blue))
     }
 
+    /**
+     * カラーコードを取得
+     * @return カラーコード
+     */
+    fun toCode(): Int {
+        return color.rgb
+    }
+
+    /**
+     * カラーコード文字列を取得
+     * @return カラーコード文字列
+     */
+    fun toHexCode(): String {
+        return String.format("#%02X%02X%02X", color.red, color.green, color.blue)
+    }
+
     /** よく使うマップカラー */
     object MapColors {
         /** 透明 */
@@ -79,7 +95,7 @@ class RGBColor(private val color: Color) {
          * @param rgb 16進数カラーコード
          * @return RGBカラー
          */
-        fun fromRGB(rgb: Int): RGBColor {
+        fun fromCode(rgb: Int): RGBColor {
             return RGBColor(Color(rgb))
         }
     }

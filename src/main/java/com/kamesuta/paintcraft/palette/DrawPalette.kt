@@ -13,6 +13,7 @@ import com.kamesuta.paintcraft.util.color.RGBColor.MapColors.white
 import com.kamesuta.paintcraft.util.vec.Vec2d
 import com.kamesuta.paintcraft.util.vec.Vec2i
 import org.bukkit.map.MapCanvas
+import org.bukkit.map.MinecraftFont
 import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.cos
@@ -116,6 +117,7 @@ class DrawPalette(
         if (mode != null) {
             val hsbColor = mode.hsbColor
             val rgbColor = hsbColor.toRGB()
+            val color = rgbColor.toMapColor()
 
             // 透明が選択されていないときのみカーソルを描画
             if (mode.color != transparent) {
@@ -133,7 +135,7 @@ class DrawPalette(
                     canvas.drawCursor(
                         ((vec.x + 1.0) / 2.0 * mapSize).toInt(),
                         ((vec.y + 1.0) / 2.0 * mapSize).toInt(),
-                        rgbColor.toMapColor(),
+                        color,
                         oppositeColor
                     )
                 }
@@ -162,6 +164,15 @@ class DrawPalette(
                     )
                 }
             }
+
+            // カラーコードを描画する
+            val mapColorHex = String.format("%02X", color)
+            canvas.drawText(
+                mapSize / 2 - 33,
+                17,
+                MinecraftFont.Font,
+                "§$color;${rgbColor.toHexCode()} ($mapColorHex)",
+            )
         }
     }
 

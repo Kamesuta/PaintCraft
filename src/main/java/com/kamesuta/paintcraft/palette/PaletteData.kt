@@ -18,18 +18,18 @@ class PaletteData {
 
         /** 初期色 */
         val presetColors: List<Byte> = listOf(
-            RGBColor.fromRGB(0xFFFFFF).toMapColor(),
-            RGBColor.fromRGB(0x000000).toMapColor(),
-            RGBColor.fromRGB(0x7F7F7F).toMapColor(),
-            RGBColor.fromRGB(0xC3C3C3).toMapColor(),
-            RGBColor.fromRGB(0xED1C24).toMapColor(),
-            RGBColor.fromRGB(0xFF7F27).toMapColor(),
-            RGBColor.fromRGB(0xFFAEC9).toMapColor(),
-            RGBColor.fromRGB(0xFFF200).toMapColor(),
-            RGBColor.fromRGB(0x22B14C).toMapColor(),
-            RGBColor.fromRGB(0x00A2E8).toMapColor(),
-            RGBColor.fromRGB(0x3F48CC).toMapColor(),
-            RGBColor.fromRGB(0xA349A4).toMapColor(),
+            RGBColor.fromCode(0xFFFFFF).toMapColor(),
+            RGBColor.fromCode(0x000000).toMapColor(),
+            RGBColor.fromCode(0x7F7F7F).toMapColor(),
+            RGBColor.fromCode(0xC3C3C3).toMapColor(),
+            RGBColor.fromCode(0xED1C24).toMapColor(),
+            RGBColor.fromCode(0xFF7F27).toMapColor(),
+            RGBColor.fromCode(0xFFAEC9).toMapColor(),
+            RGBColor.fromCode(0xFFF200).toMapColor(),
+            RGBColor.fromCode(0x22B14C).toMapColor(),
+            RGBColor.fromCode(0x00A2E8).toMapColor(),
+            RGBColor.fromCode(0x3F48CC).toMapColor(),
+            RGBColor.fromCode(0xA349A4).toMapColor(),
         )
     }
 }
