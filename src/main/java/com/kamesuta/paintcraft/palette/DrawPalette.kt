@@ -47,18 +47,18 @@ class DrawPalette(
             val start = mapSize / 2 - (storedPaletteSize * (PaletteData.MAP_PALETTE_SIZE - 1)) / 2
             // 全スロットを描画する
             palette.storedPalettes.forEachIndexed { index, color ->
-                val x = start + index * storedPaletteSize
-                canvas.drawCursor(x, storedPaletteOffsetY, color, color, storedPaletteSize / 2 - 1)
+                val y = start + index * storedPaletteSize
+                canvas.drawCursor(storedPaletteOffsetX, y, color, color, storedPaletteSize / 2 - 1)
             }
             // 透明が選択されていないときのみカーソルを描画
             if (mode?.color != transparent) {
                 // 選択中のスロットを描画する
-                val x = start + palette.selectedPaletteIndex * storedPaletteSize
+                val y = start + palette.selectedPaletteIndex * storedPaletteSize
                 val color = palette.storedPalettes.getOrNull(palette.selectedPaletteIndex)
                     ?: return@run
                 if (mode?.color == color) {
                     val oppositeColor = RGBColor.fromMapColor(color).toOpposite().toMapColor()
-                    canvas.drawCursor(x, storedPaletteOffsetY, color, oppositeColor, storedPaletteSize / 2)
+                    canvas.drawCursor(storedPaletteOffsetX, y, color, oppositeColor, storedPaletteSize / 2)
                 }
             }
         }
@@ -175,8 +175,8 @@ class DrawPalette(
         /** 色相を選択する円の外側の円の半径 */
         private const val radiusHue = 0.6
 
-        /** 彩度と明度を選択する円の半径 */
-        private const val storedPaletteOffsetY = 16
+        /** パレットのX座標 */
+        private const val storedPaletteOffsetX = 16
 
         /** 色相を選択する円の半径 */
         private const val storedPaletteSize = mapSize / 16
@@ -216,7 +216,7 @@ class DrawPalette(
             // パレットの位置
             val start = mapSize / 2 - (storedPaletteSize * (PaletteData.MAP_PALETTE_SIZE)) / 2
             val end = mapSize / 2 + (storedPaletteSize * (PaletteData.MAP_PALETTE_SIZE)) / 2
-            if (x in start..end && y - storedPaletteOffsetY in -storedPaletteSize / 2..storedPaletteSize / 2) {
+            if (y in start..end && x - storedPaletteOffsetX in -storedPaletteSize / 2..storedPaletteSize / 2) {
                 return PaletteAdjustingType.STORED_PALETTE
             }
 
@@ -288,13 +288,13 @@ class DrawPalette(
         /**
          * 座標のパレットの番号を取得する
          * 注意: 範囲外の番号を返す可能性があります
-         * @param x X座標
+         * @param y Y座標
          * @return パレットの番号
          */
-        fun getStoredPaletteIndex(x: Int): Int {
+        fun getStoredPaletteIndex(y: Int): Int {
             // パレットの位置
             val start = mapSize / 2 - (storedPaletteSize * (PaletteData.MAP_PALETTE_SIZE)) / 2
-            return (x - start) / storedPaletteSize
+            return (y - start) / storedPaletteSize
         }
 
         /**
@@ -305,19 +305,19 @@ class DrawPalette(
         fun MapCanvas.loadPalette(paletteData: PaletteData) {
             // パレットの位置
             val start = mapSize / 2 - (storedPaletteSize * (PaletteData.MAP_PALETTE_SIZE - 1)) / 2
-            val top = storedPaletteOffsetY + storedPaletteSize / 2
+            val left = storedPaletteOffsetX + storedPaletteSize / 2
             for (index in 0 until PaletteData.MAP_PALETTE_SIZE) {
                 // 横のピクセルを取得
-                val x = start + index * storedPaletteSize
+                val y = start + index * storedPaletteSize
 
                 // パレットの色を取得
-                val color = getPixel(x, storedPaletteOffsetY)
+                val color = getPixel(storedPaletteOffsetX, y)
                 if (color != transparent) {
                     paletteData.storedPalettes[index] = color
                 }
 
                 // 縁が描画されていたら選択されている
-                val frameColor = getPixel(x, top)
+                val frameColor = getPixel(left, y)
                 if (frameColor != transparent)
                     paletteData.selectedPaletteIndex = index
             }

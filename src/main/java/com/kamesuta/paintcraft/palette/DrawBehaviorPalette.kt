@@ -36,7 +36,7 @@ class DrawBehaviorPalette(private val renderer: DrawableMapRenderer) : DrawBehav
                 // パレットを選択した場合
                 PaletteAdjustingType.STORED_PALETTE -> {
                     // 選択した保存パレットのスロット番号を取得
-                    val paletteIndex = DrawPalette.getStoredPaletteIndex(uv.x)
+                    val paletteIndex = DrawPalette.getStoredPaletteIndex(uv.y)
                     // 色を読み込む
                     val color = paletteData.storedPalettes.getOrNull(paletteIndex)
                     if (color != null) {
