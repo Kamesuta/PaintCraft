@@ -17,4 +17,7 @@ object DrawBehaviorPaint : DrawBehavior {
     override fun draw(draw: Drawable, f: Drawable.() -> Unit) {
         f(draw)
     }
+
+    override fun init(draw: Drawable) {
+    }
 }

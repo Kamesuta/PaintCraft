@@ -24,4 +24,10 @@ interface DrawBehavior {
      * @param f 描きこむ
      */
     fun draw(draw: Drawable, f: Drawable.() -> Unit)
+
+    /**
+     * 初期描画
+     * @param draw 描き込み対象
+     */
+    fun init(draw: Drawable)
 }

@@ -68,6 +68,8 @@ class DrawableMapItem(
                 it.paintBehavior = type.name
                 it.paintGroupId = 1
             }
+            // 初回描画
+            type.init(renderer)
             // インスタンスを作成
             return DrawableMapItem(item, mapView, renderer)
         }
