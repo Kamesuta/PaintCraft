@@ -29,19 +29,30 @@ class DrawBehaviorPalette(private val renderer: DrawableMapRenderer) : DrawBehav
             paletteData.adjustingType = DrawPalette.getAdjustingType(uv.x, uv.y)
 
             // 保存パレットの場合は選択中の色を変更
-            if (paletteData.adjustingType == PaletteAdjustingType.STORED_PALETTE) {
-                // 選択した保存パレットのスロット番号を取得
-                val paletteIndex = DrawPalette.getStoredPaletteIndex(uv.x)
-                // 色を読み込む
-                val color = paletteData.storedPalettes.getOrNull(paletteIndex)
-                if (color != null) {
-                    // 選択中のスロット番号を変更
-                    paletteData.selectedPaletteIndex = paletteIndex
-                    // 色を変更
-                    val rgbColor = RGBColor.fromMapColor(color)
-                    session.drawing.palette.hsbColor = rgbColor.toHSB()
-                    session.drawing.palette.color = color
+            when (paletteData.adjustingType) {
+                // パレットを選択した場合
+                PaletteAdjustingType.STORED_PALETTE -> {
+                    // 選択した保存パレットのスロット番号を取得
+                    val paletteIndex = DrawPalette.getStoredPaletteIndex(uv.x)
+                    // 色を読み込む
+                    val color = paletteData.storedPalettes.getOrNull(paletteIndex)
+                    if (color != null) {
+                        // 選択中のスロット番号を変更
+                        paletteData.selectedPaletteIndex = paletteIndex
+                        // 色を変更
+                        val rgbColor = RGBColor.fromMapColor(color)
+                        session.drawing.palette.hsbColor = rgbColor.toHSB()
+                        session.drawing.palette.color = color
+                    }
                 }
+
+                // 透明ボタンを選択した場合
+                PaletteAdjustingType.TRANSPARENT_COLOR -> {
+                    // 透明ボタンを押した場合は色を透明にする
+                    session.drawing.palette.color = 0
+                }
+
+                else -> {}
             }
         }
         // 新しい色を取得

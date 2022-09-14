@@ -13,4 +13,10 @@ enum class PaletteAdjustingType {
 
     /** 保存されたパレット */
     STORED_PALETTE,
+
+    /** 透明色 */
+    TRANSPARENT_COLOR,
+
+    /** ピッカー */
+    COLOR_PICKER_COLOR,
 }

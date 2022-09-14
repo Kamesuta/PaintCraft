@@ -7,6 +7,7 @@ import com.kamesuta.paintcraft.util.color.HSBColor
 import com.kamesuta.paintcraft.util.color.RGBColor
 import com.kamesuta.paintcraft.util.color.RGBColor.Companion.toRGB
 import com.kamesuta.paintcraft.util.vec.Vec2d
+import com.kamesuta.paintcraft.util.vec.Vec2i
 import org.bukkit.map.MapCanvas
 import kotlin.math.abs
 import kotlin.math.atan2
@@ -48,55 +49,85 @@ class DrawPalette(
                     val x = start + index * storedPaletteSize
                     canvas.drawCursor(x, storedPaletteOffsetY, color, color, storedPaletteSize / 2 - 1)
                 }
-                // 選択中のスロットを描画する
-                val x = start + paletteData.selectedPaletteIndex * storedPaletteSize
-                val color = paletteData.storedPalettes.getOrNull(paletteData.selectedPaletteIndex)
-                    ?: return@run
-                val oppositeColor = RGBColor.fromMapColor(color).toOpposite().toMapColor()
-                canvas.drawCursor(x, storedPaletteOffsetY, color, oppositeColor, storedPaletteSize / 2)
+                // 透明が選択されていないときのみカーソルを描画
+                if (palette.color != 0.toByte()) {
+                    // 選択中のスロットを描画する
+                    val x = start + paletteData.selectedPaletteIndex * storedPaletteSize
+                    val color = paletteData.storedPalettes.getOrNull(paletteData.selectedPaletteIndex)
+                        ?: return@run
+                    val oppositeColor = RGBColor.fromMapColor(color).toOpposite().toMapColor()
+                    canvas.drawCursor(x, storedPaletteOffsetY, color, oppositeColor, storedPaletteSize / 2)
+                }
             }
 
-            // 明度と彩度のカーソルを描画する
+            // 透明ボタンを描画する
             run {
-                // 反対色
-                val oppositeColor = rgbColor.toOpposite().toMapColor()
-
-                // カーソルの位置
-                val vec = Vec2d(
-                    (hsbColor.saturation * 2.0 - 1.0) / 1.414 * radiusSatBri,
-                    (hsbColor.brightness * 2.0 - 1.0) / 1.414 * radiusSatBri,
-                )
-                // カーソルを描画する
+                // 黒色
+                val color = (-49).toByte()
+                val oppositeColor =
+                    if (palette.color != 0.toByte()) 0 else RGBColor.fromMapColor(color).toOpposite().toMapColor()
+                // 四角と塗りつぶしを描画
                 canvas.drawCursor(
-                    ((vec.x + 1.0) / 2.0 * mapSize).toInt(),
-                    ((vec.y + 1.0) / 2.0 * mapSize).toInt(),
-                    rgbColor.toMapColor(),
-                    oppositeColor
+                    transparentButtonPosition.x,
+                    transparentButtonPosition.y,
+                    oppositeColor,
+                    color,
+                    buttonRadius
                 )
+                // 斜線を描画
+                for (i in -buttonRadius until buttonRadius) {
+                    canvas.setPixel(
+                        transparentButtonPosition.x - i,
+                        transparentButtonPosition.y + i,
+                        color
+                    )
+                }
             }
 
-            // 色相カーソルを描画する
-            run {
-                // 彩度と明度が1.0のときの色
-                val primaryHsbColor = HSBColor(hsbColor.hue, 1.0, 1.0)
-                val primaryRgbColor = primaryHsbColor.toRGB()
-                // 反対色
-                val oppositeColor = primaryRgbColor.toOpposite().toMapColor()
-                // カーソルの半径位置
-                val radius = (radiusHue + radiusSatBri) / 2.0
+            // 透明が選択されていないときのみカーソルを描画
+            if (palette.color != 0.toByte()) {
+                // 明度と彩度のカーソルを描画する
+                run {
+                    // 反対色
+                    val oppositeColor = rgbColor.toOpposite().toMapColor()
 
-                // カーソルの位置
-                val hueVec = Vec2d(
-                    cos(hsbColor.hue * 2.0 * Math.PI) * radius,
-                    sin(hsbColor.hue * 2.0 * Math.PI) * radius,
-                )
-                // カーソルを描画する
-                canvas.drawCursor(
-                    ((hueVec.x + 1.0) / 2.0 * mapSize).toInt(),
-                    ((hueVec.y + 1.0) / 2.0 * mapSize).toInt(),
-                    primaryRgbColor.toMapColor(),
-                    oppositeColor
-                )
+                    // カーソルの位置
+                    val vec = Vec2d(
+                        (hsbColor.saturation * 2.0 - 1.0) / 1.414 * radiusSatBri,
+                        (hsbColor.brightness * 2.0 - 1.0) / 1.414 * radiusSatBri,
+                    )
+                    // カーソルを描画する
+                    canvas.drawCursor(
+                        ((vec.x + 1.0) / 2.0 * mapSize).toInt(),
+                        ((vec.y + 1.0) / 2.0 * mapSize).toInt(),
+                        rgbColor.toMapColor(),
+                        oppositeColor
+                    )
+                }
+
+                // 色相カーソルを描画する
+                run {
+                    // 彩度と明度が1.0のときの色
+                    val primaryHsbColor = HSBColor(hsbColor.hue, 1.0, 1.0)
+                    val primaryRgbColor = primaryHsbColor.toRGB()
+                    // 反対色
+                    val oppositeColor = primaryRgbColor.toOpposite().toMapColor()
+                    // カーソルの半径位置
+                    val radius = (radiusHue + radiusSatBri) / 2.0
+
+                    // カーソルの位置
+                    val hueVec = Vec2d(
+                        cos(hsbColor.hue * 2.0 * Math.PI) * radius,
+                        sin(hsbColor.hue * 2.0 * Math.PI) * radius,
+                    )
+                    // カーソルを描画する
+                    canvas.drawCursor(
+                        ((hueVec.x + 1.0) / 2.0 * mapSize).toInt(),
+                        ((hueVec.y + 1.0) / 2.0 * mapSize).toInt(),
+                        primaryRgbColor.toMapColor(),
+                        oppositeColor
+                    )
+                }
             }
         }
     }
@@ -116,6 +147,12 @@ class DrawPalette(
 
         /** 色相を選択する円の半径 */
         private const val storedPaletteSize = mapSize / 16
+
+        /** ボタンのサイズ */
+        private const val buttonRadius = 4
+
+        /** 透明ボタンの位置 */
+        private val transparentButtonPosition = Vec2i(30, 30)
 
         /** 色相ごとのパレットを事前に計算しておく */
         private val cachedPalette = (0..255).associateWith { hue ->
@@ -145,6 +182,13 @@ class DrawPalette(
             val end = mapSize / 2 + (storedPaletteSize * (PaletteData.MAP_PALETTE_SIZE)) / 2
             if (x in start..end && y - storedPaletteOffsetY in -storedPaletteSize / 2..storedPaletteSize / 2) {
                 return PaletteAdjustingType.STORED_PALETTE
+            }
+
+            // 透明ボタンの位置
+            if (x - transparentButtonPosition.x in -buttonRadius..buttonRadius
+                && y - transparentButtonPosition.y in -buttonRadius..buttonRadius
+            ) {
+                return PaletteAdjustingType.TRANSPARENT_COLOR
             }
 
             // -1.0 ~ 1.0
