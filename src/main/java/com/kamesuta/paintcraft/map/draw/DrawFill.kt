@@ -49,7 +49,7 @@ class DrawFill(
             return
         }
         // 色が既に塗りつぶし済みなら無視
-        if (colored[x, y] != 0.toByte()) {
+        if (colored[x, y] == FILLED) {
             return
         }
         // 色が一致しないなら無視
@@ -59,12 +59,17 @@ class DrawFill(
         // 色を塗りつぶす
         canvas.setPixel(x, y, newColor)
         // 塗りつぶし済みとして記録
-        colored[x, y] = 1.toByte()
+        colored[x, y] = FILLED
 
         // 上下左右に再帰的に塗りつぶしを行う
         fillBucket(canvas, colored, x - 1, y, srcColor, newColor)
         fillBucket(canvas, colored, x + 1, y, srcColor, newColor)
         fillBucket(canvas, colored, x, y - 1, srcColor, newColor)
         fillBucket(canvas, colored, x, y + 1, srcColor, newColor)
+    }
+
+    companion object {
+        /** 塗りつぶし済みマーク */
+        const val FILLED: Byte = 1
     }
 }

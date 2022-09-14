@@ -7,6 +7,9 @@ import com.kamesuta.paintcraft.map.draw.Draw
 import com.kamesuta.paintcraft.util.color.HSBColor
 import com.kamesuta.paintcraft.util.color.RGBColor
 import com.kamesuta.paintcraft.util.color.RGBColor.Companion.toRGB
+import com.kamesuta.paintcraft.util.color.RGBColor.MapColors.black
+import com.kamesuta.paintcraft.util.color.RGBColor.MapColors.transparent
+import com.kamesuta.paintcraft.util.color.RGBColor.MapColors.white
 import com.kamesuta.paintcraft.util.vec.Vec2d
 import com.kamesuta.paintcraft.util.vec.Vec2i
 import org.bukkit.map.MapCanvas
@@ -38,8 +41,6 @@ class DrawPalette(
             }
         }
 
-        val transparentColor: Byte = 0
-
         // パレットを描画する
         run {
             // 一番左のスロットの位置
@@ -50,23 +51,25 @@ class DrawPalette(
                 canvas.drawCursor(x, storedPaletteOffsetY, color, color, storedPaletteSize / 2 - 1)
             }
             // 透明が選択されていないときのみカーソルを描画
-            if (mode?.color != transparentColor) {
+            if (mode?.color != transparent) {
                 // 選択中のスロットを描画する
                 val x = start + palette.selectedPaletteIndex * storedPaletteSize
                 val color = palette.storedPalettes.getOrNull(palette.selectedPaletteIndex)
                     ?: return@run
-                val oppositeColor = RGBColor.fromMapColor(color).toOpposite().toMapColor()
-                canvas.drawCursor(x, storedPaletteOffsetY, color, oppositeColor, storedPaletteSize / 2)
+                if (mode?.color == color) {
+                    val oppositeColor = RGBColor.fromMapColor(color).toOpposite().toMapColor()
+                    canvas.drawCursor(x, storedPaletteOffsetY, color, oppositeColor, storedPaletteSize / 2)
+                }
             }
         }
 
         // ボタンカラー (黒色: -49)
-        val buttonColor: Byte = -49
+        val buttonColor: Byte = black
 
         // 透明ボタンを描画する
         run {
-            // 反対色 (白色: 58)
-            val oppositeColor: Byte = if (mode?.color == transparentColor) 58 else 0
+            // 反対色
+            val oppositeColor: Byte = if (mode?.color == transparent) white else transparent
 
             // 四角と塗りつぶしを描画
             canvas.drawCursor(
@@ -84,8 +87,8 @@ class DrawPalette(
 
         // カラーピッカーボタンを描画する
         run {
-            // 反対色 (白色: 58)
-            val oppositeColor: Byte = if (mode?.tool is PaintColorPicker) 58 else 0
+            // 反対色
+            val oppositeColor: Byte = if (mode?.tool is PaintColorPicker) white else transparent
 
             // 四角と塗りつぶしを描画
             canvas.drawCursor(
@@ -115,7 +118,7 @@ class DrawPalette(
             val rgbColor = hsbColor.toRGB()
 
             // 透明が選択されていないときのみカーソルを描画
-            if (mode.color != transparentColor) {
+            if (mode.color != transparent) {
                 // 明度と彩度のカーソルを描画する
                 run {
                     // 反対色
@@ -309,13 +312,13 @@ class DrawPalette(
 
                 // パレットの色を取得
                 val color = getPixel(x, storedPaletteOffsetY)
-                if (color != 0.toByte()) {
+                if (color != transparent) {
                     paletteData.storedPalettes[index] = color
                 }
 
                 // 縁が描画されていたら選択されている
                 val frameColor = getPixel(x, top)
-                if (frameColor != 0.toByte())
+                if (frameColor != transparent)
                     paletteData.selectedPaletteIndex = index
             }
         }

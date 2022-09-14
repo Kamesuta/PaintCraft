@@ -33,6 +33,18 @@ class RGBColor(private val color: Color) {
         return RGBColor(Color(255 - color.red, 255 - color.green, 255 - color.blue))
     }
 
+    /** よく使うマップカラー */
+    object MapColors {
+        /** 透明 */
+        const val transparent: Byte = 0
+
+        /** 白 */
+        val white = fromRGB(1.0, 1.0, 1.0).toMapColor()
+
+        /** 黒 */
+        val black = fromRGB(0.0, 0.0, 0.0).toMapColor()
+    }
+
     companion object {
         /**
          * RGBカラーに変換

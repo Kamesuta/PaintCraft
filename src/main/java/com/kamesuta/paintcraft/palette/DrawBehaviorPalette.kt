@@ -11,6 +11,7 @@ import com.kamesuta.paintcraft.palette.DrawPalette.Companion.loadPalette
 import com.kamesuta.paintcraft.util.color.HSBColor
 import com.kamesuta.paintcraft.util.color.RGBColor
 import com.kamesuta.paintcraft.util.color.RGBColor.Companion.toRGB
+import com.kamesuta.paintcraft.util.color.RGBColor.MapColors.transparent
 
 /**
  * パレット
@@ -95,7 +96,7 @@ class DrawBehaviorPalette(private val renderer: DrawableMapRenderer) : DrawBehav
                 ?: return
 
         // 色を保存
-        if (color != 0.toByte() && paletteData.selectedPaletteIndex in 0 until paletteData.storedPalettes.size) {
+        if (color != transparent && paletteData.selectedPaletteIndex in 0 until paletteData.storedPalettes.size) {
             paletteData.storedPalettes[paletteData.selectedPaletteIndex] = color
         }
     }
