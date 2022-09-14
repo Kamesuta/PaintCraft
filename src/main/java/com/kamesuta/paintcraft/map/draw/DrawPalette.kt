@@ -131,7 +131,10 @@ class DrawPalette(
         /** 彩度と明度を選択する円の半径 */
         private const val radiusSatBri = 0.4
 
-        /** 色相を選択する円の半径 */
+        /** 色相を選択する円の内側の円の半径 */
+        private const val radiusSpace = 0.36
+
+        /** 色相を選択する円の外側の円の半径 */
         private const val radiusHue = 0.6
 
         /** 彩度と明度を選択する円の半径 */
@@ -174,7 +177,7 @@ class DrawPalette(
             val iVec = Vec2d(x.toDouble(), y.toDouble()) / (mapSize.toDouble() / 2.0) - Vec2d(1.0, 1.0)
             return when (iVec.length) {
                 // 中央の彩度と明度を選択する円
-                in 0.0..radiusSatBri -> CanvasPalette.AdjustingType.SATURATION_BRIGHTNESS
+                in 0.0..radiusSpace -> CanvasPalette.AdjustingType.SATURATION_BRIGHTNESS
                 // 周りの色相を選択するドーナツ円
                 in radiusSatBri..radiusHue -> CanvasPalette.AdjustingType.HUE
                 // その他は無視
