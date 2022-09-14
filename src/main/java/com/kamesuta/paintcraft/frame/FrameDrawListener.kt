@@ -240,7 +240,7 @@ class FrameDrawListener : Listener, Runnable {
         if (session.drawing.drawingAction == CanvasDrawingActionType.END) {
             // クリック中でない場合、描画終了時の処理
             session.drawing.endDrawing()
-            session.tool.endPainting()
+            session.mode.tool.endPainting()
         }
 
         // クリック中かどうかを確認
@@ -460,7 +460,7 @@ class FrameDrawListener : Listener, Runnable {
                 val endLocation = frameRay.canvasIntersectLocation
                 val line = Line3d.fromPoints(startLocation, endLocation)
                 // スナップした線分を取得
-                val snapLine = session.tool.getGuideLine(line)
+                val snapLine = session.mode.tool.getGuideLine(line)
                 player.debugLocation {
                     locate(DebugLocationType.SNAP_SEGMENT, snapLine.toDebug(SEGMENT))
                 }
@@ -517,7 +517,7 @@ class FrameDrawListener : Listener, Runnable {
 
             // 描きこみ開始
             session.drawing.beginDrawing(paintEvent)
-            session.tool.beginPainting(paintEvent)
+            session.mode.tool.beginPainting(paintEvent)
         }
 
         // インタラクトオブジェクトを作成

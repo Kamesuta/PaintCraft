@@ -22,12 +22,8 @@ import org.bukkit.util.BoundingBox
  */
 class FrameRayTrace(
     val player: Player,
-    val getClientType: () -> ClientType
+    val clientType: ClientType,
 ) {
-    /** クライアントの種類 */
-    val clientType: ClientType
-        get() = getClientType()
-
     /**
      * レイを飛ばしてアイテムフレームを取得
      * @param eyeLocation プレイヤーの目線の位置

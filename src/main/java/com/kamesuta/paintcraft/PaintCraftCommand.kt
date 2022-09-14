@@ -115,7 +115,7 @@ class SwitchDrawModeCommand : Command("switch") {
                 }
                 entities.filterIsInstance<Player>().forEach {
                     CanvasSessionManager.getSession(it).let { session ->
-                        session.tool = when (type) {
+                        session.mode.tool = when (type) {
                             DrawMode.PEN -> PaintPencil(session)
                             DrawMode.LINE -> PaintLine(session)
                             DrawMode.RECT -> PaintRect(session)

@@ -11,7 +11,7 @@ import com.kamesuta.paintcraft.map.draw.Drawable
  */
 class DrawBehaviorPaint(private val renderer: DrawableMapRenderer) : DrawBehavior {
     override fun paint(session: CanvasSession, event: PaintEvent) {
-        session.tool.paint(event)
+        session.mode.tool.paint(event)
     }
 
     override fun draw(f: Drawable.() -> Unit) {

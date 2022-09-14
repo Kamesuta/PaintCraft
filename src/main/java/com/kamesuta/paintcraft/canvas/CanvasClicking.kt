@@ -1,11 +1,12 @@
 package com.kamesuta.paintcraft.canvas
 
 import com.kamesuta.paintcraft.util.TimeWatcher
+import com.kamesuta.paintcraft.util.clienttype.ClientType
 
 /**
  * クリック状態
  */
-class CanvasClicking(private val session: CanvasSession) {
+class CanvasClicking(private val clientType: ClientType) {
     /** 最後の操作時刻 */
     var lastTime = 0L
         private set
@@ -16,7 +17,7 @@ class CanvasClicking(private val session: CanvasSession) {
 
     /** 描いている時間内か */
     private val isInClickingTime: Boolean
-        get() = session.clientType.threshold.drawDuration.isInTime(lastTime)
+        get() = clientType.threshold.drawDuration.isInTime(lastTime)
 
     /** 描くのを止める */
     private var pauseClick = false

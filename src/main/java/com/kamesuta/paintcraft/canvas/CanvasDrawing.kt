@@ -1,7 +1,6 @@
 package com.kamesuta.paintcraft.canvas
 
 import com.kamesuta.paintcraft.canvas.paint.PaintEvent
-import com.kamesuta.paintcraft.palette.CanvasPalette
 
 /**
  * キャンバスの描画状態
@@ -31,9 +30,6 @@ class CanvasDrawing {
 
     /** 最後にクリックした操作、カーソルがキャンバスから外れたときのため記憶する */
     var lastEvent: PaintEvent? = null
-
-    /** パレット */
-    val palette = CanvasPalette()
 
     /**
      * 前回の状態と比較して、クリックの変化を更新する

@@ -1,7 +1,5 @@
 package com.kamesuta.paintcraft.canvas
 
-import com.kamesuta.paintcraft.canvas.paint.PaintLine
-import com.kamesuta.paintcraft.canvas.paint.PaintTool
 import com.kamesuta.paintcraft.frame.FrameRayTrace
 import com.kamesuta.paintcraft.util.clienttype.ClientType
 import org.bukkit.entity.Player
@@ -17,9 +15,6 @@ class CanvasSession(val player: Player) {
     /** 正確な目線の位置 (補完されていない生の位置) */
     var eyeLocation = player.eyeLocation
 
-    /** 塗りつぶしツール */
-    var tool: PaintTool = PaintLine(this)
-
     /** 最後のエンティティ右クリック時刻 */
     var lastInteract = 0L
 
@@ -29,15 +24,18 @@ class CanvasSession(val player: Player) {
     /** 最後のエンティティ移動時刻 */
     var lastVehicleMove = 0L
 
+    /** クライアントの種類 */
+    val clientType = ClientType()
+
     /** 描画状態 */
-    val clicking = CanvasClicking(this)
+    val clicking = CanvasClicking(clientType)
 
     /** 描画状態 */
     val drawing = CanvasDrawing()
 
-    /** クライアントの種類 */
-    var clientType = ClientType()
+    /** 選択中のモード */
+    val mode = CanvasMode(this)
 
     /** レイツール */
-    val rayTrace = FrameRayTrace(player) { clientType }
+    val rayTrace = FrameRayTrace(player, clientType)
 }

@@ -11,7 +11,7 @@ import com.kamesuta.paintcraft.map.draw.DrawFill
 class PaintFill(override val session: CanvasSession) : PaintTool {
     override fun paint(event: PaintEvent) {
         // 描く色
-        val color = session.drawing.palette.color
+        val color = session.mode.color
 
         // キャンバスに描く
         event.mapItem.draw {
