@@ -1,7 +1,6 @@
 package com.kamesuta.paintcraft.map
 
 import com.kamesuta.paintcraft.PaintCraft
-import com.kamesuta.paintcraft.map.behavior.DrawBehavior
 import com.kamesuta.paintcraft.map.behavior.DrawBehaviorTypes
 import com.kamesuta.paintcraft.map.draw.Drawable
 import org.bukkit.Bukkit
@@ -30,7 +29,7 @@ class DrawableMapItem(
      * @param f 描画する関数
      */
     fun draw(f: Drawable.() -> Unit) {
-        renderer.behavior.draw(renderer, f)
+        renderer.behavior.draw(f)
     }
 
     companion object {
@@ -48,7 +47,7 @@ class DrawableMapItem(
          * 書き込み可能マップを作成する
          * @param world ワールド
          */
-        fun create(world: World, type: DrawBehavior): DrawableMapItem {
+        fun create(world: World, type: DrawBehaviorTypes.Desc): DrawableMapItem {
             // マップを作成する
             val mapView = Bukkit.getServer().createMap(world)
             // レンダラーを初期化
@@ -69,7 +68,7 @@ class DrawableMapItem(
                 it.paintGroupId = 1
             }
             // 初回描画
-            type.init(renderer)
+            renderer.behavior.init()
             // インスタンスを作成
             return DrawableMapItem(item, mapView, renderer)
         }
@@ -100,6 +99,8 @@ class DrawableMapItem(
                 val renderer = DrawableMapRenderer(type)
                 // レンダラーを設定
                 mapView.setRenderer(renderer)
+                // 初回描画
+                renderer.behavior.init()
                 renderer
             }
             // インスタンスを作成

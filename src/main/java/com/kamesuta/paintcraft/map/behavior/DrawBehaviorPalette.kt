@@ -4,6 +4,7 @@ import com.kamesuta.paintcraft.canvas.CanvasDrawingActionType
 import com.kamesuta.paintcraft.canvas.CanvasPalette
 import com.kamesuta.paintcraft.canvas.CanvasSession
 import com.kamesuta.paintcraft.canvas.paint.PaintEvent
+import com.kamesuta.paintcraft.map.DrawableMapRenderer
 import com.kamesuta.paintcraft.map.draw.DrawPalette
 import com.kamesuta.paintcraft.map.draw.Drawable
 import com.kamesuta.paintcraft.util.color.RGBColor
@@ -11,10 +12,9 @@ import com.kamesuta.paintcraft.util.color.RGBColor.Companion.toRGB
 
 /**
  * パレット
+ * @param renderer 描画クラス
  */
-object DrawBehaviorPalette : DrawBehavior {
-    override val name = "palette"
-
+class DrawBehaviorPalette(private val renderer: DrawableMapRenderer) : DrawBehavior {
     override fun paint(session: CanvasSession, event: PaintEvent) {
         // UV座標を取得
         val uv = event.interact.uv
@@ -59,11 +59,11 @@ object DrawBehaviorPalette : DrawBehavior {
         event.mapItem.renderer.g(DrawPalette(session.drawing.palette))
     }
 
-    override fun draw(draw: Drawable, f: Drawable.() -> Unit) {
+    override fun draw(f: Drawable.() -> Unit) {
     }
 
-    override fun init(draw: Drawable) {
+    override fun init() {
         // パレットを描画
-        draw.g(DrawPalette(null))
+        renderer.g(DrawPalette(null))
     }
 }

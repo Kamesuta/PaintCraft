@@ -1,9 +1,9 @@
 package com.kamesuta.paintcraft.map
 
 import com.kamesuta.paintcraft.map.behavior.DrawBehavior
+import com.kamesuta.paintcraft.map.behavior.DrawBehaviorTypes
 import com.kamesuta.paintcraft.map.draw.Draw
 import com.kamesuta.paintcraft.map.draw.Drawable
-import com.kamesuta.paintcraft.map.behavior.DrawBehaviorTypes
 import com.kamesuta.paintcraft.util.vec.origin
 import org.bukkit.entity.Player
 import org.bukkit.map.MapCanvas
@@ -13,14 +13,17 @@ import org.bukkit.util.Vector
 
 /**
  * 書き込み可能レンダラー
- * @param behavior 描画ツール
+ * @param behaviorDesc 描画ツール生成情報
  */
-class DrawableMapRenderer(val behavior: DrawBehavior) : MapRenderer(), Drawable {
+class DrawableMapRenderer(private val behaviorDesc: DrawBehaviorTypes.Desc) : MapRenderer(), Drawable {
     /** マップビュー */
     private lateinit var mapView: MapView
 
     /** マップキャンバス */
     lateinit var mapCanvas: MapCanvas
+
+    /** 描画ツール */
+    lateinit var behavior: DrawBehavior
 
     /** 変更フラグ */
     private var dirty = false
@@ -32,6 +35,8 @@ class DrawableMapRenderer(val behavior: DrawBehavior) : MapRenderer(), Drawable 
     override fun initialize(map: MapView) {
         // ビューをいつでも使えるようにする
         mapView = map
+        // 描画ツールを生成
+        behavior = behaviorDesc.generator(this)
         // キャンバスを強制初期化
         mapCanvas = DrawableMapReflection.createAndPutCanvas(mapView, this)
             ?: return

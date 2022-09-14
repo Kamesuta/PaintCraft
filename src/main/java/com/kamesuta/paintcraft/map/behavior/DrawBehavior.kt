@@ -8,9 +8,6 @@ import com.kamesuta.paintcraft.map.draw.Drawable
  * マップの描きこみを行うクラス
  */
 interface DrawBehavior {
-    /** ビヘイビアの名前 */
-    val name: String
-
     /**
      * ツールを使用して描きこむ
      * @param session キャンバスセッション
@@ -23,11 +20,11 @@ interface DrawBehavior {
      * @param draw 描き込み対象
      * @param f 描きこむ
      */
-    fun draw(draw: Drawable, f: Drawable.() -> Unit)
+    fun draw(f: Drawable.() -> Unit)
 
     /**
      * 初期描画
      * @param draw 描き込み対象
      */
-    fun init(draw: Drawable)
+    fun init()
 }

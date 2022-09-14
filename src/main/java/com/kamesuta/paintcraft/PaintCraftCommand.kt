@@ -6,8 +6,8 @@ import com.kamesuta.paintcraft.canvas.paint.PaintLine
 import com.kamesuta.paintcraft.canvas.paint.PaintPencil
 import com.kamesuta.paintcraft.canvas.paint.PaintRect
 import com.kamesuta.paintcraft.map.DrawableMapItem
-import com.kamesuta.paintcraft.map.behavior.DrawBehaviorPaint
-import com.kamesuta.paintcraft.map.behavior.DrawBehaviorPalette
+import com.kamesuta.paintcraft.map.behavior.DrawBehaviorTypes.DrawBehaviorPaintDesc
+import com.kamesuta.paintcraft.map.behavior.DrawBehaviorTypes.DrawBehaviorPaletteDesc
 import com.kamesuta.paintcraft.util.enumValueOrNull
 import com.kamesuta.paintcraft.util.vec.debug.DebugLocationCommand
 import dev.kotx.flylib.command.Command
@@ -35,7 +35,7 @@ class GiveCanvasCommand : Command("give") {
             executes {
                 val entities = typedArgs[0] as List<*>
                 entities.filterIsInstance<Player>().forEach {
-                    val mapDrawer = DrawableMapItem.create(it.world, DrawBehaviorPaint)
+                    val mapDrawer = DrawableMapItem.create(it.world, DrawBehaviorPaintDesc)
                     it.inventory.addItem(mapDrawer.itemStack)
                 }
             }
@@ -50,7 +50,7 @@ class PaletteCanvasCommand : Command("palette") {
             executes {
                 val entities = typedArgs[0] as List<*>
                 entities.filterIsInstance<Player>().forEach {
-                    val mapDrawer = DrawableMapItem.create(it.world, DrawBehaviorPalette)
+                    val mapDrawer = DrawableMapItem.create(it.world, DrawBehaviorPaletteDesc)
                     it.inventory.addItem(mapDrawer.itemStack)
                 }
             }
