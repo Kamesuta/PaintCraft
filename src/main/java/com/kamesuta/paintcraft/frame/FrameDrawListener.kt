@@ -234,16 +234,17 @@ class FrameDrawListener : Listener, Runnable {
 
         // クリック状態の更新
         session.clicking.updateClick(CanvasActionType.MOUSE_MOVE)
+        session.drawing.updateDrawingAction(session.clicking.clickMode.isPressed)
+
+        // クリック状態の変化を確認
+        if (session.drawing.drawingAction == CanvasDrawingActionType.END) {
+            // クリック中でない場合、描画終了時の処理
+            session.drawing.endDrawing()
+            session.tool.endPainting()
+        }
 
         // クリック中かどうかを確認
         if (!session.clicking.clickMode.isPressed) {
-            // クリック状態の変化を確認
-            val drawingAction = session.drawing.getDrawingAction(false)
-            if (drawingAction == CanvasDrawingActionType.END) {
-                // クリック中でない場合、描画終了時の処理
-                session.drawing.endDrawing()
-                session.tool.endPainting()
-            }
             // クリック中でない場合は描き込みを行わない
             return
         }
@@ -411,6 +412,7 @@ class FrameDrawListener : Listener, Runnable {
 
         // クリック状態を更新
         session.clicking.updateClick(actionTypeRightOrLeft)
+        session.drawing.updateDrawingAction(session.clicking.clickMode.isPressed)
 
         // 目線の位置を取得
         val eyeLocation = session.eyeLocation.toLine()

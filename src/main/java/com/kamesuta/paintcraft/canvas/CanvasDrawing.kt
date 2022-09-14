@@ -14,6 +14,10 @@ class CanvasDrawing {
     var drawMode: CanvasActionType = CanvasActionType.NONE
         private set
 
+    /** 描きこみの変化 */
+    var drawingAction: CanvasDrawingActionType = CanvasDrawingActionType.NONE
+        private set
+
     /** 編集したマップアイテム */
     val edited = CanvasMemento.Builder()
 
@@ -31,12 +35,12 @@ class CanvasDrawing {
     val palette = CanvasPalette()
 
     /**
-     * 前回の状態と比較して、クリックの変化を取得する
+     * 前回の状態と比較して、クリックの変化を更新する
      * @param isPressed 新しいクリック状態
      */
-    fun getDrawingAction(isPressed: Boolean): CanvasDrawingActionType {
+    fun updateDrawingAction(isPressed: Boolean) {
         // 前回と今回のクリック状態を比較
-        return if (isPressed == isDrawing) {
+        drawingAction = if (isPressed == isDrawing) {
             // 変化なし
             CanvasDrawingActionType.NONE
         } else {

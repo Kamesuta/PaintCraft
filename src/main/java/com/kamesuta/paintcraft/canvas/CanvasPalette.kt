@@ -35,9 +35,19 @@ class CanvasPalette {
         }
     }
 
+    /** 調整中の項目 */
+    enum class AdjustingType {
+        NONE,
+        HUE,
+        SATURATION_BRIGHTNESS,
+    }
+
     /** 現在の選択中のHSV色 */
     var hsvColor = HSVColor(0.0, 0.0, 0.0)
 
     /** 現在の選択中のRGB色 */
     var color: Byte = 0
+
+    /** 現在の操作中の色相 or 明度/彩度 */
+    var adjustingType = AdjustingType.NONE
 }
