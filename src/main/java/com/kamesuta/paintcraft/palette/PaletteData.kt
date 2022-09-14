@@ -1,35 +1,10 @@
-package com.kamesuta.paintcraft.canvas
+package com.kamesuta.paintcraft.palette
 
-import com.kamesuta.paintcraft.util.color.HSBColor
 import com.kamesuta.paintcraft.util.color.RGBColor
 
-/**
- * 選択中の色情報、太さなどほ保持する
- */
-class CanvasPalette {
-    /** 調整中の項目 */
-    enum class AdjustingType {
-        /** なし */
-        NONE,
-
-        /** 色相 */
-        HUE,
-
-        /** 彩度/明度 */
-        SATURATION_BRIGHTNESS,
-
-        /** 保存されたパレット */
-        STORED_PALETTE,
-    }
-
-    /** 現在の選択中のHSB色 */
-    var hsbColor = HSBColor(0.0, 0.0, 0.0)
-
-    /** 現在の選択中のRGB色 */
-    var color: Byte = 0
-
+class PaletteData {
     /** 現在の操作中の色相 or 明度/彩度 */
-    var adjustingType = AdjustingType.NONE
+    var adjustingType = PaletteAdjustingType.NONE
 
     /** 保存したパレット */
     val storedPalettes: MutableList<Byte> = presetColors.toMutableList()

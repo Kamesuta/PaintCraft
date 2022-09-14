@@ -1,8 +1,8 @@
-package com.kamesuta.paintcraft.map.draw
+package com.kamesuta.paintcraft.palette
 
-import com.kamesuta.paintcraft.canvas.CanvasPalette
 import com.kamesuta.paintcraft.map.DrawableMapBuffer
 import com.kamesuta.paintcraft.map.DrawableMapBuffer.Companion.mapSize
+import com.kamesuta.paintcraft.map.draw.Draw
 import com.kamesuta.paintcraft.util.color.HSBColor
 import com.kamesuta.paintcraft.util.color.RGBColor
 import com.kamesuta.paintcraft.util.color.RGBColor.Companion.toRGB
@@ -18,6 +18,7 @@ import kotlin.math.sin
  * @param palette パレット
  */
 class DrawPalette(
+    private val paletteData: PaletteData,
     private val palette: CanvasPalette?,
 ) : Draw {
     override fun draw(canvas: MapCanvas) {
@@ -41,15 +42,15 @@ class DrawPalette(
             // パレットを描画する
             run {
                 // 一番左のスロットの位置
-                val start = mapSize / 2 - (storedPaletteSize * (CanvasPalette.MAP_PALETTE_SIZE - 1)) / 2
+                val start = mapSize / 2 - (storedPaletteSize * (PaletteData.MAP_PALETTE_SIZE - 1)) / 2
                 // 全スロットを描画する
-                palette.storedPalettes.forEachIndexed { index, color ->
+                paletteData.storedPalettes.forEachIndexed { index, color ->
                     val x = start + index * storedPaletteSize
                     canvas.drawCursor(x, storedPaletteOffsetY, color, color, storedPaletteSize / 2 - 1)
                 }
                 // 選択中のスロットを描画する
-                val x = start + palette.selectedPaletteIndex * storedPaletteSize
-                val color = palette.storedPalettes.getOrNull(palette.selectedPaletteIndex)
+                val x = start + paletteData.selectedPaletteIndex * storedPaletteSize
+                val color = paletteData.storedPalettes.getOrNull(paletteData.selectedPaletteIndex)
                     ?: return@run
                 val oppositeColor = RGBColor.fromMapColor(color).toOpposite().toMapColor()
                 canvas.drawCursor(x, storedPaletteOffsetY, color, oppositeColor, storedPaletteSize / 2)
@@ -100,33 +101,6 @@ class DrawPalette(
         }
     }
 
-    /**
-     * カーソルを描画する
-     * (中央が選択中の色で、周りが反対色)
-     * @param x カーソルのX座標
-     * @param y カーソルのY座標
-     * @param color カーソルの色
-     * @param oppositeColor カーソルの反対色
-     * @param radius カーソルの大きさ
-     */
-    private fun MapCanvas.drawCursor(
-        x: Int,
-        y: Int,
-        color: Byte,
-        oppositeColor: Byte,
-        radius: Int = 2,
-    ) {
-        for (iy in -radius..radius) {
-            for (ix in -radius..radius) {
-                if (abs(iy) == radius || abs(ix) == radius) {
-                    setPixel(x + ix, y + iy, oppositeColor)
-                } else {
-                    setPixel(x + ix, y + iy, color)
-                }
-            }
-        }
-    }
-
     companion object {
         /** 彩度と明度を選択する円の半径 */
         private const val radiusSatBri = 0.4
@@ -165,23 +139,23 @@ class DrawPalette(
         fun getAdjustingType(
             x: Int,
             y: Int,
-        ): CanvasPalette.AdjustingType {
+        ): PaletteAdjustingType {
             // パレットの位置
-            val start = mapSize / 2 - (storedPaletteSize * (CanvasPalette.MAP_PALETTE_SIZE)) / 2
-            val end = mapSize / 2 + (storedPaletteSize * (CanvasPalette.MAP_PALETTE_SIZE)) / 2
+            val start = mapSize / 2 - (storedPaletteSize * (PaletteData.MAP_PALETTE_SIZE)) / 2
+            val end = mapSize / 2 + (storedPaletteSize * (PaletteData.MAP_PALETTE_SIZE)) / 2
             if (x in start..end && y - storedPaletteOffsetY in -storedPaletteSize / 2..storedPaletteSize / 2) {
-                return CanvasPalette.AdjustingType.STORED_PALETTE
+                return PaletteAdjustingType.STORED_PALETTE
             }
 
             // -1.0 ~ 1.0
             val iVec = Vec2d(x.toDouble(), y.toDouble()) / (mapSize.toDouble() / 2.0) - Vec2d(1.0, 1.0)
             return when (iVec.length) {
                 // 中央の彩度と明度を選択する円
-                in 0.0..radiusSpace -> CanvasPalette.AdjustingType.SATURATION_BRIGHTNESS
+                in 0.0..radiusSpace -> PaletteAdjustingType.SATURATION_BRIGHTNESS
                 // 周りの色相を選択するドーナツ円
-                in radiusSatBri..radiusHue -> CanvasPalette.AdjustingType.HUE
+                in radiusSatBri..radiusHue -> PaletteAdjustingType.HUE
                 // その他は無視
-                else -> CanvasPalette.AdjustingType.NONE
+                else -> PaletteAdjustingType.NONE
             }
         }
 
@@ -196,21 +170,21 @@ class DrawPalette(
         fun getColor(
             x: Int,
             y: Int,
-            adjustingType: CanvasPalette.AdjustingType,
+            adjustingType: PaletteAdjustingType,
             HSBColor: HSBColor,
         ): HSBColor? {
             // -1.0 ~ 1.0
             val iVec = Vec2d(x.toDouble(), y.toDouble()) / (mapSize.toDouble() / 2.0) - Vec2d(1.0, 1.0)
             return when (adjustingType) {
                 // 中央の彩度と明度を選択する円
-                CanvasPalette.AdjustingType.SATURATION_BRIGHTNESS -> {
+                PaletteAdjustingType.SATURATION_BRIGHTNESS -> {
                     val s = ((iVec.x / radiusSatBri * 1.414 + 1.0) / 2.0).coerceIn(0.0, 1.0)
                     val b = ((iVec.y / radiusSatBri * 1.414 + 1.0) / 2.0).coerceIn(0.0, 1.0)
                     HSBColor(HSBColor.hue, s, b)
                 }
 
                 // 周りの色相を選択するドーナツ円
-                CanvasPalette.AdjustingType.HUE -> {
+                PaletteAdjustingType.HUE -> {
                     val h = atan2(iVec.y, iVec.x) / (Math.PI * 2.0)
                     HSBColor(
                         h,
@@ -232,8 +206,59 @@ class DrawPalette(
          */
         fun getStoredPaletteIndex(x: Int): Int {
             // パレットの位置
-            val start = mapSize / 2 - (storedPaletteSize * (CanvasPalette.MAP_PALETTE_SIZE)) / 2
+            val start = mapSize / 2 - (storedPaletteSize * (PaletteData.MAP_PALETTE_SIZE)) / 2
             return (x - start) / storedPaletteSize
+        }
+
+        /**
+         * パレットをピクセルデータから読み込む
+         * @receiver canvas 読み込む元のマップ
+         * @param paletteData 読み込んだデータを保存するパレットデータ
+         */
+        fun MapCanvas.loadPalette(paletteData: PaletteData) {
+            // パレットの位置
+            val start = mapSize / 2 - (storedPaletteSize * (PaletteData.MAP_PALETTE_SIZE - 1)) / 2
+            val top = storedPaletteOffsetY + storedPaletteSize / 2
+            for (index in 0 until PaletteData.MAP_PALETTE_SIZE) {
+                // 横のピクセルを取得
+                val x = start + index * storedPaletteSize
+
+                // パレットの色を取得
+                val color = getPixel(x, storedPaletteOffsetY)
+                paletteData.storedPalettes[index] = color
+
+                // 縁が描画されていたら選択されている
+                val isSelectedColor = getPixel(x, top) != 0.toByte()
+                if (isSelectedColor)
+                    paletteData.selectedPaletteIndex = index
+            }
+        }
+
+        /**
+         * カーソルを描画する
+         * (中央が選択中の色で、周りが反対色)
+         * @param x カーソルのX座標
+         * @param y カーソルのY座標
+         * @param color カーソルの色
+         * @param oppositeColor カーソルの反対色
+         * @param radius カーソルの大きさ
+         */
+        private fun MapCanvas.drawCursor(
+            x: Int,
+            y: Int,
+            color: Byte,
+            oppositeColor: Byte,
+            radius: Int = 2,
+        ) {
+            for (iy in -radius..radius) {
+                for (ix in -radius..radius) {
+                    if (abs(iy) == radius || abs(ix) == radius) {
+                        setPixel(x + ix, y + iy, oppositeColor)
+                    } else {
+                        setPixel(x + ix, y + iy, color)
+                    }
+                }
+            }
         }
     }
 }

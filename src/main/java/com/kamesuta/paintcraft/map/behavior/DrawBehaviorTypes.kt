@@ -1,6 +1,7 @@
 package com.kamesuta.paintcraft.map.behavior
 
 import com.kamesuta.paintcraft.map.DrawableMapRenderer
+import com.kamesuta.paintcraft.palette.DrawBehaviorPalette
 
 /**
  * 描くツール

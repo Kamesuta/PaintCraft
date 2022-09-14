@@ -1,6 +1,7 @@
 package com.kamesuta.paintcraft.canvas
 
 import com.kamesuta.paintcraft.canvas.paint.PaintEvent
+import com.kamesuta.paintcraft.palette.CanvasPalette
 
 /**
  * キャンバスの描画状態
