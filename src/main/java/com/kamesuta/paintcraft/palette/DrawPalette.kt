@@ -78,10 +78,10 @@ class DrawPalette(
                 transparentButtonPosition.y,
                 oppositeColor,
                 buttonColor,
-                buttonRadius
+                buttonSize / 2
             )
             // 斜線を描画
-            for (i in -buttonRadius until buttonRadius) {
+            for (i in -buttonSize / 2 until buttonSize / 2) {
                 canvas.setPixel(transparentButtonPosition.x - i, transparentButtonPosition.y + i, buttonColor)
             }
         }
@@ -97,7 +97,7 @@ class DrawPalette(
                 colorPickerButtonPosition.y,
                 oppositeColor,
                 buttonColor,
-                buttonRadius
+                buttonSize / 2
             )
             // 内側の四角
             canvas.drawCursor(
@@ -105,10 +105,10 @@ class DrawPalette(
                 colorPickerButtonPosition.y,
                 oppositeColor,
                 buttonColor,
-                buttonRadius - 2
+                buttonSize / 2 - 2
             )
             // 十字を描画
-            for (i in -buttonRadius until buttonRadius) {
+            for (i in -buttonSize / 2 until buttonSize / 2) {
                 canvas.setPixel(colorPickerButtonPosition.x + i, colorPickerButtonPosition.y, buttonColor)
                 canvas.setPixel(colorPickerButtonPosition.x, colorPickerButtonPosition.y + i, buttonColor)
             }
@@ -193,7 +193,7 @@ class DrawPalette(
         private const val storedPaletteSize = mapSize / 16
 
         /** ボタンのサイズ */
-        private const val buttonRadius = 4
+        private const val buttonSize = 9
 
         /** 透明ボタンの位置 */
         private val transparentButtonPosition = Vec2i(30, 30)
@@ -232,15 +232,15 @@ class DrawPalette(
             }
 
             // 透明ボタンの位置
-            if (x - transparentButtonPosition.x in -buttonRadius..buttonRadius
-                && y - transparentButtonPosition.y in -buttonRadius..buttonRadius
+            if (x - transparentButtonPosition.x in -buttonSize / 2..buttonSize / 2
+                && y - transparentButtonPosition.y in -buttonSize / 2..buttonSize / 2
             ) {
                 return PaletteAdjustingType.TRANSPARENT_COLOR
             }
 
             // 透明ボタンの位置
-            if (x - colorPickerButtonPosition.x in -buttonRadius..buttonRadius
-                && y - colorPickerButtonPosition.y in -buttonRadius..buttonRadius
+            if (x - colorPickerButtonPosition.x in -buttonSize / 2..buttonSize / 2
+                && y - colorPickerButtonPosition.y in -buttonSize / 2..buttonSize / 2
             ) {
                 return PaletteAdjustingType.COLOR_PICKER_COLOR
             }
