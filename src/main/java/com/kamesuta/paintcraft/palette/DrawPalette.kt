@@ -225,11 +225,13 @@ class DrawPalette(
 
                 // パレットの色を取得
                 val color = getPixel(x, storedPaletteOffsetY)
-                paletteData.storedPalettes[index] = color
+                if (color != 0.toByte()) {
+                    paletteData.storedPalettes[index] = color
+                }
 
                 // 縁が描画されていたら選択されている
-                val isSelectedColor = getPixel(x, top) != 0.toByte()
-                if (isSelectedColor)
+                val frameColor = getPixel(x, top)
+                if (frameColor != 0.toByte())
                     paletteData.selectedPaletteIndex = index
             }
         }
