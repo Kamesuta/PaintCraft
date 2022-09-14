@@ -526,7 +526,7 @@ class FrameDrawListener : Listener, Runnable {
         session.drawing.lastEvent = paintEvent
 
         // キャンバスに描画する
-        ray.mapItem.renderer.behavior.draw(session, paintEvent)
+        ray.mapItem.renderer.behavior.paint(session, paintEvent)
 
         // 変更箇所をプレイヤーに送信
         session.drawing.edited.editing.updatePlayer()

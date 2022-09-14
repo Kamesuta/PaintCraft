@@ -30,7 +30,7 @@ class DrawableMapItem(
      * @param f 描画する関数
      */
     fun draw(f: Drawable.() -> Unit) {
-        f(renderer)
+        renderer.behavior.draw(renderer, f)
     }
 
     companion object {
