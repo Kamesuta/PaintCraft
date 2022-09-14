@@ -8,8 +8,6 @@ import com.kamesuta.paintcraft.util.vec.Line3d
 import com.kamesuta.paintcraft.util.vec.normalized
 import com.kamesuta.paintcraft.util.vec.plus
 import com.kamesuta.paintcraft.util.vec.times
-import org.bukkit.map.MapPalette
-import java.awt.Color
 
 /**
  * 右クリック2点で線が引けるツール
@@ -18,8 +16,7 @@ import java.awt.Color
 class PaintLine(override val session: CanvasSession) : PaintTool {
     override fun paint(event: PaintEvent) {
         // 描く色
-        @Suppress("DEPRECATION")
-        val color = MapPalette.matchColor(Color.BLACK)
+        val color = session.drawing.palette.color
 
         // キャンバスに描く
         when (event.drawMode) {

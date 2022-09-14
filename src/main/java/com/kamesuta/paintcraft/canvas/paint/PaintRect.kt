@@ -8,8 +8,6 @@ import com.kamesuta.paintcraft.util.vec.Line3d
 import com.kamesuta.paintcraft.util.vec.normalized
 import com.kamesuta.paintcraft.util.vec.plus
 import com.kamesuta.paintcraft.util.vec.times
-import org.bukkit.map.MapPalette
-import java.awt.Color
 import kotlin.math.abs
 import kotlin.math.min
 import kotlin.math.pow
@@ -21,8 +19,7 @@ import kotlin.math.pow
 class PaintRect(override val session: CanvasSession) : PaintTool {
     override fun paint(event: PaintEvent) {
         // 描く色
-        @Suppress("DEPRECATION")
-        val color = MapPalette.matchColor(Color.BLACK)
+        val color = session.drawing.palette.color
 
         // キャンバスに描く
         when (event.drawMode) {

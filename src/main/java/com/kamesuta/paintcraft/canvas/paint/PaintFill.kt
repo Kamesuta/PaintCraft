@@ -3,8 +3,6 @@ package com.kamesuta.paintcraft.canvas.paint
 import com.kamesuta.paintcraft.canvas.CanvasActionType
 import com.kamesuta.paintcraft.canvas.CanvasSession
 import com.kamesuta.paintcraft.map.draw.DrawFill
-import org.bukkit.map.MapPalette
-import java.awt.Color
 
 /**
  * 塗りつぶしツール
@@ -13,8 +11,7 @@ import java.awt.Color
 class PaintFill(override val session: CanvasSession) : PaintTool {
     override fun paint(event: PaintEvent) {
         // 描く色
-        @Suppress("DEPRECATION")
-        val color = MapPalette.matchColor(Color.BLACK)
+        val color = session.drawing.palette.color
 
         // キャンバスに描く
         event.mapItem.draw {

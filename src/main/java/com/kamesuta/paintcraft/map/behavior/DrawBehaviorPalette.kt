@@ -13,13 +13,18 @@ object DrawBehaviorPalette : DrawBehavior {
 
     override fun paint(session: CanvasSession, event: PaintEvent) {
         val uv = event.interact.uv
-        event.mapItem.renderer.g(DrawPalette(uv.x, uv.y))
+        val hsv = session.drawing.palette.hsvColor
+        DrawPalette.getColor(uv.x, uv.y, hsv.hue, hsv.saturation, hsv.brightness)?.let {
+            session.drawing.palette.hsvColor = it
+            session.drawing.palette.color = it.toMapColor()
+        }
+        event.mapItem.renderer.g(DrawPalette(session.drawing.palette))
     }
 
     override fun draw(draw: Drawable, f: Drawable.() -> Unit) {
     }
 
     override fun init(draw: Drawable) {
-        draw.g(DrawPalette(0, 0))
+        draw.g(DrawPalette(null))
     }
 }
