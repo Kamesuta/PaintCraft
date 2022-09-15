@@ -64,7 +64,7 @@ class DrawBehaviorPalette(private val renderer: DrawableMapRenderer) : DrawBehav
                         // コールバックを設定
                         session.mode.onColorChanged = {
                             // カラーピッカーを終了した場合は元のツールに戻す
-                            session.mode.tool = prevTool
+                            //session.mode.tool = prevTool
                             // パレットに保存
                             paletteData.storeToPalette(session.mode)
                             // パレットを描画
@@ -112,7 +112,7 @@ class DrawBehaviorPalette(private val renderer: DrawableMapRenderer) : DrawBehav
                                 .hoverEvent(
                                     HoverEvent.hoverEvent(
                                         HoverEvent.Action.SHOW_TEXT,
-                                        Component.text("Click and type color code to replace")
+                                        Component.text("Click and type color code to use it")
                                     )
                                 )
                                 .clickEvent(

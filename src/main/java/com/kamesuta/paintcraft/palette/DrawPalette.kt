@@ -356,7 +356,7 @@ class DrawPalette(
          * @param oppositeColor カーソルの反対色
          * @param radius カーソルの大きさ
          */
-        private fun MapCanvas.drawCursor(
+        fun MapCanvas.drawCursor(
             x: Int,
             y: Int,
             color: Byte,
