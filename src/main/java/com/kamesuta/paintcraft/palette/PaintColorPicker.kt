@@ -3,6 +3,7 @@ package com.kamesuta.paintcraft.palette
 import com.kamesuta.paintcraft.canvas.CanvasSession
 import com.kamesuta.paintcraft.canvas.paint.PaintEvent
 import com.kamesuta.paintcraft.canvas.paint.PaintTool
+import com.kamesuta.paintcraft.map.DrawableMapBuffer.Companion.mapSize
 import com.kamesuta.paintcraft.palette.DrawPalette.Companion.drawCursor
 import com.kamesuta.paintcraft.util.color.RGBColor
 
@@ -28,8 +29,24 @@ class PaintColorPicker(
         val color = event.mapItem.renderer.mapCanvas.getPixel(uv.x, uv.y)
         val oppositeColor = RGBColor.fromMapColor(color).toOpposite().toMapColor()
         // カーソルを描画
-        event.mapItem.renderer.mapCanvas.drawCursor(uv.x, uv.y, color, oppositeColor, 3)
+        event.mapItem.renderer.mapCanvas.drawCursor(uv.x, uv.y, color, oppositeColor)
+        // 固定位置のカーソルを描画
+        if (uv.x < CURSOR_THRESHOLD && uv.y < CURSOR_THRESHOLD) {
+            // カーソルが左上にある場合は右上にカーソルを描画
+            event.mapItem.renderer.mapCanvas.drawCursor(mapSize - CURSOR_OFFSET, CURSOR_OFFSET, color, oppositeColor, 7)
+        } else {
+            // その他は左上にカーソルを描画
+            event.mapItem.renderer.mapCanvas.drawCursor(CURSOR_OFFSET, CURSOR_OFFSET, color, oppositeColor, 7)
+        }
         // 現在使用している色を設定
         session.mode.setMapColor(color)
+    }
+
+    companion object {
+        /** カーソル描画オフセット */
+        private const val CURSOR_OFFSET = 32
+
+        /** カーソルを別の位置に動かすしきい値 */
+        private const val CURSOR_THRESHOLD = 64
     }
 }

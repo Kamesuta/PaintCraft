@@ -21,6 +21,14 @@ class CanvasMode(private val session: CanvasSession) {
 
     /** 描き込みツール */
     var tool: PaintTool = PaintLine(session)
+        set(value) {
+            // 一つ前のツールを記憶
+            prevTool = field
+            field = value
+        }
+
+    /** 一つ前の描き込みツール */
+    var prevTool: PaintTool = PaintLine(session)
 
     /** 色を変更したあとのコールバック */
     var onColorChanged: (() -> Unit)? = null

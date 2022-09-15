@@ -56,15 +56,15 @@ class DrawBehaviorPalette(private val renderer: DrawableMapRenderer) : DrawBehav
 
                 // カラーピッカーボタンを選択した場合
                 PaletteAdjustingType.COLOR_PICKER_COLOR -> {
-                    // 既にカラーピッカーの場合は何もしない
-                    if (session.mode.tool !is PaintColorPicker) {
+                    // 既にカラーピッカーの場合は戻す
+                    if (session.mode.tool is PaintColorPicker) {
+                        // 元のツールに戻す
+                        session.mode.tool = session.mode.prevTool
+                    } else {
                         // カラーピッカーツールに変更
-                        val prevTool = session.mode.tool
                         session.mode.tool = PaintColorPicker(session)
                         // コールバックを設定
                         session.mode.onColorChanged = {
-                            // カラーピッカーを終了した場合は元のツールに戻す
-                            //session.mode.tool = prevTool
                             // パレットに保存
                             paletteData.storeToPalette(session.mode)
                             // パレットを描画
