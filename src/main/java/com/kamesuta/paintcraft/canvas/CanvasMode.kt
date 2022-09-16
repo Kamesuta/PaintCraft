@@ -19,6 +19,9 @@ class CanvasMode(private val session: CanvasSession) {
     var mapColor: Byte = 0
         private set
 
+    /** ペンの太さ */
+    var thickness: Double = 1.0
+
     /** 描き込みツール */
     var tool: PaintTool = PaintLine(session)
         set(value) {

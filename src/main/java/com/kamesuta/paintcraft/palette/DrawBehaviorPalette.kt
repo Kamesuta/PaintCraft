@@ -9,6 +9,7 @@ import com.kamesuta.paintcraft.map.draw.Drawable
 import com.kamesuta.paintcraft.palette.DrawPalette.Companion.loadPalette
 import com.kamesuta.paintcraft.util.color.RGBColor
 import com.kamesuta.paintcraft.util.color.RGBColor.MapColors.transparent
+import com.kamesuta.paintcraft.util.vec.origin
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.event.ClickEvent
 import net.kyori.adventure.text.event.HoverEvent
@@ -131,6 +132,7 @@ class DrawBehaviorPalette(private val renderer: DrawableMapRenderer) : DrawBehav
                 else -> {}
             }
         }
+
         // 新しい色を取得
         val color = DrawPalette.getColor(uv.x, uv.y, paletteData.adjustingType, hsb)
         // 色が変更されている場合のみ色を設定
@@ -139,8 +141,18 @@ class DrawBehaviorPalette(private val renderer: DrawableMapRenderer) : DrawBehav
             // パレットに保存
             paletteData.storeToPalette(session.mode)
         }
+
+        // 太さスライダーを選択した場合
+        if (paletteData.adjustingType == PaletteAdjustingType.THICKNESS) {
+            // 太さを取得
+            session.mode.thickness = DrawPalette.getThickness(uv.y)
+        }
+
         // パレットを描画
         event.mapItem.renderer.g(DrawPalette(paletteData, session.mode))
+
+        // 更新をプレイヤーに送信
+        renderer.updatePlayer(event.interact.ray.itemFrame.location.origin)
     }
 
     override fun draw(f: Drawable.() -> Unit) {

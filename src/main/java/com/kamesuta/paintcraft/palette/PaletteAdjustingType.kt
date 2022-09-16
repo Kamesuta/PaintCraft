@@ -22,4 +22,7 @@ enum class PaletteAdjustingType {
 
     /** カラーコード */
     COLOR_CODE,
+
+    /** ペンの太さ */
+    THICKNESS,
 }

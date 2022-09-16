@@ -14,10 +14,7 @@ import com.kamesuta.paintcraft.util.vec.Vec2d
 import com.kamesuta.paintcraft.util.vec.Vec2i
 import org.bukkit.map.MapCanvas
 import org.bukkit.map.MinecraftFont
-import kotlin.math.abs
-import kotlin.math.atan2
-import kotlin.math.cos
-import kotlin.math.sin
+import kotlin.math.*
 
 /**
  * カラーピッカーを描画するクラス
@@ -114,6 +111,31 @@ class DrawPalette(
             }
         }
 
+        // 太さスライダーを描画する
+        run {
+            // 太さスライダー描画
+            for (iy in -thicknessSliderSize.y / 2..thicknessSliderSize.y / 2) {
+                val width = round((0.5 - iy / thicknessSliderSize.y.toDouble()) * thicknessSliderSize.x).toInt()
+                // スライダーの背景
+                for (ix in 0..width) {
+                    // だんだん細くなるように描画
+                    canvas.setPixel(thicknessSliderPosition.x - ix, thicknessSliderPosition.y + iy, buttonColor)
+                }
+            }
+
+            if (mode != null) {
+                // カーソルを描画
+                val radius = (mode.thickness * 0.5 + 3.0).toInt()
+                canvas.drawCursor(
+                    thicknessSliderPosition.x - radius / 2,
+                    getYFromThickness(mode.thickness),
+                    white,
+                    buttonColor,
+                    radius
+                )
+            }
+        }
+
         if (mode != null) {
             val hsbColor = mode.hsbColor
             val rgbColor = hsbColor.toRGB()
@@ -207,6 +229,15 @@ class DrawPalette(
         /** カラーコードのサイズ */
         private val colorCodeSize = Vec2i(66, 9)
 
+        /** 最大の太さ */
+        private const val thicknessMax = 7.0
+
+        /** 太さスライダーの位置 */
+        private val thicknessSliderPosition = Vec2i(mapSize - 14, mapSize / 2)
+
+        /** 太さスライダーのサイズ */
+        private val thicknessSliderSize = Vec2i(6, mapSize - 30)
+
         /** 色相ごとのパレットを事前に計算しておく */
         private val cachedPalette = (0..255).associateWith { hue ->
             val map = DrawableMapBuffer()
@@ -244,7 +275,7 @@ class DrawPalette(
                 return PaletteAdjustingType.TRANSPARENT_COLOR
             }
 
-            // 透明ボタンの位置
+            // カラーピッカーボタンの位置
             if (x - colorPickerButtonPosition.x in -buttonSize / 2..buttonSize / 2
                 && y - colorPickerButtonPosition.y in -buttonSize / 2..buttonSize / 2
             ) {
@@ -256,6 +287,13 @@ class DrawPalette(
                 && y - colorCodePosition.y in -colorCodeSize.y / 2..colorCodeSize.y / 2
             ) {
                 return PaletteAdjustingType.COLOR_CODE
+            }
+
+            // 太さスライダーの位置
+            if (x - thicknessSliderPosition.x in -thicknessSliderSize.x / 2..thicknessSliderSize.x / 2
+                && y - thicknessSliderPosition.y in -thicknessSliderSize.y / 2..thicknessSliderSize.y / 2
+            ) {
+                return PaletteAdjustingType.THICKNESS
             }
 
             // -1.0 ~ 1.0
@@ -319,6 +357,33 @@ class DrawPalette(
             // パレットの位置
             val start = mapSize / 2 - (storedPaletteSize * (PaletteData.MAP_PALETTE_SIZE)) / 2
             return (y - start) / storedPaletteSize
+        }
+
+        /**
+         * 座標のペンの太さを取得する
+         * @param y Y座標
+         * @return ペンの太さ
+         */
+        fun getThickness(y: Int): Double {
+            // パレットの位置
+            val height = thicknessSliderSize.y - 15
+            val start = thicknessSliderPosition.y + height / 2 + 2
+            return (-(y - start) / height.toDouble() * thicknessMax).coerceIn(
+                0.0,
+                thicknessMax
+            ) + 1.0
+        }
+
+        /**
+         * 太さからY座標を取得する
+         * @param thickness 太さ
+         * @return Y座標
+         */
+        fun getYFromThickness(thickness: Double): Int {
+            // パレットの位置
+            val height = thicknessSliderSize.y - 15
+            val start = thicknessSliderPosition.y + height / 2 + 2
+            return -((thickness - 1.0) / thicknessMax * height).toInt() + start
         }
 
         /**
