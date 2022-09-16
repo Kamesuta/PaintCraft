@@ -35,7 +35,11 @@ class PaintPencil(override val session: CanvasSession) : PaintTool {
                 // 描くモードが左クリックの場合
                 CanvasActionType.LEFT_CLICK -> {
                     // 全消し
-                    g(DrawRect(0, 0, mapSize - 1, mapSize - 1, 0, true))
+                    g(
+                        DrawRect(
+                            0, 0, mapSize - 1, mapSize - 1, 0, true, session.mode.thickness.toInt(),
+                        )
+                    )
                     // クリックを持続させない
                     session.clicking.stopClicking()
                     // 描くのを終了
@@ -80,7 +84,8 @@ class PaintPencil(override val session: CanvasSession) : PaintTool {
                             uvStart.y,
                             uvEnd.x,
                             uvEnd.y,
-                            color
+                            color,
+                            session.mode.thickness.toInt(),
                         )
                     )
                 }

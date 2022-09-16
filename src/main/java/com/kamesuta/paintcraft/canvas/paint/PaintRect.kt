@@ -98,6 +98,7 @@ class PaintRect(override val session: CanvasSession) : PaintTool {
                             uvEnd.y,
                             color,
                             false,
+                            session.mode.thickness.toInt(),
                         )
                     )
                 }

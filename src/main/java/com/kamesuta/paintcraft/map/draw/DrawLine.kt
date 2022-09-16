@@ -10,6 +10,7 @@ import kotlin.math.abs
  * @param x2 終点のX座標
  * @param y2 終点のY座標
  * @param color 描画する色
+ * @param thickness 線の太さ
  */
 class DrawLine(
     private val x1: Int,
@@ -17,6 +18,7 @@ class DrawLine(
     private val x2: Int,
     private val y2: Int,
     private val color: Byte,
+    private val thickness: Int,
 ) : Draw {
     override fun draw(canvas: MapCanvas) {
         // 始点から終点までの幅と高さを取得

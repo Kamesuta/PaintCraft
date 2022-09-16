@@ -13,6 +13,7 @@ import kotlin.math.min
  * @param y2 終点のY座標 (clamp不要)
  * @param color 描画する色
  * @param fill 矩形の内側を塗りつぶすかどうか
+ * @param thickness 線の太さ
  */
 class DrawRect(
     private val x1: Int,
@@ -21,6 +22,7 @@ class DrawRect(
     private val y2: Int,
     private val color: Byte,
     private val fill: Boolean,
+    private val thickness: Int,
 ) : Draw {
     override fun draw(canvas: MapCanvas) {
         // (x1,y1)が(x2,y2)より左上になるようにする
