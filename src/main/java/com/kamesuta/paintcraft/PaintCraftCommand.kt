@@ -27,6 +27,7 @@ class PaintCraftCommand : Command("paintcraft") {
             PaletteCanvasCommand(),
             MigrateCanvasCommand(),
             ColorCommand(),
+            DebugPlaceCommand(),
         )
     }
 }
@@ -149,6 +150,45 @@ class ColorCommand : Command("color") {
                 entities.filterIsInstance<Player>().forEach {
                     val session = CanvasSessionManager.getSession(it)
                     session.mode.setMapColor(color.toMapColor())
+                }
+            }
+        }
+    }
+}
+
+class DebugPlaceCommand : Command("debug_place") {
+    init {
+        usage {
+            // 設定対象のプレイヤー
+            entityArgument("player")
+            // 範囲
+            integerArgument("radius")
+            executes {
+                val entities = typedArgs[0] as List<*>
+                val radius = typedArgs[1] as Int
+                if (radius < 0) {
+                    sender.sendMessage("Invalid radius: $radius")
+                    return@executes
+                }
+                entities.filterIsInstance<Player>().forEach {
+                    val block = it.location.block
+                    val world = block.world
+                    for (x in -radius..radius) {
+                        for (z in -radius..radius) {
+                            val target = block.getRelative(x, 0, z)
+                            // ブロックが空気でないならスキップ
+                            if (!target.type.isAir) continue
+                            // すでにアイテムフレームが置かれているならスキップ
+                            val center = target.location.add(0.5, 0.5, 0.5)
+                            val others = center.getNearbyEntitiesByType(ItemFrame::class.java, 0.5, 0.5, 0.5)
+                            if (others.isNotEmpty()) continue
+                            // アイテムフレームを置く
+                            val entity = world.spawn(center, ItemFrame::class.java)
+                            // マップを作成してアイテムフレームに設定
+                            val map = DrawableMapItem.create(world, DrawBehaviorPaintDesc)
+                            entity.setItem(map.itemStack)
+                        }
+                    }
                 }
             }
         }
