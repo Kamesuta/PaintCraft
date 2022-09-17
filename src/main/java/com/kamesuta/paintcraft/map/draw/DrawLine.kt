@@ -1,5 +1,6 @@
 package com.kamesuta.paintcraft.map.draw
 
+import com.kamesuta.paintcraft.util.fuzzyEq
 import org.bukkit.map.MapCanvas
 import kotlin.math.abs
 import kotlin.math.roundToInt
@@ -37,7 +38,7 @@ class DrawLine(
         var e2 = sqrt((dx0 * dx0 + dy0 * dy0).toDouble())
 
         // 線が細い、または線の長さが0の場合、線を描画するだけ
-        if (thickness <= 0 || e2 == 0.0) {
+        if (thickness <= 0 || e2 fuzzyEq 0.0) {
             plotLine(canvas)
             return
         }

@@ -4,6 +4,7 @@ import com.kamesuta.paintcraft.frame.FrameLocation.Companion.clipBlockUV
 import com.kamesuta.paintcraft.frame.FrameLocation.Companion.isUvInMap
 import com.kamesuta.paintcraft.frame.FrameLocation.Companion.transformUv
 import com.kamesuta.paintcraft.map.DrawableMapItem
+import com.kamesuta.paintcraft.util.fuzzyEq
 import com.kamesuta.paintcraft.util.vec.Line2d
 import com.kamesuta.paintcraft.util.vec.Line3d
 import com.kamesuta.paintcraft.util.vec.debug.DebugLocatables.DebugLineType.LINE
@@ -54,7 +55,7 @@ object FramePlaneTrace {
             }
 
             /** ゴールに到着済み */
-            val isGoal = origin.distanceSquared(goal) < 0.01
+            val isGoal = origin.distanceSquared(goal) fuzzyEq 0.0
         }
 
         // 終点にたどり着くまで繰り返す

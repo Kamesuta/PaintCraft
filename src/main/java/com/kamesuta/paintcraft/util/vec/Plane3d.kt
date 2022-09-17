@@ -1,5 +1,6 @@
 package com.kamesuta.paintcraft.util.vec
 
+import com.kamesuta.paintcraft.util.fuzzyEq
 import org.bukkit.util.Vector
 import kotlin.math.abs
 import kotlin.math.sqrt
@@ -78,7 +79,7 @@ data class Plane3d(
         // https://qiita.com/edo_m18/items/c8808f318f5abfa8af1e
         // http://www.sousakuba.com/Programming/gs_plane_line_intersect.html
         val denom = normal.dot(ray.direction)
-        if (denom == 0.0) {
+        if (denom fuzzyEq 0.0) {
             return null
         }
         val t = -(normal.dot(ray.origin) + d) / denom
@@ -100,7 +101,7 @@ data class Plane3d(
 
         // detが0の場合は平行な面のため交わらない
         // 正確にはepsilonと比較するべきだが、厳密に平行を区別する必要がないので省略
-        if (det == 0.0) {
+        if (det fuzzyEq 0.0) {
             return null
         }
 
