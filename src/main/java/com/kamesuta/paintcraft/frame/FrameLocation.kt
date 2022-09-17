@@ -1,6 +1,6 @@
 package com.kamesuta.paintcraft.frame
 
-import com.kamesuta.paintcraft.map.DrawableMapBuffer
+import com.kamesuta.paintcraft.map.DrawableMapBuffer.Companion.mapSize
 import com.kamesuta.paintcraft.util.clienttype.ClientType
 import com.kamesuta.paintcraft.util.vec.*
 import org.bukkit.entity.ItemFrame
@@ -143,8 +143,8 @@ class FrameLocation(
             // -0.5～0.5の範囲を0.0～1.0の範囲に変換する
             val q = rotation.uv(this) + Vec2d(0.5, 0.5)
             // 0～128(ピクセル座標)の範囲に変換する
-            val x = round(q.x * (DrawableMapBuffer.mapSize - 1)).toInt()
-            val y = round(q.y * (DrawableMapBuffer.mapSize - 1)).toInt()
+            val x = round(q.x * (mapSize - 1)).toInt()
+            val y = round(q.y * (mapSize - 1)).toInt()
             // 変換した座標を返す
             return Vec2i(x, y)
         }
@@ -155,8 +155,8 @@ class FrameLocation(
          * @return キャンバス内にあるかどうか
          */
         fun Vec2i.isUvInMap(): Boolean {
-            if (x >= DrawableMapBuffer.mapSize || x < 0) return false
-            if (y >= DrawableMapBuffer.mapSize || y < 0) return false
+            if (x >= mapSize || x < 0) return false
+            if (y >= mapSize || y < 0) return false
             return true
         }
 
@@ -167,8 +167,8 @@ class FrameLocation(
          */
         fun Vec2i.clampUvInMap(): Vec2i {
             return Vec2i(
-                x.coerceIn(0, DrawableMapBuffer.mapSize - 1),
-                y.coerceIn(0, DrawableMapBuffer.mapSize - 1)
+                x.coerceIn(0, mapSize - 1),
+                y.coerceIn(0, mapSize - 1)
             )
         }
 
