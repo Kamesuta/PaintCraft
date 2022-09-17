@@ -25,8 +25,6 @@ class DrawLine(
     override fun draw(canvas: MapCanvas) {
         // 処理の解像度
         val resolution = 255
-        // 線の太さ
-        val th = resolution * (thickness - 1)
 
         // 伸ばしていく方向
         val sx = if (x0 < x1) 1 else -1
@@ -38,11 +36,13 @@ class DrawLine(
         // 線の長さ
         var e2 = sqrt((dx0 * dx0 + dy0 * dy0).toDouble())
 
-        // 太さが1の場合は、線を描画するだけ
-        if (th <= 1 || e2 == 0.0) {
+        // 線が細い、または線の長さが0の場合、線を描画するだけ
+        if (thickness <= 0 || e2 == 0.0) {
             plotLine(canvas)
             return
         }
+        // 線の太さ
+        val th = resolution * (thickness - 1)
 
         // 縦と横の差
         val dx = dx0 * resolution / e2

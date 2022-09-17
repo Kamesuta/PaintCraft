@@ -290,7 +290,9 @@ class DrawPalette(
             }
 
             // 太さスライダーの位置
-            if (x - thicknessSliderPosition.x in -thicknessSliderSize.x / 2..thicknessSliderSize.x / 2
+            val sliderRadius = (thicknessMax * 0.5 + 3.0).toInt()
+            val sliderWidth = max(thicknessSliderSize.x, sliderRadius * 2)
+            if (x - thicknessSliderPosition.x + thicknessSliderSize.x / 2 in -sliderWidth / 2..sliderWidth / 2
                 && y - thicknessSliderPosition.y in -thicknessSliderSize.y / 2..thicknessSliderSize.y / 2
             ) {
                 return PaletteAdjustingType.THICKNESS
@@ -371,7 +373,7 @@ class DrawPalette(
             return (-(y - start) / height.toDouble() * thicknessMax).coerceIn(
                 0.0,
                 thicknessMax
-            ) + 1.0
+            )
         }
 
         /**
@@ -383,7 +385,7 @@ class DrawPalette(
             // パレットの位置
             val height = thicknessSliderSize.y - 15
             val start = thicknessSliderPosition.y + height / 2 + 2
-            return -((thickness - 1.0) / thicknessMax * height).toInt() + start
+            return -(thickness / thicknessMax * height).toInt() + start
         }
 
         /**
