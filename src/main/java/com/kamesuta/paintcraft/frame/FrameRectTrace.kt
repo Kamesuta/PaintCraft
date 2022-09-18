@@ -3,11 +3,6 @@ package com.kamesuta.paintcraft.frame
 import com.kamesuta.paintcraft.frame.FrameLocation.Companion.transformUv
 import com.kamesuta.paintcraft.map.DrawableMapItem
 import com.kamesuta.paintcraft.util.vec.Line2d
-import com.kamesuta.paintcraft.util.vec.Line3d
-import com.kamesuta.paintcraft.util.vec.debug.DebugLocatables.DebugLineType.SEGMENT
-import com.kamesuta.paintcraft.util.vec.debug.DebugLocatables.toDebug
-import com.kamesuta.paintcraft.util.vec.debug.DebugLocationType
-import com.kamesuta.paintcraft.util.vec.debug.DebugLocationVisualizer.debugLocation
 import com.kamesuta.paintcraft.util.vec.minus
 import org.bukkit.Material
 import org.bukkit.entity.ItemFrame
@@ -100,24 +95,12 @@ object FrameRectTrace {
         }
         // キャンバス内UVを計算、キャンバス範囲外ならば範囲内に納める
         val uvStart = segment.origin.transformUv(rotation)
-        //.clampUvInMap() // これは必要ない: DrawRectは範囲外に対応している
         val uvEnd = segment.target.transformUv(rotation)
-        //.clampUvInMap() // これは必要ない: DrawRectは範囲外に対応している
-
-        // 3D座標に逆変換
-        val segment3d = Line3d.fromPoints(
-            frameLocation.fromBlockUv(segment.origin),
-            frameLocation.fromBlockUv(segment.target),
-        )
-        player.debugLocation {
-            locate(DebugLocationType.INTERSECT_SEGMENT_CANVAS, segment3d.toDebug(SEGMENT))
-        }
 
         return FramePlaneTraceResult.FramePlaneTraceEntityResult(
             itemFrame,
             mapItem,
             frameLocation,
-            segment3d,
             uvStart,
             uvEnd
         )

@@ -1,12 +1,10 @@
 package com.kamesuta.paintcraft.frame
 
 import com.kamesuta.paintcraft.frame.FrameLocation.Companion.clipBlockUV
-import com.kamesuta.paintcraft.frame.FrameLocation.Companion.isUvInMap
 import com.kamesuta.paintcraft.frame.FrameLocation.Companion.transformUv
 import com.kamesuta.paintcraft.map.DrawableMapBuffer.Companion.mapSize
 import com.kamesuta.paintcraft.map.DrawableMapItem
 import com.kamesuta.paintcraft.util.vec.Line2d
-import com.kamesuta.paintcraft.util.vec.Line3d
 import com.kamesuta.paintcraft.util.vec.debug.DebugLocatables.DebugLineType.LINE
 import com.kamesuta.paintcraft.util.vec.debug.DebugLocatables.DebugLineType.SEGMENT
 import com.kamesuta.paintcraft.util.vec.debug.DebugLocatables.toDebug
@@ -82,20 +80,10 @@ object FramePlaneTrace {
         val uvStart = clip.origin.transformUv(rotation)
         val uvEnd = clip.target.transformUv(rotation)
 
-        // 3D座標に逆変換
-        val segment3d = Line3d.fromPoints(
-            frameLocation.fromBlockUv(clip.origin),
-            frameLocation.fromBlockUv(clip.target),
-        )
-        player.debugLocation {
-            locate(DebugLocationType.INTERSECT_SEGMENT_CANVAS, segment3d.toDebug(SEGMENT))
-        }
-
         return FramePlaneTraceResult.FramePlaneTraceEntityResult(
             itemFrame,
             mapItem,
             frameLocation,
-            segment3d,
             uvStart,
             uvEnd
         )
