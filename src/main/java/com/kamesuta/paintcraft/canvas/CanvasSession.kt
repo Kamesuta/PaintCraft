@@ -37,5 +37,5 @@ class CanvasSession(val player: Player) {
     val mode = CanvasMode(this)
 
     /** レイツール */
-    val rayTrace = FrameRayTrace(player, clientType)
+    val rayTrace = FrameRayTrace(player, clientType, mode)
 }

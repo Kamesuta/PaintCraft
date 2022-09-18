@@ -2,6 +2,7 @@ package com.kamesuta.paintcraft.canvas.paint.tool
 
 import com.kamesuta.paintcraft.canvas.CanvasSession
 import com.kamesuta.paintcraft.canvas.paint.PaintEvent
+import com.kamesuta.paintcraft.frame.FrameLocation.Companion.isUvInMap
 import com.kamesuta.paintcraft.frame.FramePlane
 import com.kamesuta.paintcraft.frame.FramePlaneTrace.planeTraceCanvas
 import com.kamesuta.paintcraft.frame.FramePlaneTraceResult
@@ -65,7 +66,12 @@ object PaintDrawTool {
         draw: PaintDrawData.() -> Unit,
         raycast: FrameRayTrace.(FramePlane) -> FramePlaneTraceResult,
     ) {
-        if (event.interact.ray.itemFrame == prevEvent.interact.ray.itemFrame && event.interact.ray.isHit) {
+        if (event.interact.ray.itemFrame == prevEvent.interact.ray.itemFrame
+            // 現在キャンバス範囲外をクリックしている状態 (範囲内→範囲外へのD&D)
+            && event.interact.ray.isHit
+            // 縁に近い場所をクリックしている状態
+            && event.interact.ray.uv.isUvInMap(-session.mode.thickness.toInt())
+        ) {
             // アイテムフレームが同じならそのまま描く
             draw(
                 PaintDrawData(

@@ -1,5 +1,6 @@
 package com.kamesuta.paintcraft.frame
 
+import com.kamesuta.paintcraft.canvas.CanvasMode
 import com.kamesuta.paintcraft.frame.FrameLocation.Companion.isUvInMap
 import com.kamesuta.paintcraft.frame.FrameLocation.Companion.transformUv
 import com.kamesuta.paintcraft.map.DrawableMapItem
@@ -18,11 +19,13 @@ import org.bukkit.util.BoundingBox
 /**
  * キャンバスと目線の交差判定をし、UVを計算します
  * @param player プレイヤー
- * @param getClientType クライアントの種類を取得
+ * @param clientType クライアントの種類
+ * @param mode 描画時のモード
  */
 class FrameRayTrace(
     val player: Player,
     val clientType: ClientType,
+    val mode: CanvasMode,
 ) {
     /**
      * レイを飛ばしてアイテムフレームを取得

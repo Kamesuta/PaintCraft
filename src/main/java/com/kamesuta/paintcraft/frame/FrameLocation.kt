@@ -152,11 +152,12 @@ class FrameLocation(
         /**
          * キャンバスピクセルのUV座標がキャンバス内にあるかどうかを判定する
          * @receiver キャンバスピクセルのUV座標
+         * @param expand 拡大率
          * @return キャンバス内にあるかどうか
          */
-        fun Vec2i.isUvInMap(): Boolean {
-            if (x >= mapSize || x < 0) return false
-            if (y >= mapSize || y < 0) return false
+        fun Vec2i.isUvInMap(expand: Int = 0): Boolean {
+            if (x < -expand || mapSize + expand <= x) return false
+            if (y < -expand || mapSize + expand <= y) return false
             return true
         }
 
