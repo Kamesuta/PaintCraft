@@ -14,6 +14,7 @@ import com.kamesuta.paintcraft.util.vec.debug.DebugLocatables.DebugLineType.SEGM
 import com.kamesuta.paintcraft.util.vec.debug.DebugLocatables.toDebug
 import com.kamesuta.paintcraft.util.vec.debug.DebugLocationType
 import com.kamesuta.paintcraft.util.vec.debug.DebugLocationVisualizer.debugLocation
+import org.bukkit.entity.ItemFrame
 
 /**
  * 複数キャンバスをまたいで線を描画するツール
@@ -24,15 +25,17 @@ object PaintDrawTool {
      * @param session セッション
      * @param event 描きこむイベント
      * @param prevEvent 前回の描きこむイベント
+     * @param entities 交差判定をするエンティティ
      * @param draw 実際に描く処理
      */
     fun drawLine(
         session: CanvasSession,
         event: PaintEvent,
         prevEvent: PaintEvent,
+        entities: Collection<ItemFrame>,
         draw: PaintDrawData.() -> Unit,
     ) {
-        drawRaycast(session, event, prevEvent, draw) { planeTraceCanvas(it) }
+        drawRaycast(session, event, prevEvent, draw) { planeTraceCanvas(it, entities) }
     }
 
     /**

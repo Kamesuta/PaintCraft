@@ -73,7 +73,12 @@ class PaintPencil(override val session: CanvasSession) : PaintTool {
         // 最後の点+現在の点を結ぶ線を描く
         lastEvent?.let {
             // 描画
-            PaintDrawTool.drawLine(session, event, it) {
+            PaintDrawTool.drawLine(
+                session,
+                event,
+                it,
+                listOfNotNull(event.interact.ray.itemFrame, lastEvent?.interact?.ray?.itemFrame)
+            ) {
                 // マップをプレイヤーへ同期するために記憶しておく
                 session.drawing.edited.store(itemFrame, mapItem)
                 // 線を描く
