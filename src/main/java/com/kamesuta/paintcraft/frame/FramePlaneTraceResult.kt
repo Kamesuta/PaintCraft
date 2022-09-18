@@ -11,7 +11,7 @@ import org.bukkit.entity.ItemFrame
  */
 data class FramePlaneTraceResult(
     val plane: FramePlane,
-    val entities: Collection<FramePlaneTraceEntityResult>,
+    val entities: Collection<EntityResult>,
 ) {
     /**
      * アイテムフレームごとの平面上のヒットした位置情報
@@ -21,7 +21,7 @@ data class FramePlaneTraceResult(
      * @param uvStart キャンバス上の始点のUV
      * @param uvEnd キャンバス上の終点のUV
      */
-    data class FramePlaneTraceEntityResult(
+    data class EntityResult(
         val itemFrame: ItemFrame,
         val mapItem: DrawableMapItem,
         val frameLocation: FrameLocation,

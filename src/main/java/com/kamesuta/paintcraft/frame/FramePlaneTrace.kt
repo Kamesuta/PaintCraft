@@ -43,7 +43,7 @@ object FramePlaneTrace {
     private fun FrameRayTrace.planeTraceCanvasByEntity(
         plane: FramePlane,
         itemFrame: ItemFrame,
-    ): FramePlaneTraceResult.FramePlaneTraceEntityResult? {
+    ): FramePlaneTraceResult.EntityResult? {
         // マップデータを取得、ただの地図ならばスキップ
         val mapItem = DrawableMapItem.get(itemFrame.item)
             ?: return null
@@ -80,7 +80,7 @@ object FramePlaneTrace {
         val uvStart = clip.origin.transformUv(rotation)
         val uvEnd = clip.target.transformUv(rotation)
 
-        return FramePlaneTraceResult.FramePlaneTraceEntityResult(
+        return FramePlaneTraceResult.EntityResult(
             itemFrame,
             mapItem,
             frameLocation,
