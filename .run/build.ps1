@@ -1,9 +1,13 @@
 ﻿# pluginsディレクトリに最新のプラグインをコピーするスクリプト
+$ErrorActionPreference = "Stop"
 
 Write-Host "-> Start Copying..."
 
 # 現在のディレクトリを設定 (プロジェクトルート = .runの一つ上のディレクトリ)
 Set-Location $(Split-Path $PSScriptRoot -Parent)
+
+# プラグインのディレクトリを作成
+New-Item -ItemType Directory -Force -Path "run\plugins" | Out-Null
 
 # Gradleの出力ディレクトリからアイテムを取得する
 Get-ChildItem -Path build\libs\*.jar |
