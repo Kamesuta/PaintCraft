@@ -160,7 +160,7 @@ class DrawBehaviorPalette(private val renderer: DrawableMapRenderer) : DrawBehav
 
     override fun init() {
         // テクスチャからパレットを復元
-        renderer.mapCanvas.loadPalette(paletteData)
+        renderer.mapImage.loadPalette(paletteData)
 
         // パレットを描画
         renderer.g(DrawPalette(paletteData, null))

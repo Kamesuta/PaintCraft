@@ -5,7 +5,6 @@ import com.comphenix.protocol.events.PacketContainer
 import com.comphenix.protocol.utility.MinecraftReflection
 import com.kamesuta.paintcraft.PaintCraft
 import com.kamesuta.paintcraft.map.image.PixelImageBuffer
-import com.kamesuta.paintcraft.map.image.PixelImageMapBuffer
 import com.kamesuta.paintcraft.util.vec.Rect2i
 import org.bukkit.entity.Player
 import org.bukkit.map.MapView
@@ -24,10 +23,11 @@ object DrawableMapUpdater {
      * プレイヤーにマップを送信する
      * @param player プレイヤー
      * @param mapView マップ
+     * @param part マップの更新範囲のみのバッファー
      * @param dirty 更新領域
      */
-    fun sendMap(player: Player, mapView: MapView, buffer: PixelImageMapBuffer, dirty: Rect2i) {
-        val part = buffer.createSubImage(dirty)
+    fun sendMap(player: Player, mapView: MapView, part: PixelImageBuffer, dirty: Rect2i) {
+        require(part.width == dirty.width && part.height == dirty.height) { "part and dirty must be same size" }
         val packet = createPacket(mapView, part, dirty)
         PaintCraft.instance.protocolManager.sendServerPacket(player, packet)
     }

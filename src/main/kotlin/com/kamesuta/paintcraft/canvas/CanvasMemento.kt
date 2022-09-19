@@ -59,7 +59,7 @@ data class CanvasMemento(val entries: Collection<Entry>) {
         fun store(itemFrame: ItemFrame, mapItem: DrawableMapItem) {
             entries.computeIfAbsent(mapItem.mapView.id) {
                 // 新たに描いたマップアイテムのみ記憶
-                Entry(itemFrame, mapItem, DrawRollback(mapItem.renderer.mapCanvas))
+                Entry(itemFrame, mapItem, DrawRollback(mapItem.renderer.mapImage))
             }
         }
 

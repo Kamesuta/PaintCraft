@@ -28,6 +28,7 @@ open class PixelImageBuffer(
     constructor(width: Int, height: Int) : this(width, height, ByteArray(width * height))
 
     override operator fun set(x: Int, y: Int, color: Byte) {
+        // マップの範囲外なら無視
         if (x < 0 || x >= width || y < 0 || y >= height) {
             return
         }
@@ -36,6 +37,7 @@ open class PixelImageBuffer(
     }
 
     override operator fun get(x: Int, y: Int): Byte {
+        // マップの範囲外なら無視
         if (x < 0 || x >= width || y < 0 || y >= height) {
             return 0
         }
@@ -64,7 +66,7 @@ open class PixelImageBuffer(
      * ピクセルを全てコピーして新しいインスタンスを作成する
      * @return コピーしたインスタンス
      */
-    public override fun clone(): PixelImageBuffer {
+    override fun clone(): PixelImageBuffer {
         return PixelImageBuffer(width, height, pixels.clone())
     }
 }

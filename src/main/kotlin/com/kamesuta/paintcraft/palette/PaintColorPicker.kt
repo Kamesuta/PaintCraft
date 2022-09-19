@@ -26,17 +26,17 @@ class PaintColorPicker(
         session.drawing.edited.editing.rollback()
         session.drawing.edited.store(event.interact.ray.itemFrame, event.mapItem)
         // 選択している場所の色を取得
-        val color = event.mapItem.renderer.mapCanvas[uv.x, uv.y]
+        val color = event.mapItem.renderer.mapImage[uv.x, uv.y]
         val oppositeColor = RGBColor.fromMapColor(color).toOpposite().toMapColor()
         // カーソルを描画
-        event.mapItem.renderer.mapCanvas.drawCursor(uv.x, uv.y, color, oppositeColor)
+        event.mapItem.renderer.mapImage.drawCursor(uv.x, uv.y, color, oppositeColor)
         // 固定位置のカーソルを描画
         if (uv.x < CURSOR_THRESHOLD && uv.y < CURSOR_THRESHOLD) {
             // カーソルが左上にある場合は右上にカーソルを描画
-            event.mapItem.renderer.mapCanvas.drawCursor(mapSize - CURSOR_OFFSET, CURSOR_OFFSET, color, oppositeColor, 7)
+            event.mapItem.renderer.mapImage.drawCursor(mapSize - CURSOR_OFFSET, CURSOR_OFFSET, color, oppositeColor, 7)
         } else {
             // その他は左上にカーソルを描画
-            event.mapItem.renderer.mapCanvas.drawCursor(CURSOR_OFFSET, CURSOR_OFFSET, color, oppositeColor, 7)
+            event.mapItem.renderer.mapImage.drawCursor(CURSOR_OFFSET, CURSOR_OFFSET, color, oppositeColor, 7)
         }
         // 現在使用している色を設定
         session.mode.setMapColor(color)

@@ -1,9 +1,8 @@
 package com.kamesuta.paintcraft.map.image
 
+import com.kamesuta.paintcraft.util.color.RGBColor
 import com.kamesuta.paintcraft.util.vec.Rect2i
 import org.bukkit.map.MapFont
-import org.bukkit.map.MapPalette
-import java.awt.Color
 import java.awt.image.BufferedImage
 
 /**
@@ -27,8 +26,8 @@ fun PixelImage.drawImage(x: Int, y: Int, image: BufferedImage) {
     val maxY = (y + image.height).coerceIn(0, height)
     for (iy in minY until maxY) {
         for (ix in minX until maxX) {
-            val color = Color(image.getRGB(ix - x, iy - y), true)
-            this[ix, iy] = MapPalette.matchColor(color)
+            val color = RGBColor.fromCodeWithAlpha(image.getRGB(ix - x, iy - y))
+            this[ix, iy] = color.toMapColor()
         }
     }
 }

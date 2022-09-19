@@ -13,6 +13,7 @@ class RGBColor(private val color: Color) {
      * @return マップパレットの色 (Byte)
      */
     fun toMapColor(): Byte {
+        @Suppress("DEPRECATION")
         return MapPalette.matchColor(color)
     }
 
@@ -76,6 +77,7 @@ class RGBColor(private val color: Color) {
          * @return RGBカラー
          */
         fun fromMapColor(mapColor: Byte): RGBColor {
+            @Suppress("DEPRECATION")
             return RGBColor(MapPalette.getColor(mapColor))
         }
 
@@ -97,6 +99,15 @@ class RGBColor(private val color: Color) {
          */
         fun fromCode(rgb: Int): RGBColor {
             return RGBColor(Color(rgb))
+        }
+
+        /**
+         * 16進数カラーコードからRGBAカラーに変換
+         * @param rgba 16進数カラーコード
+         * @return RGBAカラー
+         */
+        fun fromCodeWithAlpha(rgba: Int): RGBColor {
+            return RGBColor(Color(rgba, true))
         }
 
         /**
