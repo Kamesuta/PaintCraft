@@ -1,4 +1,5 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ConfigureShadowRelocation
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import org.ajoberstar.grgit.Grgit
 
 plugins {
@@ -90,9 +91,23 @@ tasks {
         archiveClassifier.set("")
     }
 
+    // デバッグ用のfatJarを生成する (ホットリロードできるようにリロケートを行わない)
+    val shadowJarDev by registering(ShadowJar::class) {
+        dependsOn(jar)
+        // ShadowJarタスクを新規作成する際の設定を行う (ShadowJavaPlugin.groovyを参照)
+        // https://github.com/johnrengelman/shadow/issues/108#issuecomment-62418005
+        from(sourceSets.main.get().output)
+        configurations = listOf(project.configurations.runtimeClasspath.get())
+        exclude("META-INF/INDEX.LIST", "META-INF/*.SF", "META-INF/*.DSA", "META-INF/*.RSA", "module-info.class")
+        // デバッグ用は末尾に-devを付与する
+        archiveClassifier.set("dev")
+    }
+
     build {
         // 依存関係を埋め込んだjarをビルドする
         dependsOn(shadowJar)
+        // 依存関係を埋め込んだjarをビルドする (リロケートなし版)
+        dependsOn(shadowJarDev)
     }
 
     // Kdocをjavadoc.jarに出力する

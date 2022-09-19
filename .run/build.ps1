@@ -9,10 +9,8 @@ Set-Location $(Split-Path $PSScriptRoot -Parent)
 # プラグインのディレクトリを作成
 New-Item -ItemType Directory -Force -Path "run\plugins" | Out-Null
 
-# Gradleの出力ディレクトリからアイテムを取得する
-Get-ChildItem -Path build\libs\*.jar |
-# -sources.jarや-javadoc.jarなど(-小文字)の末尾のないjarのみをコピーする
-Where-Object { $_.Name -cNotMatch '-[a-z]+\.jar' } |
+# Gradleの出力ディレクトリからアイテムを取得する (-dev.jarを使用)
+Get-ChildItem -Path build\libs\*-dev.jar |
 # 編集日でソートする
 Sort-Object LastWriteTime -Descending |
 # プラグイン名をオブジェクトに追加
