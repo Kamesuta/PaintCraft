@@ -4,6 +4,8 @@ import com.comphenix.protocol.PacketType
 import com.comphenix.protocol.events.PacketContainer
 import com.comphenix.protocol.utility.MinecraftReflection
 import com.kamesuta.paintcraft.PaintCraft
+import com.kamesuta.paintcraft.map.image.PixelImageBuffer
+import com.kamesuta.paintcraft.map.image.PixelImageMapBuffer
 import com.kamesuta.paintcraft.util.vec.Rect2i
 import org.bukkit.entity.Player
 import org.bukkit.map.MapView
@@ -24,7 +26,7 @@ object DrawableMapUpdater {
      * @param mapView マップ
      * @param dirty 更新領域
      */
-    fun sendMap(player: Player, mapView: MapView, buffer: DrawableMapBuffer, dirty: Rect2i) {
+    fun sendMap(player: Player, mapView: MapView, buffer: PixelImageMapBuffer, dirty: Rect2i) {
         val part = buffer.createSubImage(dirty)
         val packet = createPacket(mapView, part, dirty)
         PaintCraft.instance.protocolManager.sendServerPacket(player, packet)
@@ -38,9 +40,14 @@ object DrawableMapUpdater {
      */
     private fun createPacket(
         mapView: MapView,
-        part: ByteArray,
+        part: PixelImageBuffer,
         dirty: Rect2i,
     ): PacketContainer {
+        // 更新する領域とピクセルデータのサイズは同じである必要がある
+        require(dirty.width == part.width && dirty.height == part.height) {
+            "dirty and part must have same size"
+        }
+
         // パケットを作成する
         val packet = PaintCraft.instance.protocolManager.createPacket(PacketType.Play.Server.MAP)
 
@@ -60,11 +67,11 @@ object DrawableMapUpdater {
         // 更新する領域を設定する
         packet.integers.write(1, dirty.p1.x)
         packet.integers.write(2, dirty.p1.y)
-        packet.integers.write(3, dirty.width)
-        packet.integers.write(4, dirty.height)
+        packet.integers.write(3, part.width)
+        packet.integers.write(4, part.height)
 
         // 更新する領域のピクセルデータ
-        packet.byteArrays.write(0, part)
+        packet.byteArrays.write(0, part.pixels)
 
         return packet
     }

@@ -1,8 +1,9 @@
 package com.kamesuta.paintcraft.map.draw
 
-import com.kamesuta.paintcraft.map.DrawableMapBuffer
-import com.kamesuta.paintcraft.map.DrawableMapBuffer.Companion.mapSize
-import org.bukkit.map.MapCanvas
+import com.kamesuta.paintcraft.map.image.PixelImage
+import com.kamesuta.paintcraft.map.image.PixelImageBuffer
+import com.kamesuta.paintcraft.map.image.PixelImageMapBuffer
+import com.kamesuta.paintcraft.map.image.mapSize
 
 /**
  * 塗りつぶしを行うクラス
@@ -15,11 +16,11 @@ class DrawFill(
     private val y: Int,
     private val color: Byte,
 ) : Draw {
-    override fun draw(canvas: MapCanvas) {
+    override fun draw(canvas: PixelImage) {
         // 塗りつぶし済みマークを作成
-        val colored = DrawableMapBuffer()
+        val colored = PixelImageBuffer(canvas.width, canvas.height)
         // 元の色を取得
-        val srcColor = canvas.getPixel(x, y)
+        val srcColor = canvas[x, y]
         // 塗りつぶしを行う
         fillBucket(canvas, colored, x, y, srcColor, color)
     }
@@ -34,8 +35,8 @@ class DrawFill(
      * @param newColor 塗りつぶす色
      */
     private fun fillBucket(
-        canvas: MapCanvas,
-        colored: DrawableMapBuffer,
+        canvas: PixelImage,
+        colored: PixelImageBuffer,
         x: Int,
         y: Int,
         srcColor: Byte,
@@ -53,11 +54,11 @@ class DrawFill(
             return
         }
         // 色が一致しないなら無視
-        if (canvas.getPixel(x, y) != srcColor) {
+        if (canvas[x, y] != srcColor) {
             return
         }
         // 色を塗りつぶす
-        canvas.setPixel(x, y, newColor)
+        canvas[x, y] = newColor
         // 塗りつぶし済みとして記録
         colored[x, y] = FILLED
 

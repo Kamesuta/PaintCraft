@@ -1,9 +1,11 @@
 package com.kamesuta.paintcraft.palette
 
 import com.kamesuta.paintcraft.canvas.CanvasMode
-import com.kamesuta.paintcraft.map.DrawableMapBuffer
-import com.kamesuta.paintcraft.map.DrawableMapBuffer.Companion.mapSize
 import com.kamesuta.paintcraft.map.draw.Draw
+import com.kamesuta.paintcraft.map.image.PixelImage
+import com.kamesuta.paintcraft.map.image.PixelImageMapBuffer
+import com.kamesuta.paintcraft.map.image.drawText
+import com.kamesuta.paintcraft.map.image.mapSize
 import com.kamesuta.paintcraft.util.color.HSBColor
 import com.kamesuta.paintcraft.util.color.RGBColor
 import com.kamesuta.paintcraft.util.color.RGBColor.Companion.toRGB
@@ -12,7 +14,6 @@ import com.kamesuta.paintcraft.util.color.RGBColor.MapColors.transparent
 import com.kamesuta.paintcraft.util.color.RGBColor.MapColors.white
 import com.kamesuta.paintcraft.util.vec.Vec2d
 import com.kamesuta.paintcraft.util.vec.Vec2i
-import org.bukkit.map.MapCanvas
 import org.bukkit.map.MinecraftFont
 import kotlin.math.*
 
@@ -25,7 +26,7 @@ class DrawPalette(
     private val palette: PaletteData,
     private val playerMode: CanvasMode?,
 ) : Draw {
-    override fun draw(canvas: MapCanvas) {
+    override fun draw(canvas: PixelImage) {
         val mode = playerMode
 
         val hue = mode?.hsbColor?.hue ?: 0.0
@@ -35,7 +36,7 @@ class DrawPalette(
         for (iy in 0 until mapSize) {
             for (ix in 0 until mapSize) {
                 val color = cache[ix, iy]
-                canvas.setPixel(ix, iy, color)
+                canvas[ix, iy] = color
             }
         }
 
@@ -79,7 +80,7 @@ class DrawPalette(
             )
             // 斜線を描画
             for (i in -buttonSize / 2 until buttonSize / 2) {
-                canvas.setPixel(transparentButtonPosition.x - i, transparentButtonPosition.y + i, buttonColor)
+                canvas[transparentButtonPosition.x - i, transparentButtonPosition.y + i] = buttonColor
             }
         }
 
@@ -106,8 +107,8 @@ class DrawPalette(
             )
             // 十字を描画
             for (i in -buttonSize / 2 until buttonSize / 2) {
-                canvas.setPixel(colorPickerButtonPosition.x + i, colorPickerButtonPosition.y, buttonColor)
-                canvas.setPixel(colorPickerButtonPosition.x, colorPickerButtonPosition.y + i, buttonColor)
+                canvas[colorPickerButtonPosition.x + i, colorPickerButtonPosition.y] = buttonColor
+                canvas[colorPickerButtonPosition.x, colorPickerButtonPosition.y + i] = buttonColor
             }
         }
 
@@ -119,7 +120,7 @@ class DrawPalette(
                 // スライダーの背景
                 for (ix in 0..width) {
                     // だんだん細くなるように描画
-                    canvas.setPixel(thicknessSliderPosition.x - ix, thicknessSliderPosition.y + iy, buttonColor)
+                    canvas[thicknessSliderPosition.x - ix, thicknessSliderPosition.y + iy] = buttonColor
                 }
             }
 
@@ -193,7 +194,8 @@ class DrawPalette(
                 colorCodePosition.x - colorCodeSize.x / 2,
                 colorCodePosition.y - colorCodeSize.y / 2,
                 MinecraftFont.Font,
-                "§$color;${rgbColor.toHexCode()} ($mapColorHex)",
+                color,
+                "${rgbColor.toHexCode()} ($mapColorHex)",
             )
         }
     }
@@ -240,7 +242,7 @@ class DrawPalette(
 
         /** 色相ごとのパレットを事前に計算しておく */
         private val cachedPalette = (0..255).associateWith { hue ->
-            val map = DrawableMapBuffer()
+            val map = PixelImageMapBuffer()
             for (iy in 0 until mapSize) {
                 for (ix in 0 until mapSize) {
                     val adjustingType = getAdjustingType(ix, iy)
@@ -393,7 +395,7 @@ class DrawPalette(
          * @receiver canvas 読み込む元のマップ
          * @param paletteData 読み込んだデータを保存するパレットデータ
          */
-        fun MapCanvas.loadPalette(paletteData: PaletteData) {
+        fun PixelImage.loadPalette(paletteData: PaletteData) {
             // パレットの位置
             val start = mapSize / 2 - (storedPaletteSize * (PaletteData.MAP_PALETTE_SIZE - 1)) / 2
             val left = storedPaletteOffsetX + storedPaletteSize / 2
@@ -402,13 +404,13 @@ class DrawPalette(
                 val y = start + index * storedPaletteSize
 
                 // パレットの色を取得
-                val color = getPixel(storedPaletteOffsetX, y)
+                val color = this[storedPaletteOffsetX, y]
                 if (color != transparent) {
                     paletteData.storedPalettes[index] = color
                 }
 
                 // 縁が描画されていたら選択されている
-                val frameColor = getPixel(left, y)
+                val frameColor = this[left, y]
                 if (frameColor != transparent)
                     paletteData.selectedPaletteIndex = index
             }
@@ -423,7 +425,7 @@ class DrawPalette(
          * @param oppositeColor カーソルの反対色
          * @param radius カーソルの大きさ
          */
-        fun MapCanvas.drawCursor(
+        fun PixelImage.drawCursor(
             x: Int,
             y: Int,
             color: Byte,
@@ -433,9 +435,9 @@ class DrawPalette(
             for (iy in -radius..radius) {
                 for (ix in -radius..radius) {
                     if (abs(iy) == radius || abs(ix) == radius) {
-                        setPixel(x + ix, y + iy, oppositeColor)
+                        this[x + ix, y + iy] = oppositeColor
                     } else {
-                        setPixel(x + ix, y + iy, color)
+                        this[x + ix, y + iy] = color
                     }
                 }
             }

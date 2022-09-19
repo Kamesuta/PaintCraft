@@ -4,6 +4,8 @@ import com.kamesuta.paintcraft.map.behavior.DrawBehavior
 import com.kamesuta.paintcraft.map.behavior.DrawBehaviorTypes
 import com.kamesuta.paintcraft.map.draw.Draw
 import com.kamesuta.paintcraft.map.draw.Drawable
+import com.kamesuta.paintcraft.map.image.PixelImageMapBuffer
+import com.kamesuta.paintcraft.map.image.PixelImageMapCanvas
 import com.kamesuta.paintcraft.util.vec.origin
 import org.bukkit.entity.Player
 import org.bukkit.map.MapCanvas
@@ -20,10 +22,12 @@ class DrawableMapRenderer(private val behaviorDesc: DrawBehaviorTypes.Desc) : Ma
     private lateinit var mapView: MapView
 
     /** マップキャンバス */
-    lateinit var mapCanvas: MapCanvas
+    lateinit var mapCanvas: PixelImageMapCanvas
+        private set
 
     /** 描画ツール */
     lateinit var behavior: DrawBehavior
+        private set
 
     /** 変更フラグ */
     private var dirty = false
@@ -38,13 +42,15 @@ class DrawableMapRenderer(private val behaviorDesc: DrawBehaviorTypes.Desc) : Ma
         // 描画ツールを生成
         behavior = behaviorDesc.generator(this)
         // キャンバスを強制初期化
-        mapCanvas = DrawableMapReflection.createAndPutCanvas(mapView, this)
+        val canvas = DrawableMapReflection.createAndPutCanvas(mapView, this)
+            ?: return
+        mapCanvas = PixelImageMapCanvas.wrap(canvas)
             ?: return
         // マップをキャンバスに読み込む
-        mapCanvas.loadFromMapView()
+        canvas.loadFromMapView()
         // 地図上のプレイヤーカーソルをすべて削除する
-        repeat(mapCanvas.cursors.size()) {
-            mapCanvas.cursors.removeCursor(mapCanvas.cursors.getCursor(0))
+        repeat(canvas.cursors.size()) {
+            canvas.cursors.removeCursor(canvas.cursors.getCursor(0))
         }
     }
 
@@ -79,7 +85,7 @@ class DrawableMapRenderer(private val behaviorDesc: DrawBehaviorTypes.Desc) : Ma
      */
     fun updatePlayer(location: Vector) {
         // プレイヤーカーソルを更新する ( TODO: 半径のコンフィグ化 )
-        mapCanvas.updatePlayer(location, 10.0)
+        mapCanvas.canvas.updatePlayer(location, 10.0)
     }
 
     companion object {
@@ -90,6 +96,7 @@ class DrawableMapRenderer(private val behaviorDesc: DrawBehaviorTypes.Desc) : Ma
                 ?: return // 変更箇所がなければ何もしない
             // 新しいバッファーを取得
             val buffer = DrawableMapReflection.getCanvasBuffer(this)
+                ?.let { PixelImageMapBuffer(it) }
                 ?: return
             // 更新があるプレイヤーに通知する
             updates.asSequence().filter { (player, _) ->
@@ -104,7 +111,9 @@ class DrawableMapRenderer(private val behaviorDesc: DrawBehaviorTypes.Desc) : Ma
         /** キャンバスの内容をマップビューに保存し永続化する */
         private fun MapCanvas.saveToMapView() {
             val src = DrawableMapReflection.getCanvasBuffer(this)
+                ?.let { PixelImageMapBuffer(it) }
             val dst = DrawableMapReflection.getMapBuffer(mapView)
+                ?.let { PixelImageMapBuffer(it) }
             if (src != null && dst != null) {
                 src.copyTo(dst)
             }
@@ -113,7 +122,9 @@ class DrawableMapRenderer(private val behaviorDesc: DrawBehaviorTypes.Desc) : Ma
         /** 永続化されたマップビューのデータを読み込む */
         private fun MapCanvas.loadFromMapView() {
             val src = DrawableMapReflection.getMapBuffer(mapView)
+                ?.let { PixelImageMapBuffer(it) }
             val dst = DrawableMapReflection.getCanvasBuffer(this)
+                ?.let { PixelImageMapBuffer(it) }
             if (src != null && dst != null) {
                 src.copyTo(dst)
             }

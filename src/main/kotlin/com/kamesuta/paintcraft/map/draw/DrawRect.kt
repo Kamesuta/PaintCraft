@@ -1,7 +1,7 @@
 package com.kamesuta.paintcraft.map.draw
 
-import com.kamesuta.paintcraft.map.DrawableMapBuffer.Companion.mapSize
-import org.bukkit.map.MapCanvas
+import com.kamesuta.paintcraft.map.image.PixelImage
+import com.kamesuta.paintcraft.map.image.mapSize
 import kotlin.math.max
 import kotlin.math.min
 
@@ -24,7 +24,7 @@ class DrawRect(
     private val fill: Boolean,
     private val thickness: Int,
 ) : Draw {
-    override fun draw(canvas: MapCanvas) {
+    override fun draw(canvas: PixelImage) {
         // (x1,y1)が(x2,y2)より左上になるようにする
         // 範囲外の縁を描画しないためにマップのサイズより1大きいサイズにする
         val xMin = max(-1, min(x1, x2))
@@ -37,18 +37,18 @@ class DrawRect(
             // 範囲内のピクセルを塗りつぶし
             for (x in xMin..xMax) {
                 for (y in yMin..yMax) {
-                    canvas.setPixel(x, y, color)
+                    canvas[x, y] = color
                 }
             }
         } else {
             // 4辺を描画
             for (x in xMin..xMax) {
-                canvas.setPixel(x, yMin, color)
-                canvas.setPixel(x, yMax, color)
+                canvas[x, yMin] = color
+                canvas[x, yMax] = color
             }
             for (y in yMin..yMax) {
-                canvas.setPixel(xMin, y, color)
-                canvas.setPixel(xMax, y, color)
+                canvas[xMin, y] = color
+                canvas[xMax, y] = color
             }
         }
     }

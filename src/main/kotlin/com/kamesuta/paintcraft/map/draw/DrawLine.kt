@@ -1,7 +1,7 @@
 package com.kamesuta.paintcraft.map.draw
 
+import com.kamesuta.paintcraft.map.image.PixelImage
 import com.kamesuta.paintcraft.util.fuzzyEq
-import org.bukkit.map.MapCanvas
 import kotlin.math.abs
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
@@ -23,7 +23,7 @@ class DrawLine(
     private val color: Byte,
     private val thickness: Int,
 ) : Draw {
-    override fun draw(canvas: MapCanvas) {
+    override fun draw(canvas: PixelImage) {
         // 処理の解像度
         val resolution = 255
 
@@ -59,15 +59,15 @@ class DrawLine(
             var y0 = y0
             while (true) {
                 // 開始点寄りの縁のピクセル (今回はアンチエイリアスしないため塗りつぶす)
-                canvas.setPixel(x0.also { x1 = it }, y0, color)
+                canvas[x0.also { x1 = it }, y0] = color
                 e2 = dy - err - th
                 while (e2 + dy < resolution) {
                     // 線上のピクセル
-                    canvas.setPixel(sx.let { x1 += it; x1 }, y0, color)
+                    canvas[sx.let { x1 += it; x1 }, y0] = color
                     e2 += dy
                 }
                 // 終了点寄りの縁のピクセル (今回はアンチエイリアスしないため塗りつぶす)
-                canvas.setPixel(x1 + sx, y0, color)
+                canvas[x1 + sx, y0] = color
                 if (y0 == y1) break
                 // Yを1つ進める
                 err += dx
@@ -88,15 +88,15 @@ class DrawLine(
             var y0 = y0 - y1 * sy
             while (true) {
                 // 開始点寄りの縁のピクセル (今回はアンチエイリアスしないため塗りつぶす)
-                canvas.setPixel(x0, y0.also { y1 = it }, color)
+                canvas[x0, y0.also { y1 = it }] = color
                 e2 = dx - err - th
                 while (e2 + dx < resolution) {
                     // 線上のピクセル
-                    canvas.setPixel(x0, sy.let { y1 += it; y1 }, color)
+                    canvas[x0, sy.let { y1 += it; y1 }] = color
                     e2 += dx
                 }
                 // 終了点寄りの縁のピクセル (今回はアンチエイリアスしないため塗りつぶす)
-                canvas.setPixel(x0, y1 + sy, color)
+                canvas[x0, y1 + sy] = color
                 if (x0 == x1) break
                 // Xを1つ進める
                 err += dy
@@ -114,7 +114,7 @@ class DrawLine(
      * 線を描画する (太さが1のとき)
      * @param canvas 描画先
      */
-    private fun plotLine(canvas: MapCanvas) {
+    private fun plotLine(canvas: PixelImage) {
         var x0 = x0
         var y0 = y0
 
@@ -130,7 +130,7 @@ class DrawLine(
         var err = dx + dy
 
         while (true) {
-            canvas.setPixel(x0, y0, color)
+            canvas[x0, y0] = color
             if (x0 == x1 && y0 == y1) break
             val e2 = 2 * err
             if (e2 >= dy) {

@@ -69,11 +69,9 @@ object DrawableMapReflection {
      * @param mapCanvas キャンバス
      * @return ピクセルデータ
      */
-    fun getCanvasBuffer(mapCanvas: MapCanvas): DrawableMapBuffer? {
+    fun getCanvasBuffer(mapCanvas: MapCanvas): ByteArray? {
         return runCatching {
-            (Accessor.craftMapCanvasBuffer[mapCanvas] as ByteArray?)?.let {
-                DrawableMapBuffer(it)
-            }
+            Accessor.craftMapCanvasBuffer[mapCanvas] as ByteArray?
         }.onFailure {
             PaintCraft.instance.logger.warning("Failed to get MapCanvas buffer")
         }.getOrNull()
@@ -84,13 +82,11 @@ object DrawableMapReflection {
      * @param mapView マップビュー
      * @return ピクセルデータ
      */
-    fun getMapBuffer(mapView: MapView): DrawableMapBuffer? {
+    fun getMapBuffer(mapView: MapView): ByteArray? {
         return runCatching {
             val worldMap: Any = Accessor.mapViewWorldMap[mapView]
                 ?: return null
-            (Accessor.worldMapColors[worldMap] as ByteArray?)?.let {
-                DrawableMapBuffer(it)
-            }
+            Accessor.worldMapColors[worldMap] as ByteArray?
         }.onFailure {
             PaintCraft.instance.logger.warning("Failed to get map buffer")
         }.getOrNull()

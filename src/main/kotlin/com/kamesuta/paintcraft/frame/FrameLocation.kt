@@ -1,6 +1,6 @@
 package com.kamesuta.paintcraft.frame
 
-import com.kamesuta.paintcraft.map.DrawableMapBuffer.Companion.mapSize
+import com.kamesuta.paintcraft.map.image.mapSize
 import com.kamesuta.paintcraft.util.clienttype.ClientType
 import com.kamesuta.paintcraft.util.vec.*
 import org.bukkit.entity.ItemFrame
