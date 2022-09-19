@@ -83,6 +83,7 @@ tasks {
     }
 
     shadowJar {
+        dependsOn(jar)
         // リロケートする
         dependsOn(relocateShadow)
         // 依存関係を埋め込んだjarは末尾なし
