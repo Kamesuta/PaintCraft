@@ -7,7 +7,7 @@ import java.awt.Color
  * RGBの色情報を保持する
  * (awtのColorのラッパー)
  */
-class RGBColor(private val color: Color) {
+class RGBColor(val color: Color) {
     /**
      * マップパレットの色に変換
      * @return マップパレットの色 (Byte)
