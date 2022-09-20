@@ -1,4 +1,4 @@
-package com.kamesuta.map.draw
+package com.kamesuta.paintcraft.map.draw
 
 import com.kamesuta.paintcraft.map.draw.Draw
 import com.kamesuta.paintcraft.map.draw.DrawLine
@@ -38,7 +38,7 @@ class DrawManualTest : JFrame() {
                 }
             })
             // 太さのスピナーの追加
-            val spinnerModel = SpinnerNumberModel(1, 1, 15, 1)
+            val spinnerModel = SpinnerNumberModel(1, 0, 15, 1)
             add("East", JSpinner(spinnerModel).apply {
                 addChangeListener {
                     // 太さのスピナーの値を取得
