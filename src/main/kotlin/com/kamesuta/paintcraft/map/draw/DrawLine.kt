@@ -29,7 +29,7 @@ class DrawLine(
         // http://members.chello.at/~easyfilter/canvas.html
 
         // 処理の解像度
-        val resolution = 255
+        val resolution = 255.0
 
         // 伸ばしていく方向
         val sx = if (x0 < x1) 1 else -1
@@ -48,11 +48,11 @@ class DrawLine(
             return
         }
         // 線の太さ
-        val th = resolution * (thickness - 1)
+        val th = thickness - 1.0
 
         // 縦と横の差
-        val dx = dx0 * resolution / length
-        val dy = dy0 * resolution / length
+        val dx = dx0 / length
+        val dy = dy0 / length
 
         /** 太さを考慮して点を描画する */
         fun plot(x: Int, y: Int) {
@@ -63,11 +63,11 @@ class DrawLine(
 
         // 斜めの場合、線の太さを考慮して長めに描画する必要がある
         // そのため、線の太さを考慮した長さの増加分を計算する
-        val th2 = th / 2.0 / resolution / resolution
+        val th2 = th / 2.0
         if (dx < dy) {
             // 急な線の場合
             // 開始オフセット
-            val x1 = (length + th / 2.0) / dy
+            val x1 = (length / resolution + th / 2.0) / dy
             // 誤差をオフセット幅までずらす
             var err = x1 * dy - th / 2.0
             // 線の太さを考慮した長さの増加分を加算する
@@ -79,7 +79,7 @@ class DrawLine(
                 var x2 = x0
                 plot(x2, y0)
                 var e2 = dy - err - th
-                while (e2 + dy < resolution) {
+                while (e2 + dy < 1.0) {
                     // 線上のピクセル
                     x2 += sx
                     plot(x2, y0)
@@ -90,7 +90,7 @@ class DrawLine(
                 if (y0 == y1) break
                 // Yを1つ進める
                 err += dx
-                if (err > resolution) {
+                if (err > 1.0) {
                     // Xを1つ進める
                     err -= dy
                     x0 += sx
@@ -100,7 +100,7 @@ class DrawLine(
         } else {
             // 平らな線の場合
             // 開始オフセット
-            val y1 = (length + th / 2.0) / dx
+            val y1 = (length / resolution + th / 2.0) / dx
             // 誤差をオフセット幅までずらす
             var err = y1 * dx - th / 2.0
             // 線の太さを考慮した長さの増加分を加算する
@@ -112,7 +112,7 @@ class DrawLine(
                 var y2 = y0
                 plot(x0, y2)
                 var e2 = dx - err - th
-                while (e2 + dx < resolution) {
+                while (e2 + dx < 1.0) {
                     // 線上のピクセル
                     y2 += sy
                     plot(x0, y2)
@@ -123,7 +123,7 @@ class DrawLine(
                 if (x0 == x1) break
                 // Xを1つ進める
                 err += dy
-                if (err > resolution) {
+                if (err > 1.0) {
                     // Yを1つ進める
                     err -= dx
                     y0 += sy
