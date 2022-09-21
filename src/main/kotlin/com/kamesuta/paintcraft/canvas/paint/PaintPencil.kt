@@ -35,14 +35,14 @@ class PaintPencil(override val session: CanvasSession) : PaintTool {
             when (event.drawMode) {
                 // 描くモードが左クリックの場合
                 CanvasActionType.LEFT_CLICK -> {
+                    // マップをプレイヤーへ同期するために記憶しておく
+                    session.drawing.edited.store(event.interact.ray.itemFrame, event.mapItem)
                     // 全消し
                     g(
                         DrawRect(
                             0.0, 0.0, mapSize - 1.0, mapSize - 1.0, 0, true, session.mode.thickness,
                         )
                     )
-                    // マップをプレイヤーへ同期するために記憶しておく
-                    session.drawing.edited.store(event.interact.ray.itemFrame, event.mapItem)
                     // クリックを持続させない
                     session.clicking.stopClicking()
                     // 描くのを終了
