@@ -50,29 +50,39 @@ class DrawLine(
         val dx = dx0 * resolution / length
         val dy = dy0 * resolution / length
 
+        /** 太さを考慮して点を描画する */
+        fun plot(x: Int, y: Int) {
+            if (sx * (x - x0) * dx + sy * (y - y0) * dy < 0) return
+            if (sx * (x - x1) * dx + sy * (y - y1) * dy > 0) return
+            canvas[x, y] = color
+        }
+
         if (dx < dy) {
             // 急な線の場合
             // 開始オフセット
             val x1 = ((length + th / 2) / dy).roundToInt()
             // 誤差をオフセット幅までずらす
             var err = x1 * dy - th / 2
+            // 斜めの場合、線の太さを考慮して長めに描画する必要がある
+            // そのため、線の太さを考慮した長さの増加分を計算する
             val ty = (dx * (th / 2) / resolution / resolution).roundToInt()
+            // 線の太さを考慮した長さの増加分を加算する
             var x0 = x0 - (x1 + ty) * sx
             var y0 = y0 - ty * sy
             val y1 = y1 + ty * sy
             while (true) {
                 // 開始点寄りの縁のピクセル (今回はアンチエイリアスしないため塗りつぶす)
                 var x2 = x0
-                canvas[x2, y0] = color
+                plot(x2, y0)
                 var e2 = dy - err - th
                 while (e2 + dy < resolution) {
                     // 線上のピクセル
                     x2 += sx
-                    canvas[x2, y0] = color
+                    plot(x2, y0)
                     e2 += dy
                 }
                 // 終了点寄りの縁のピクセル (今回はアンチエイリアスしないため塗りつぶす)
-                canvas[x2 + sx, y0] = color
+                plot(x2 + sx, y0)
                 if (y0 == y1) break
                 // Yを1つ進める
                 err += dx
@@ -89,23 +99,26 @@ class DrawLine(
             val y1 = ((length + th / 2) / dx).roundToInt()
             // 誤差をオフセット幅までずらす
             var err = y1 * dx - th / 2
+            // 斜めの場合、線の太さを考慮して長めに描画する必要がある
+            // そのため、線の太さを考慮した長さの増加分を計算する
             val tx = (dy * (th / 2) / resolution / resolution).roundToInt()
+            // 線の太さを考慮した長さの増加分を加算する
             var y0 = y0 - (y1 + tx) * sy
             var x0 = x0 - tx * sx
             val x1 = x1 + tx * sx
             while (true) {
                 // 開始点寄りの縁のピクセル (今回はアンチエイリアスしないため塗りつぶす)
                 var y2 = y0
-                canvas[x0, y2] = color
+                plot(x0, y2)
                 var e2 = dx - err - th
                 while (e2 + dx < resolution) {
                     // 線上のピクセル
                     y2 += sy
-                    canvas[x0, y2] = color
+                    plot(x0, y2)
                     e2 += dx
                 }
                 // 終了点寄りの縁のピクセル (今回はアンチエイリアスしないため塗りつぶす)
-                canvas[x0, y2 + sy] = color
+                plot(x0, y2 + sy)
                 if (x0 == x1) break
                 // Xを1つ進める
                 err += dy

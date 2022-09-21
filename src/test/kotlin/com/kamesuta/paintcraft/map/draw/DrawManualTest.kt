@@ -1,8 +1,5 @@
 package com.kamesuta.paintcraft.map.draw
 
-import com.kamesuta.paintcraft.map.draw.Draw
-import com.kamesuta.paintcraft.map.draw.DrawLine
-import com.kamesuta.paintcraft.map.draw.DrawRect
 import com.kamesuta.paintcraft.map.image.PixelImageMapBuffer
 import com.kamesuta.paintcraft.map.image.mapSize
 import com.kamesuta.paintcraft.util.vec.Vec2i
@@ -38,7 +35,7 @@ class DrawManualTest : JFrame() {
                 }
             })
             // 太さのスピナーの追加
-            val spinnerModel = SpinnerNumberModel(1, 0, 15, 1)
+            val spinnerModel = SpinnerNumberModel(1, 0, 64, 1)
             add("East", JSpinner(spinnerModel).apply {
                 addChangeListener {
                     // 太さのスピナーの値を取得
@@ -55,13 +52,22 @@ class DrawManualTest : JFrame() {
     }
 
     companion object {
+        /** 1ピクセルの大きさ */
+        const val pixelSize = 4
+
+        /** 色1のマップカラー */
+        const val color1: Byte = 58
+
+        /** 色2のマップカラー */
+        const val color2: Byte = 59
+
         /** テストツールのメイン関数 */
         @JvmStatic
         fun main(args: Array<String>) {
             // ウィンドウの作成
             val app = DrawManualTest()
             // ウィンドウの挙動の設定
-            app.defaultCloseOperation = JFrame.EXIT_ON_CLOSE
+            app.defaultCloseOperation = EXIT_ON_CLOSE
             // ウィンドウの表示
             app.isVisible = true
         }
@@ -85,8 +91,8 @@ class DrawManualTest : JFrame() {
          */
         fun getDraw(startUv: Vec2i, endUv: Vec2i, thickness: Int): Draw {
             return when (this) {
-                LINE -> DrawLine(startUv.x, startUv.y, endUv.x, endUv.y, TestCanvas.black, thickness)
-                RECT -> DrawRect(startUv.x, startUv.y, endUv.x, endUv.y, TestCanvas.black, false, thickness)
+                LINE -> DrawLine(startUv.x, startUv.y, endUv.x, endUv.y, color1, thickness)
+                RECT -> DrawRect(startUv.x, startUv.y, endUv.x, endUv.y, color1, false, thickness)
             }
         }
     }
@@ -143,7 +149,7 @@ class DrawManualTest : JFrame() {
             /** ピクセルデータの作成 */
             val mapCanvas = PixelImageMapBuffer()
             /** ピクセルデータに描画 */
-            drawMode.getDraw(startUv, endUv, thickness).draw(mapCanvas);
+            drawMode.getDraw(startUv, endUv, thickness).draw(mapCanvas)
 
             // ループでピクセルデータをJPanelに描画していく
             val x1 = x1
@@ -151,7 +157,11 @@ class DrawManualTest : JFrame() {
             for (x in 0 until mapCanvas.width) {
                 for (y in 0 until mapCanvas.height) {
                     // とりあえず黒か白かだけ判定
-                    g.color = if (mapCanvas[x, y] == black) Color.BLACK else Color.WHITE
+                    g.color = when (mapCanvas[x, y]) {
+                        color1 -> Color.BLACK
+                        color2 -> Color.RED
+                        else -> Color.WHITE
+                    }
                     // 四角形でピクセルを描画
                     g.fillRect(x1 + x * pixelSize, y1 + y * pixelSize, pixelSize, pixelSize)
                 }
@@ -161,14 +171,6 @@ class DrawManualTest : JFrame() {
             g.color = Color.RED
             g.fillRect(x1 + startUv.x * pixelSize, y1 + startUv.y * pixelSize, pixelSize, pixelSize)
             g.fillRect(x1 + endUv.x * pixelSize, y1 + endUv.y * pixelSize, pixelSize, pixelSize)
-        }
-
-        companion object {
-            /** 1ピクセルの大きさ */
-            const val pixelSize = 4
-
-            /** 黒のマップカラー */
-            const val black: Byte = 58
         }
     }
 }
