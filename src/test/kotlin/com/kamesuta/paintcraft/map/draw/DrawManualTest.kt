@@ -76,6 +76,9 @@ class DrawManualTest : JFrame() {
 
         /** 四角形 */
         RECT,
+
+        /** 四角形 (塗りつぶし) */
+        RECT_FILL,
         ;
 
         /**
@@ -89,6 +92,7 @@ class DrawManualTest : JFrame() {
             return when (this) {
                 LINE -> DrawLine(startUv.x, startUv.y, endUv.x, endUv.y, black, thickness)
                 RECT -> DrawRect(startUv.x, startUv.y, endUv.x, endUv.y, black, false, thickness)
+                RECT_FILL -> DrawRect(startUv.x, startUv.y, endUv.x, endUv.y, black, true, thickness)
             }
         }
     }

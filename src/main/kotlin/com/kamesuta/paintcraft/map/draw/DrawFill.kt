@@ -2,7 +2,6 @@ package com.kamesuta.paintcraft.map.draw
 
 import com.kamesuta.paintcraft.map.image.PixelImage
 import com.kamesuta.paintcraft.map.image.PixelImageBuffer
-import com.kamesuta.paintcraft.map.image.PixelImageMapBuffer
 import com.kamesuta.paintcraft.map.image.mapSize
 
 /**
