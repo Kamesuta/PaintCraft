@@ -56,8 +56,10 @@ class DrawLine(
             val x1 = ((length + th / 2) / dy).roundToInt()
             // 誤差をオフセット幅までずらす
             var err = x1 * dy - th / 2
-            var x0 = x0 - x1 * sx
-            var y0 = y0
+            val ty = (dx * (th / 2) / resolution / resolution).roundToInt()
+            var x0 = x0 - (x1 + ty) * sx
+            var y0 = y0 - ty * sy
+            val y1 = y1 + ty * sy
             while (true) {
                 // 開始点寄りの縁のピクセル (今回はアンチエイリアスしないため塗りつぶす)
                 var x2 = x0
@@ -87,8 +89,10 @@ class DrawLine(
             val y1 = ((length + th / 2) / dx).roundToInt()
             // 誤差をオフセット幅までずらす
             var err = y1 * dx - th / 2
-            var x0 = x0
-            var y0 = y0 - y1 * sy
+            val tx = (dy * (th / 2) / resolution / resolution).roundToInt()
+            var y0 = y0 - (y1 + tx) * sy
+            var x0 = x0 - tx * sx
+            val x1 = x1 + tx * sx
             while (true) {
                 // 開始点寄りの縁のピクセル (今回はアンチエイリアスしないため塗りつぶす)
                 var y2 = y0
