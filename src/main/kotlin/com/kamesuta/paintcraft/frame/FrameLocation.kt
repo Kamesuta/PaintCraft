@@ -5,7 +5,6 @@ import com.kamesuta.paintcraft.util.clienttype.ClientType
 import com.kamesuta.paintcraft.util.vec.*
 import org.bukkit.entity.ItemFrame
 import org.bukkit.util.Vector
-import kotlin.math.round
 
 /**
  * アイテムフレームの座標、回転
@@ -139,14 +138,14 @@ class FrameLocation(
          * @param rotation アイテムフレーム内の地図の回転
          * @return キャンバスピクセルのUV座標
          */
-        fun Vec2d.transformUv(rotation: FrameRotation): Vec2i {
+        fun Vec2d.transformUv(rotation: FrameRotation): Vec2d {
             // -0.5～0.5の範囲を0.0～1.0の範囲に変換する
             val q = rotation.uv(this) + Vec2d(0.5, 0.5)
             // 0～128(ピクセル座標)の範囲に変換する
-            val x = round(q.x * (mapSize - 1)).toInt()
-            val y = round(q.y * (mapSize - 1)).toInt()
+            val x = q.x * (mapSize - 1)
+            val y = q.y * (mapSize - 1)
             // 変換した座標を返す
-            return Vec2i(x, y)
+            return Vec2d(x, y)
         }
 
         /**
@@ -155,7 +154,7 @@ class FrameLocation(
          * @param expand 拡大率
          * @return キャンバス内にあるかどうか
          */
-        fun Vec2i.isUvInMap(expand: Int = 0): Boolean {
+        fun Vec2d.isUvInMap(expand: Double = 0.0): Boolean {
             if (x < -expand || mapSize + expand <= x) return false
             if (y < -expand || mapSize + expand <= y) return false
             return true
@@ -166,10 +165,10 @@ class FrameLocation(
          * @receiver キャンバスピクセルのUV座標
          * @return ClampされたキャンバスピクセルのUV座標
          */
-        fun Vec2i.clampUvInMap(): Vec2i {
-            return Vec2i(
-                x.coerceIn(0, mapSize - 1),
-                y.coerceIn(0, mapSize - 1)
+        fun Vec2d.clampUvInMap(): Vec2d {
+            return Vec2d(
+                x.coerceIn(0.0, mapSize - 1.0),
+                y.coerceIn(0.0, mapSize - 1.0)
             )
         }
 

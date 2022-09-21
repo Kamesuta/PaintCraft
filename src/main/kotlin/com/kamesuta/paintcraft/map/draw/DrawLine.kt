@@ -16,12 +16,12 @@ import kotlin.math.sqrt
  * @param thickness 線の太さ
  */
 class DrawLine(
-    private val x0: Int,
-    private val y0: Int,
-    private val x1: Int,
-    private val y1: Int,
+    private val x0: Double,
+    private val y0: Double,
+    private val x1: Double,
+    private val y1: Double,
     private val color: Byte,
-    private val thickness: Int,
+    private val thickness: Double,
 ) : Draw {
     override fun draw(canvas: PixelImage) {
         // Bresenham's Algorithm
@@ -71,9 +71,9 @@ class DrawLine(
             // 誤差をオフセット幅までずらす
             var err = x1 * dy - th / 2.0
             // 線の太さを考慮した長さの増加分を加算する
-            var x0 = x0 - ((x1 + th2 * dx) * sx).roundToInt()
-            var y0 = y0 - (th2 * dy * sy).roundToInt()
-            val y1 = y1 + (th2 * dy * sy).roundToInt()
+            var x0 = (x0 - (x1 + th2 * dx) * sx).roundToInt()
+            var y0 = (y0 - th2 * dy * sy).roundToInt()
+            val y1 = (y1 + th2 * dy * sy).roundToInt()
             while (true) {
                 // 開始点寄りの縁のピクセル (今回はアンチエイリアスしないため塗りつぶす)
                 var x2 = x0
@@ -104,9 +104,9 @@ class DrawLine(
             // 誤差をオフセット幅までずらす
             var err = y1 * dx - th / 2.0
             // 線の太さを考慮した長さの増加分を加算する
-            var y0 = y0 - ((y1 + th2 * dy) * sy).roundToInt()
-            var x0 = x0 - (th2 * dx * sx).roundToInt()
-            val x1 = x1 + (th2 * dx * sx).roundToInt()
+            var y0 = (y0 - (y1 + th2 * dy) * sy).roundToInt()
+            var x0 = (x0 - th2 * dx * sx).roundToInt()
+            val x1 = (x1 + th2 * dx * sx).roundToInt()
             while (true) {
                 // 開始点寄りの縁のピクセル (今回はアンチエイリアスしないため塗りつぶす)
                 var y2 = y0
@@ -138,8 +138,10 @@ class DrawLine(
      * @param canvas 描画先
      */
     private fun plotLine(canvas: PixelImage) {
-        var x0 = x0
-        var y0 = y0
+        var x0 = x0.roundToInt()
+        var y0 = y0.roundToInt()
+        val x1 = x1.roundToInt()
+        val y1 = y1.roundToInt()
 
         // 伸ばしていく方向
         val sx = if (x0 < x1) 1 else -1

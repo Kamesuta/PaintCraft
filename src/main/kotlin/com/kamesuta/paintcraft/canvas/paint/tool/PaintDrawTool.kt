@@ -73,7 +73,7 @@ object PaintDrawTool {
             // 現在キャンバス範囲外をクリックしている状態 (範囲内→範囲外へのD&D)
             && event.interact.ray.isHit
             // 縁に近い場所をクリックしている状態
-            && event.interact.ray.uv.isUvInMap(-session.mode.thickness.toInt())
+            && event.interact.ray.uv.isUvInMap(-session.mode.thickness)
         ) {
             // アイテムフレームが同じならそのまま描く
             draw(

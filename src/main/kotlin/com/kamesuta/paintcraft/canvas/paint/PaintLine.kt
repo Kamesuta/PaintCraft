@@ -104,7 +104,7 @@ class PaintLine(override val session: CanvasSession) : PaintTool {
                             uvEnd.x,
                             uvEnd.y,
                             color,
-                            session.mode.thickness.toInt(),
+                            session.mode.thickness,
                         )
                     )
                 }

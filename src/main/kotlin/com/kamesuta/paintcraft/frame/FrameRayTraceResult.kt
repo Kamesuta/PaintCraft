@@ -2,7 +2,7 @@ package com.kamesuta.paintcraft.frame
 
 import com.kamesuta.paintcraft.map.DrawableMapItem
 import com.kamesuta.paintcraft.util.vec.Line3d
-import com.kamesuta.paintcraft.util.vec.Vec2i
+import com.kamesuta.paintcraft.util.vec.Vec2d
 import org.bukkit.entity.ItemFrame
 import org.bukkit.util.Vector
 
@@ -22,6 +22,6 @@ data class FrameRayTraceResult(
     val eyeLocation: Line3d,
     val frameLocation: FrameLocation,
     val canvasIntersectLocation: Vector,
-    val uv: Vec2i,
+    val uv: Vec2d,
     val isHit: Boolean,
 )

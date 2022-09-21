@@ -3,6 +3,7 @@ package com.kamesuta.paintcraft.map.draw
 import com.kamesuta.paintcraft.map.image.PixelImage
 import com.kamesuta.paintcraft.map.image.PixelImageBuffer
 import com.kamesuta.paintcraft.map.image.mapSize
+import kotlin.math.roundToInt
 
 /**
  * 塗りつぶしを行うクラス
@@ -11,17 +12,17 @@ import com.kamesuta.paintcraft.map.image.mapSize
  * @param color 塗りつぶす色
  */
 class DrawFill(
-    private val x: Int,
-    private val y: Int,
+    private val x: Double,
+    private val y: Double,
     private val color: Byte,
 ) : Draw {
     override fun draw(canvas: PixelImage) {
         // 塗りつぶし済みマークを作成
         val colored = PixelImageBuffer(canvas.width, canvas.height)
         // 元の色を取得
-        val srcColor = canvas[x, y]
+        val srcColor = canvas[x.roundToInt(), y.roundToInt()]
         // 塗りつぶしを行う
-        fillBucket(canvas, colored, x, y, srcColor, color)
+        fillBucket(canvas, colored, x.roundToInt(), y.roundToInt(), srcColor, color)
     }
 
     /**

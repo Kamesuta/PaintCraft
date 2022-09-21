@@ -2,7 +2,7 @@ package com.kamesuta.paintcraft.canvas.paint.tool
 
 import com.kamesuta.paintcraft.frame.FramePlaneTraceResult
 import com.kamesuta.paintcraft.map.DrawableMapItem
-import com.kamesuta.paintcraft.util.vec.Vec2i
+import com.kamesuta.paintcraft.util.vec.Vec2d
 import org.bukkit.entity.ItemFrame
 
 /**
@@ -16,7 +16,7 @@ import org.bukkit.entity.ItemFrame
 class PaintDrawData(
     val itemFrame: ItemFrame,
     val mapItem: DrawableMapItem,
-    val uvStart: Vec2i,
-    val uvEnd: Vec2i,
+    val uvStart: Vec2d,
+    val uvEnd: Vec2d,
     val result: FramePlaneTraceResult?
 )

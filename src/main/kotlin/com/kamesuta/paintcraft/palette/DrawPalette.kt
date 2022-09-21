@@ -13,7 +13,6 @@ import com.kamesuta.paintcraft.util.color.RGBColor.MapColors.black
 import com.kamesuta.paintcraft.util.color.RGBColor.MapColors.transparent
 import com.kamesuta.paintcraft.util.color.RGBColor.MapColors.white
 import com.kamesuta.paintcraft.util.vec.Vec2d
-import com.kamesuta.paintcraft.util.vec.Vec2i
 import org.bukkit.map.MinecraftFont
 import kotlin.math.*
 
@@ -79,8 +78,11 @@ class DrawPalette(
                 buttonSize / 2
             )
             // 斜線を描画
-            for (i in -buttonSize / 2 until buttonSize / 2) {
-                canvas[transparentButtonPosition.x - i, transparentButtonPosition.y + i] = buttonColor
+            val x0 = transparentButtonPosition.x.roundToInt()
+            val y0 = transparentButtonPosition.y.roundToInt()
+            val size0 = (buttonSize / 2.0).toInt()
+            for (i in -size0 until size0) {
+                canvas[x0 - i, y0 + i] = buttonColor
             }
         }
 
@@ -103,32 +105,38 @@ class DrawPalette(
                 colorPickerButtonPosition.y,
                 oppositeColor,
                 buttonColor,
-                buttonSize / 2 - 2
+                buttonSize / 2.0 - 2.0
             )
             // 十字を描画
-            for (i in -buttonSize / 2 until buttonSize / 2) {
-                canvas[colorPickerButtonPosition.x + i, colorPickerButtonPosition.y] = buttonColor
-                canvas[colorPickerButtonPosition.x, colorPickerButtonPosition.y + i] = buttonColor
+            val x0 = colorPickerButtonPosition.x.roundToInt()
+            val y0 = colorPickerButtonPosition.y.roundToInt()
+            val size0 = (buttonSize / 2.0).toInt()
+            for (i in -size0 until size0) {
+                canvas[x0 + i, y0] = buttonColor
+                canvas[x0, y0 + i] = buttonColor
             }
         }
 
         // 太さスライダーを描画する
         run {
             // 太さスライダー描画
-            for (iy in -thicknessSliderSize.y / 2..thicknessSliderSize.y / 2) {
-                val width = round((0.5 - iy / thicknessSliderSize.y.toDouble()) * thicknessSliderSize.x).toInt()
+            val sliderSizeY = thicknessSliderSize.y.toInt()
+            val sliderPosX = thicknessSliderPosition.x.roundToInt()
+            val sliderPosY = thicknessSliderPosition.y.roundToInt()
+            for (iy in -sliderSizeY / 2..sliderSizeY / 2) {
+                val width = ((0.5 - iy / thicknessSliderSize.y) * thicknessSliderSize.x).roundToInt()
                 // スライダーの背景
                 for (ix in 0..width) {
                     // だんだん細くなるように描画
-                    canvas[thicknessSliderPosition.x - ix, thicknessSliderPosition.y + iy] = buttonColor
+                    canvas[sliderPosX - ix, sliderPosY + iy] = buttonColor
                 }
             }
 
             if (mode != null) {
                 // カーソルを描画
-                val radius = (mode.thickness * 0.5 + 3.0).toInt()
+                val radius = mode.thickness * 0.5 + 3.0
                 canvas.drawCursor(
-                    thicknessSliderPosition.x - radius / 2,
+                    sliderPosX - radius / 2.0,
                     getYFromThickness(mode.thickness),
                     white,
                     buttonColor,
@@ -156,8 +164,8 @@ class DrawPalette(
                     )
                     // カーソルを描画する
                     canvas.drawCursor(
-                        ((vec.x + 1.0) / 2.0 * mapSize).toInt(),
-                        ((vec.y + 1.0) / 2.0 * mapSize).toInt(),
+                        (vec.x + 1.0) / 2.0 * mapSize,
+                        (vec.y + 1.0) / 2.0 * mapSize,
                         color,
                         oppositeColor
                     )
@@ -180,8 +188,8 @@ class DrawPalette(
                     )
                     // カーソルを描画する
                     canvas.drawCursor(
-                        ((hueVec.x + 1.0) / 2.0 * mapSize).toInt(),
-                        ((hueVec.y + 1.0) / 2.0 * mapSize).toInt(),
+                        (hueVec.x + 1.0) / 2.0 * mapSize,
+                        (hueVec.y + 1.0) / 2.0 * mapSize,
                         primaryRgbColor.toMapColor(),
                         oppositeColor
                     )
@@ -211,42 +219,42 @@ class DrawPalette(
         private const val radiusHue = 0.6
 
         /** パレットのX座標 */
-        private const val storedPaletteOffsetX = 16
+        private const val storedPaletteOffsetX = 16.0
 
         /** 色相を選択する円の半径 */
-        private const val storedPaletteSize = mapSize / 16
+        private const val storedPaletteSize = mapSize / 16.0
 
         /** ボタンのサイズ */
-        private const val buttonSize = 9
+        private const val buttonSize = 9.0
 
         /** 透明ボタンの位置 */
-        private val transparentButtonPosition = Vec2i(30, 30)
+        private val transparentButtonPosition = Vec2d(30.0, 30.0)
 
         /** カラーピッカーボタンの位置 */
-        private val colorPickerButtonPosition = Vec2i(mapSize - 30, 30)
+        private val colorPickerButtonPosition = Vec2d(mapSize - 30.0, 30.0)
 
         /** カラーコードの位置 */
-        private val colorCodePosition = Vec2i(mapSize / 2, 21)
+        private val colorCodePosition = Vec2d(mapSize / 2.0, 21.0)
 
         /** カラーコードのサイズ */
-        private val colorCodeSize = Vec2i(66, 9)
+        private val colorCodeSize = Vec2d(66.0, 9.0)
 
         /** 最大の太さ */
         private const val thicknessMax = 7.0
 
         /** 太さスライダーの位置 */
-        private val thicknessSliderPosition = Vec2i(mapSize - 14, mapSize / 2)
+        private val thicknessSliderPosition = Vec2d(mapSize - 14.0, mapSize / 2.0)
 
         /** 太さスライダーのサイズ */
-        private val thicknessSliderSize = Vec2i(6, mapSize - 30)
+        private val thicknessSliderSize = Vec2d(6.0, mapSize - 30.0)
 
         /** 色相ごとのパレットを事前に計算しておく */
         private val cachedPalette = (0..255).associateWith { hue ->
             val map = PixelImageMapBuffer()
             for (iy in 0 until mapSize) {
                 for (ix in 0 until mapSize) {
-                    val adjustingType = getAdjustingType(ix, iy)
-                    val color = getColor(ix, iy, adjustingType, HSBColor(hue / 255.0, 1.0, 1.0))
+                    val adjustingType = getAdjustingType(ix.toDouble(), iy.toDouble())
+                    val color = getColor(ix.toDouble(), iy.toDouble(), adjustingType, HSBColor(hue / 255.0, 1.0, 1.0))
                     map[ix, iy] = color?.toRGB()?.toMapColor() ?: 0
                 }
             }
@@ -260,12 +268,12 @@ class DrawPalette(
          * @return 調整中のモード
          */
         fun getAdjustingType(
-            x: Int,
-            y: Int,
+            x: Double,
+            y: Double,
         ): PaletteAdjustingType {
             // パレットの位置
-            val start = mapSize / 2 - (storedPaletteSize * (PaletteData.MAP_PALETTE_SIZE)) / 2
-            val end = mapSize / 2 + (storedPaletteSize * (PaletteData.MAP_PALETTE_SIZE)) / 2
+            val start = mapSize / 2.0 - (storedPaletteSize * (PaletteData.MAP_PALETTE_SIZE)) / 2.0
+            val end = mapSize / 2.0 + (storedPaletteSize * (PaletteData.MAP_PALETTE_SIZE)) / 2.0
             if (y in start..end && x - storedPaletteOffsetX in -storedPaletteSize / 2..storedPaletteSize / 2) {
                 return PaletteAdjustingType.STORED_PALETTE
             }
@@ -293,15 +301,15 @@ class DrawPalette(
 
             // 太さスライダーの位置
             val sliderRadius = (thicknessMax * 0.5 + 3.0).toInt()
-            val sliderWidth = max(thicknessSliderSize.x, sliderRadius * 2)
-            if (x - thicknessSliderPosition.x + thicknessSliderSize.x / 2 in -sliderWidth / 2..sliderWidth / 2
-                && y - thicknessSliderPosition.y in -thicknessSliderSize.y / 2..thicknessSliderSize.y / 2
+            val sliderWidth = max(thicknessSliderSize.x, sliderRadius * 2.0)
+            if (x - thicknessSliderPosition.x + thicknessSliderSize.x / 2.0 in -sliderWidth / 2.0..sliderWidth / 2.0
+                && y - thicknessSliderPosition.y in -thicknessSliderSize.y / 2.0..thicknessSliderSize.y / 2.0
             ) {
                 return PaletteAdjustingType.THICKNESS
             }
 
             // -1.0 ~ 1.0
-            val iVec = Vec2d(x.toDouble(), y.toDouble()) / (mapSize.toDouble() / 2.0) - Vec2d(1.0, 1.0)
+            val iVec = Vec2d(x, y) / (mapSize.toDouble() / 2.0) - Vec2d(1.0, 1.0)
             return when (iVec.length) {
                 // 中央の彩度と明度を選択する円
                 in 0.0..radiusSpace -> PaletteAdjustingType.SATURATION_BRIGHTNESS
@@ -321,13 +329,13 @@ class DrawPalette(
          * @return 色
          */
         fun getColor(
-            x: Int,
-            y: Int,
+            x: Double,
+            y: Double,
             adjustingType: PaletteAdjustingType,
             HSBColor: HSBColor,
         ): HSBColor? {
             // -1.0 ~ 1.0
-            val iVec = Vec2d(x.toDouble(), y.toDouble()) / (mapSize.toDouble() / 2.0) - Vec2d(1.0, 1.0)
+            val iVec = Vec2d(x, y) / (mapSize.toDouble() / 2.0) - Vec2d(1.0, 1.0)
             return when (adjustingType) {
                 // 中央の彩度と明度を選択する円
                 PaletteAdjustingType.SATURATION_BRIGHTNESS -> {
@@ -357,10 +365,10 @@ class DrawPalette(
          * @param y Y座標
          * @return パレットの番号
          */
-        fun getStoredPaletteIndex(y: Int): Int {
+        fun getStoredPaletteIndex(y: Double): Int {
             // パレットの位置
-            val start = mapSize / 2 - (storedPaletteSize * (PaletteData.MAP_PALETTE_SIZE)) / 2
-            return (y - start) / storedPaletteSize
+            val start = mapSize / 2.0 - (storedPaletteSize * (PaletteData.MAP_PALETTE_SIZE)) / 2.0
+            return ((y - start) / storedPaletteSize).toInt()
         }
 
         /**
@@ -368,11 +376,11 @@ class DrawPalette(
          * @param y Y座標
          * @return ペンの太さ
          */
-        fun getThickness(y: Int): Double {
+        fun getThickness(y: Double): Double {
             // パレットの位置
-            val height = thicknessSliderSize.y - 15
-            val start = thicknessSliderPosition.y + height / 2 + 2
-            return (-(y - start) / height.toDouble() * thicknessMax).coerceIn(
+            val height = thicknessSliderSize.y - 15.0
+            val start = thicknessSliderPosition.y + height / 2.0 + 2.0
+            return (-(y - start) / height * thicknessMax).coerceIn(
                 0.0,
                 thicknessMax
             )
@@ -383,11 +391,11 @@ class DrawPalette(
          * @param thickness 太さ
          * @return Y座標
          */
-        fun getYFromThickness(thickness: Double): Int {
+        fun getYFromThickness(thickness: Double): Double {
             // パレットの位置
-            val height = thicknessSliderSize.y - 15
-            val start = thicknessSliderPosition.y + height / 2 + 2
-            return -(thickness / thicknessMax * height).toInt() + start
+            val height = thicknessSliderSize.y - 15.0
+            val start = thicknessSliderPosition.y + height / 2.0 + 2.0
+            return thickness / thicknessMax * -height + start
         }
 
         /**
@@ -397,20 +405,20 @@ class DrawPalette(
          */
         fun PixelImage.loadPalette(paletteData: PaletteData) {
             // パレットの位置
-            val start = mapSize / 2 - (storedPaletteSize * (PaletteData.MAP_PALETTE_SIZE - 1)) / 2
-            val left = storedPaletteOffsetX + storedPaletteSize / 2
+            val start = mapSize / 2.0 - (storedPaletteSize * (PaletteData.MAP_PALETTE_SIZE - 1)) / 2.0
+            val left = storedPaletteOffsetX + storedPaletteSize / 2.0
             for (index in 0 until PaletteData.MAP_PALETTE_SIZE) {
                 // 横のピクセルを取得
                 val y = start + index * storedPaletteSize
 
                 // パレットの色を取得
-                val color = this[storedPaletteOffsetX, y]
+                val color = this[storedPaletteOffsetX.toInt(), y.toInt()]
                 if (color != transparent) {
                     paletteData.storedPalettes[index] = color
                 }
 
                 // 縁が描画されていたら選択されている
-                val frameColor = this[left, y]
+                val frameColor = this[left.toInt(), y.toInt()]
                 if (frameColor != transparent)
                     paletteData.selectedPaletteIndex = index
             }
@@ -426,18 +434,21 @@ class DrawPalette(
          * @param radius カーソルの大きさ
          */
         fun PixelImage.drawCursor(
-            x: Int,
-            y: Int,
+            x: Double,
+            y: Double,
             color: Byte,
             oppositeColor: Byte,
-            radius: Int = 2,
+            radius: Double = 2.0,
         ) {
-            for (iy in -radius..radius) {
-                for (ix in -radius..radius) {
-                    if (abs(iy) == radius || abs(ix) == radius) {
-                        this[x + ix, y + iy] = oppositeColor
+            val x0 = x.roundToInt()
+            val y0 = y.roundToInt()
+            val radius0 = radius.roundToInt()
+            for (iy in -radius0..radius0) {
+                for (ix in -radius0..radius0) {
+                    if (abs(iy) == radius0 || abs(ix) == radius0) {
+                        this[x0 + ix, y0 + iy] = oppositeColor
                     } else {
-                        this[x + ix, y + iy] = color
+                        this[x0 + ix, y0 + iy] = color
                     }
                 }
             }

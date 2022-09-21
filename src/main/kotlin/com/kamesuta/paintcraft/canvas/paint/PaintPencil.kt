@@ -39,7 +39,7 @@ class PaintPencil(override val session: CanvasSession) : PaintTool {
                     // 全消し
                     g(
                         DrawRect(
-                            0, 0, mapSize - 1, mapSize - 1, 0, true, session.mode.thickness.toInt(),
+                            0.0, 0.0, mapSize - 1.0, mapSize - 1.0, 0, true, session.mode.thickness,
                         )
                     )
                     // クリックを持続させない
@@ -92,7 +92,7 @@ class PaintPencil(override val session: CanvasSession) : PaintTool {
                             uvEnd.x,
                             uvEnd.y,
                             color,
-                            session.mode.thickness.toInt(),
+                            session.mode.thickness,
                         )
                     )
                     if (session.mode.thickness > 1.0) {
@@ -100,7 +100,7 @@ class PaintPencil(override val session: CanvasSession) : PaintTool {
                             draw.drawCircle(
                                 uvEnd.x,
                                 uvEnd.y,
-                                floor(session.mode.thickness / 2.0 + 0.5),
+                                session.mode.thickness / 2.0 + 0.5,
                                 color,
                             )
                         }

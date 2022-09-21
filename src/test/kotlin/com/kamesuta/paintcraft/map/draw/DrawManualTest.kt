@@ -4,7 +4,7 @@ import com.kamesuta.paintcraft.map.image.PixelImageMapBuffer
 import com.kamesuta.paintcraft.map.image.mapSize
 import com.kamesuta.paintcraft.util.color.RGBColor.MapColors
 import com.kamesuta.paintcraft.util.color.RGBColor.MapColors.black
-import com.kamesuta.paintcraft.util.vec.Vec2i
+import com.kamesuta.paintcraft.util.vec.Vec2d
 import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.FlowLayout
@@ -12,6 +12,7 @@ import java.awt.Graphics
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import javax.swing.*
+import kotlin.math.roundToInt
 
 /**
  * 図形描画アルゴリズムの挙動を確かめるためのテストツール
@@ -43,7 +44,7 @@ class DrawManualTest : JFrame() {
                 add(JSpinner(spinnerModel).apply {
                     addChangeListener {
                         // 太さのスピナーの値を取得
-                        canvas.thickness = value as Int
+                        canvas.thickness = (value as Int).toDouble()
                         // アプリ画面全体を再描画
                         this@DrawManualTest.repaint()
                     }
@@ -105,7 +106,7 @@ class DrawManualTest : JFrame() {
          * @param thickness 太さ
          * @return 描画クラス
          */
-        fun getDraw(startUv: Vec2i, endUv: Vec2i, thickness: Int): Draw {
+        fun getDraw(startUv: Vec2d, endUv: Vec2d, thickness: Double): Draw {
             return when (this) {
                 LINE -> DrawLine(startUv.x, startUv.y, endUv.x, endUv.y, black, thickness)
                 RECT -> DrawRect(startUv.x, startUv.y, endUv.x, endUv.y, black, false, thickness)
@@ -117,16 +118,16 @@ class DrawManualTest : JFrame() {
     /** キャンバス */
     private class TestCanvas : JPanel() {
         /** クリックの始点座標 */
-        var startUv = Vec2i(0, 0)
+        var startUv = Vec2d(0.0, 0.0)
 
         /** クリックの終点座標 */
-        var endUv = Vec2i(0, 0)
+        var endUv = Vec2d(0.0, 0.0)
 
         /** 描画モード */
         var drawMode: DrawMode = DrawMode.LINE
 
         /** 太さ */
-        var thickness: Int = 1
+        var thickness: Double = 1.0
 
         /** キャンバスの左上のX座標 */
         val x1 get() = size.width / 2 - mapSize * pixelSize / 2
@@ -139,9 +140,9 @@ class DrawManualTest : JFrame() {
             addMouseListener(object : MouseAdapter() {
                 override fun mousePressed(e: MouseEvent) {
                     // クリックの始点座標を更新
-                    startUv = Vec2i(
-                        (e.x - x1) / pixelSize,
-                        (e.y - y1) / pixelSize,
+                    startUv = Vec2d(
+                        (e.x - x1).toDouble() / pixelSize,
+                        (e.y - y1).toDouble() / pixelSize,
                     )
                     // アプリ画面全体を再描画
                     parent.repaint()
@@ -152,9 +153,9 @@ class DrawManualTest : JFrame() {
             addMouseMotionListener(object : MouseAdapter() {
                 override fun mouseDragged(e: MouseEvent) {
                     // クリックの終点座標を更新
-                    endUv = Vec2i(
-                        (e.x - x1) / pixelSize,
-                        (e.y - y1) / pixelSize,
+                    endUv = Vec2d(
+                        (e.x - x1).toDouble() / pixelSize,
+                        (e.y - y1).toDouble() / pixelSize,
                     )
                     // アプリ画面全体を再描画
                     parent.repaint()
@@ -197,9 +198,19 @@ class DrawManualTest : JFrame() {
 
             // 開始地点と終了地点を描画
             g.color = Color.RED
-            g.fillRect(x1 + startUv.x * pixelSize, y1 + startUv.y * pixelSize, pixelSize, pixelSize)
+            g.fillRect(
+                (x1 + startUv.x * pixelSize).roundToInt(),
+                (y1 + startUv.y * pixelSize).roundToInt(),
+                pixelSize,
+                pixelSize
+            )
             g.color = Color.BLUE
-            g.fillRect(x1 + endUv.x * pixelSize, y1 + endUv.y * pixelSize, pixelSize, pixelSize)
+            g.fillRect(
+                (x1 + endUv.x * pixelSize).roundToInt(),
+                (y1 + endUv.y * pixelSize).roundToInt(),
+                pixelSize,
+                pixelSize
+            )
         }
     }
 }

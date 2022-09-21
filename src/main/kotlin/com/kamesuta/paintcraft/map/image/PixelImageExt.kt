@@ -6,11 +6,34 @@ import org.bukkit.map.MapFont
 import java.awt.image.BufferedImage
 import kotlin.math.ceil
 import kotlin.math.floor
+import kotlin.math.roundToInt
 
 /**
  * 地図のピクセルサイズ
  */
 const val mapSize = 128
+
+/**
+ * 円を描画する
+ * @receiver 描画先のピクセルデータ
+ * @param x 描画するX座標 (中心の座標)
+ * @param y 描画するY座標 (中心の座標)
+ * @param radius 半径
+ * @param color 色
+ */
+fun PixelImage.drawCircle(x: Double, y: Double, radius: Double, color: Byte) {
+    val minX = floor(x - radius).toInt().coerceIn(0, width - 1)
+    val minY = floor(y - radius).toInt().coerceIn(0, height - 1)
+    val maxX = ceil(x + radius).toInt().coerceIn(0, width - 1)
+    val maxY = ceil(y + radius).toInt().coerceIn(0, height - 1)
+    for (iy in minY..maxY) {
+        for (ix in minX..maxX) {
+            if ((ix - x) * (ix - x) + (iy - y) * (iy - y) < radius * radius) {
+                this[ix, iy] = color
+            }
+        }
+    }
+}
 
 /**
  * 画像を描画する
@@ -21,37 +44,17 @@ const val mapSize = 128
  * @param y 描画するY座標 (左上の座標)
  * @param image 描画する画像
  */
-fun PixelImage.drawImage(x: Int, y: Int, image: BufferedImage) {
-    val minX = x.coerceIn(0, width)
-    val minY = y.coerceIn(0, height)
-    val maxX = (x + image.width).coerceIn(0, width)
-    val maxY = (y + image.height).coerceIn(0, height)
+fun PixelImage.drawImage(x: Double, y: Double, image: BufferedImage) {
+    val x0 = x.roundToInt()
+    val y0 = y.roundToInt()
+    val minX = x0.coerceIn(0, width)
+    val minY = y0.coerceIn(0, height)
+    val maxX = (x0 + image.width).coerceIn(0, width)
+    val maxY = (y0 + image.height).coerceIn(0, height)
     for (iy in minY until maxY) {
         for (ix in minX until maxX) {
-            val color = RGBColor.fromCodeWithAlpha(image.getRGB(ix - x, iy - y))
+            val color = RGBColor.fromCodeWithAlpha(image.getRGB(ix - x0, iy - y0))
             this[ix, iy] = color.toMapColor()
-        }
-    }
-}
-
-/**
- * 円を描画する
- * @receiver 描画先のピクセルデータ
- * @param x 描画するX座標 (中心の座標)
- * @param y 描画するY座標 (中心の座標)
- * @param radius 半径
- * @param color 色
- */
-fun PixelImage.drawCircle(x: Int, y: Int, radius: Double, color: Byte) {
-    val minX = floor(x - radius).toInt().coerceIn(0, width - 1)
-    val minY = floor(y - radius).toInt().coerceIn(0, height - 1)
-    val maxX = ceil(x + radius).toInt().coerceIn(0, width - 1)
-    val maxY = ceil(y + radius).toInt().coerceIn(0, height - 1)
-    for (iy in minY..maxY) {
-        for (ix in minX..maxX) {
-            if ((ix - x) * (ix - x) + (iy - y) * (iy - y) <= radius * radius) {
-                this[ix, iy] = color
-            }
         }
     }
 }
@@ -63,14 +66,16 @@ fun PixelImage.drawCircle(x: Int, y: Int, radius: Double, color: Byte) {
  * @param y 描画するY座標 (左上の座標)
  * @param image 描画するピクセルデータ
  */
-fun PixelImage.drawPixelImage(x: Int, y: Int, image: PixelImage) {
-    val minX = x.coerceIn(0, width)
-    val minY = y.coerceIn(0, height)
-    val maxX = (x + image.width).coerceIn(0, width)
-    val maxY = (y + image.height).coerceIn(0, height)
+fun PixelImage.drawPixelImage(x: Double, y: Double, image: PixelImage) {
+    val x0 = x.roundToInt()
+    val y0 = y.roundToInt()
+    val minX = x0.coerceIn(0, width)
+    val minY = y0.coerceIn(0, height)
+    val maxX = (x0 + image.width).coerceIn(0, width)
+    val maxY = (y0 + image.height).coerceIn(0, height)
     for (iy in minY until maxY) {
         for (ix in minX until maxX) {
-            this[ix, iy] = image[ix - x, iy - y]
+            this[ix, iy] = image[ix - x0, iy - y0]
         }
     }
 }
@@ -105,10 +110,10 @@ fun PixelImage.drawPixelImageWithResize(rect: Rect2i, image: PixelImage) {
  * @param color テキストの色
  * @param text 描画するテキスト
  */
-fun PixelImage.drawText(x: Int, y: Int, font: MapFont, color: Byte, text: String) {
+fun PixelImage.drawText(x: Double, y: Double, font: MapFont, color: Byte, text: String) {
     // 現在の位置
-    var ix = x
-    var iy = y
+    var ix = x.roundToInt()
+    var iy = y.roundToInt()
     // X座標のスタート地点
     val xStart = ix
     // テキストの文字数分ループ
