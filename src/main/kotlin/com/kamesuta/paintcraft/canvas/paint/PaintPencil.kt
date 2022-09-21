@@ -3,9 +3,11 @@ package com.kamesuta.paintcraft.canvas.paint
 import com.kamesuta.paintcraft.canvas.CanvasActionType
 import com.kamesuta.paintcraft.canvas.CanvasSession
 import com.kamesuta.paintcraft.canvas.paint.tool.PaintDrawTool
-import com.kamesuta.paintcraft.map.image.mapSize
 import com.kamesuta.paintcraft.map.draw.DrawLine
 import com.kamesuta.paintcraft.map.draw.DrawRect
+import com.kamesuta.paintcraft.map.image.drawCircle
+import com.kamesuta.paintcraft.map.image.mapSize
+import kotlin.math.floor
 
 /**
  * フリーハンドのペンツール
@@ -93,6 +95,16 @@ class PaintPencil(override val session: CanvasSession) : PaintTool {
                             session.mode.thickness.toInt(),
                         )
                     )
+                    if (session.mode.thickness > 1.0) {
+                        g { draw ->
+                            draw.drawCircle(
+                                uvEnd.x,
+                                uvEnd.y,
+                                floor(session.mode.thickness / 2.0 + 0.5),
+                                color,
+                            )
+                        }
+                    }
                 }
             }
         }
