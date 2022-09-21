@@ -1,17 +1,14 @@
 package com.kamesuta.paintcraft.map
 
-import com.kamesuta.paintcraft.PaintCraft
 import com.kamesuta.paintcraft.map.behavior.DrawBehaviorTypes
 import com.kamesuta.paintcraft.map.draw.Drawable
+import com.kamesuta.paintcraft.util.PersistentDataProperty
 import org.bukkit.Bukkit
 import org.bukkit.Material
-import org.bukkit.NamespacedKey
 import org.bukkit.World
 import org.bukkit.inventory.ItemStack
-import org.bukkit.inventory.meta.ItemMeta
 import org.bukkit.inventory.meta.MapMeta
 import org.bukkit.map.MapView
-import org.bukkit.persistence.PersistentDataType
 
 /**
  * 書き込み可能マップ
@@ -36,12 +33,12 @@ class DrawableMapItem(
         /**
          * アイテムのビヘイビア、マップとして認識するためのキー
          */
-        private val PAINT_BEHAVIOR = NamespacedKey(PaintCraft.instance, "type")
+        private val PAINT_BEHAVIOR = PersistentDataProperty.string("type")
 
         /**
          * アイテムのグループID
          */
-        private val PAINT_GROUP_ID = NamespacedKey(PaintCraft.instance, "group_id")
+        private val PAINT_GROUP_ID = PersistentDataProperty.integer("group_id")
 
         /**
          * 書き込み可能マップを作成する
@@ -64,8 +61,8 @@ class DrawableMapItem(
             item.editMeta {
                 it as MapMeta
                 it.mapView = mapView
-                it.paintBehavior = type.name
-                it.paintGroupId = 1
+                PAINT_BEHAVIOR[it.persistentDataContainer] = type.name
+                PAINT_GROUP_ID[it.persistentDataContainer] = 1
             }
             // 初回描画
             renderer.behavior.init()
@@ -93,7 +90,7 @@ class DrawableMapItem(
                 drawableMapRenderer
             } else {
                 // 描きこむツール
-                val type = DrawBehaviorTypes.types[itemMeta.paintBehavior]
+                val type = DrawBehaviorTypes.types[PAINT_BEHAVIOR[itemMeta.persistentDataContainer]]
                     ?: return null
                 // レンダラーを初期化
                 val renderer = DrawableMapRenderer(type)
@@ -106,37 +103,6 @@ class DrawableMapItem(
             // インスタンスを作成
             return DrawableMapItem(item, mapView, renderer)
         }
-
-        /**
-         * マップのビヘイビア
-         */
-        private var ItemMeta.paintBehavior: String?
-            get() {
-                return persistentDataContainer.get(PAINT_BEHAVIOR, PersistentDataType.STRING)
-            }
-            set(value) {
-                if (value != null) {
-                    persistentDataContainer.set(PAINT_BEHAVIOR, PersistentDataType.STRING, value)
-                } else {
-                    persistentDataContainer.remove(PAINT_BEHAVIOR)
-                }
-            }
-
-        /**
-         * マップのグループID
-         * TODO オーナーとか権限とかをグループIDで管理する
-         */
-        private var ItemMeta.paintGroupId: Int?
-            get() {
-                return persistentDataContainer.get(PAINT_GROUP_ID, PersistentDataType.INTEGER)
-            }
-            set(value) {
-                if (value != null) {
-                    persistentDataContainer.set(PAINT_GROUP_ID, PersistentDataType.INTEGER, value)
-                } else {
-                    persistentDataContainer.remove(PAINT_GROUP_ID)
-                }
-            }
 
         /**
          * マップのレンダラーを書き込み可能レンダラー置き換える
