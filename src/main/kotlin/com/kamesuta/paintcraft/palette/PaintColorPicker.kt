@@ -46,7 +46,7 @@ class PaintColorPicker(
             event.mapItem.renderer.mapImage.drawCursor(CURSOR_OFFSET, CURSOR_OFFSET, color, oppositeColor, 7.0)
         }
         // 現在使用している色を設定
-        session.mode.setMapColor(color)
+        session.mode.mapColor = color
     }
 
     companion object {

@@ -27,6 +27,7 @@ class PaintCraftCommand : Command("paintcraft") {
             PaletteCanvasCommand(),
             MigrateCanvasCommand(),
             ColorCommand(),
+            ThicknessCommand(),
             DebugPlaceCommand(),
         )
     }
@@ -149,7 +150,26 @@ class ColorCommand : Command("color") {
                 }
                 entities.filterIsInstance<Player>().forEach {
                     val session = CanvasSessionManager.getSession(it)
-                    session.mode.setMapColor(color.toMapColor())
+                    session.mode.mapColor = color.toMapColor()
+                }
+            }
+        }
+    }
+}
+
+class ThicknessCommand : Command("thickness") {
+    init {
+        usage {
+            // 設定対象のプレイヤー
+            entityArgument("player")
+            // 設定対象のプレイヤー
+            doubleArgument("thickness", 0.0, 128.0)
+            executes {
+                val entities = typedArgs[0] as List<*>
+                val thickness = typedArgs[1] as Double
+                entities.filterIsInstance<Player>().forEach {
+                    val session = CanvasSessionManager.getSession(it)
+                    session.mode.thickness = thickness
                 }
             }
         }

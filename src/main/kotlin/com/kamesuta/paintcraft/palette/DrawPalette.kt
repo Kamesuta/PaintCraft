@@ -1,6 +1,5 @@
 package com.kamesuta.paintcraft.palette
 
-import com.kamesuta.paintcraft.canvas.CanvasMode
 import com.kamesuta.paintcraft.map.draw.Draw
 import com.kamesuta.paintcraft.map.image.PixelImage
 import com.kamesuta.paintcraft.map.image.PixelImageMapBuffer
@@ -19,16 +18,12 @@ import kotlin.math.*
 /**
  * カラーピッカーを描画するクラス
  * @param palette パレットデータ
- * @param playerMode プレイヤーの選択モード
  */
 class DrawPalette(
     private val palette: PaletteData,
-    private val playerMode: CanvasMode?,
 ) : Draw {
     override fun draw(canvas: PixelImage) {
-        val mode = playerMode
-
-        val hue = mode?.hsbColor?.hue ?: 0.0
+        val hue = palette.hsbColor.hue
         // 色相に合うパレットマップをキャッシュから取得 (見つからないことはないと思う)
         val cache = cachedPalette[Math.floorMod((hue * 255.0).toInt(), 255)] ?: return
         // キャッシュを描画する
@@ -46,17 +41,17 @@ class DrawPalette(
             // 全スロットを描画する
             palette.storedPalettes.forEachIndexed { index, color ->
                 val y = start + index * storedPaletteSize
-                canvas.drawCursor(storedPaletteOffsetX, y, color, color, storedPaletteSize / 2 - 1)
+                canvas.drawCursor(storedPalettePositionX, y, color, color, storedPaletteSize / 2 - 1)
             }
             // 透明が選択されていないときのみカーソルを描画
-            if (mode?.mapColor != transparent) {
+            if (palette.mapColor != transparent) {
                 // 選択中のスロットを描画する
                 val y = start + palette.selectedPaletteIndex * storedPaletteSize
                 val color = palette.storedPalettes.getOrNull(palette.selectedPaletteIndex)
                     ?: return@run
-                if (mode?.mapColor == color) {
+                if (palette.mapColor == color) {
                     val oppositeColor = RGBColor.fromMapColor(color).toOpposite().toMapColor()
-                    canvas.drawCursor(storedPaletteOffsetX, y, color, oppositeColor, storedPaletteSize / 2)
+                    canvas.drawCursor(storedPalettePositionX, y, color, oppositeColor, storedPaletteSize / 2)
                 }
             }
         }
@@ -67,7 +62,7 @@ class DrawPalette(
         // 透明ボタンを描画する
         run {
             // 反対色
-            val oppositeColor: Byte = if (mode?.mapColor == transparent) white else transparent
+            val oppositeColor: Byte = if (palette.mapColor == transparent) white else transparent
 
             // 四角と塗りつぶしを描画
             canvas.drawCursor(
@@ -89,7 +84,7 @@ class DrawPalette(
         // カラーピッカーボタンを描画する
         run {
             // 反対色
-            val oppositeColor: Byte = if (mode?.tool is PaintColorPicker) white else transparent
+            val oppositeColor: Byte = if (palette.isPickerTool) white else transparent
 
             // 四角と塗りつぶしを描画
             canvas.drawCursor(
@@ -132,26 +127,25 @@ class DrawPalette(
                 }
             }
 
-            if (mode != null) {
-                // カーソルを描画
-                val radius = mode.thickness * 0.5 + 3.0
-                canvas.drawCursor(
-                    sliderPosX - radius / 2.0,
-                    getYFromThickness(mode.thickness),
-                    white,
-                    buttonColor,
-                    radius
-                )
-            }
+            // カーソルを描画
+            val radius = (palette.thickness / thicknessMax * thicknessSliderSize.x / 2) + 3.0
+            canvas.drawCursor(
+                sliderPosX - radius / 2.0,
+                getYFromThickness(palette.thickness),
+                white,
+                buttonColor,
+                radius
+            )
         }
 
-        if (mode != null) {
-            val hsbColor = mode.hsbColor
+        // 選択中の色を描画する
+        run {
+            val hsbColor = palette.hsbColor
             val rgbColor = hsbColor.toRGB()
             val color = rgbColor.toMapColor()
 
             // 透明が選択されていないときのみカーソルを描画
-            if (mode.mapColor != transparent) {
+            if (palette.mapColor != transparent) {
                 // 明度と彩度のカーソルを描画する
                 run {
                     // 反対色
@@ -220,7 +214,7 @@ class DrawPalette(
         private const val radiusHue = 0.6
 
         /** パレットのX座標 */
-        private const val storedPaletteOffsetX = 16.0
+        private const val storedPalettePositionX = 16.0
 
         /** 色相を選択する円の半径 */
         private const val storedPaletteSize = mapSize / 16.0
@@ -241,7 +235,7 @@ class DrawPalette(
         private val colorCodeSize = Vec2d(50.0, 9.0)
 
         /** 最大の太さ */
-        private const val thicknessMax = 7.0
+        private const val thicknessMax = 32.0
 
         /** 太さスライダーの位置 */
         private val thicknessSliderPosition = Vec2d(mapSize - 14.0, mapSize / 2.0)
@@ -275,7 +269,7 @@ class DrawPalette(
             // パレットの位置
             val start = mapSize / 2.0 - (storedPaletteSize * (PaletteData.MAP_PALETTE_SIZE)) / 2.0
             val end = mapSize / 2.0 + (storedPaletteSize * (PaletteData.MAP_PALETTE_SIZE)) / 2.0
-            if (y in start..end && x - storedPaletteOffsetX in -storedPaletteSize / 2..storedPaletteSize / 2) {
+            if (y in start..end && x - storedPalettePositionX in -storedPaletteSize / 2..storedPaletteSize / 2) {
                 return PaletteAdjustingType.STORED_PALETTE
             }
 
@@ -301,7 +295,7 @@ class DrawPalette(
             }
 
             // 太さスライダーの位置
-            val sliderRadius = (thicknessMax * 0.5 + 3.0).toInt()
+            val sliderRadius = thicknessSliderSize.x.toInt()
             val sliderWidth = max(thicknessSliderSize.x, sliderRadius * 2.0)
             if (x - thicknessSliderPosition.x + thicknessSliderSize.x / 2.0 in -sliderWidth / 2.0..sliderWidth / 2.0
                 && y - thicknessSliderPosition.y in -thicknessSliderSize.y / 2.0..thicknessSliderSize.y / 2.0
@@ -405,23 +399,68 @@ class DrawPalette(
          * @param paletteData 読み込んだデータを保存するパレットデータ
          */
         fun PixelImage.loadPalette(paletteData: PaletteData) {
-            // パレットの位置
-            val start = mapSize / 2.0 - (storedPaletteSize * (PaletteData.MAP_PALETTE_SIZE - 1)) / 2.0
-            val left = storedPaletteOffsetX + storedPaletteSize / 2.0
-            for (index in 0 until PaletteData.MAP_PALETTE_SIZE) {
-                // 横のピクセルを取得
-                val y = start + index * storedPaletteSize
+            // 透明かどうか
+            val isTransparent =
+                this[transparentButtonPosition.x.toInt() - 1, transparentButtonPosition.y.toInt() - 1] != transparent
 
-                // パレットの色を取得
-                val color = this[storedPaletteOffsetX.toInt(), y.toInt()]
-                if (color != transparent) {
-                    paletteData.storedPalettes[index] = color
+            if (isTransparent) {
+                // 透明色を設定
+                paletteData.selectedPaletteIndex = -1
+                paletteData.mapColor = transparent
+                paletteData.hsbColor = HSBColor(0.0, 0.0, 0.0)
+            } else {
+                // パレット、選択中の色を読み込む
+                // パレットの位置
+                val start = mapSize / 2.0 - (storedPaletteSize * (PaletteData.MAP_PALETTE_SIZE - 1)) / 2.0
+                val left = storedPalettePositionX + storedPaletteSize / 2.0
+                for (index in 0 until PaletteData.MAP_PALETTE_SIZE) {
+                    // 横のピクセルを取得
+                    val y = start + index * storedPaletteSize
+
+                    // パレットの色を取得
+                    val color = this[storedPalettePositionX.toInt(), y.toInt()]
+                    if (color != transparent) {
+                        paletteData.storedPalettes[index] = color
+                    }
+
+                    // 縁が描画されていたら選択されている
+                    val frameColor = this[left.toInt(), y.toInt()]
+                    if (frameColor != transparent) {
+                        paletteData.selectedPaletteIndex = index
+                        paletteData.mapColor = color
+                        paletteData.hsbColor = RGBColor.fromMapColor(color).toHSB()
+                    }
                 }
+            }
 
-                // 縁が描画されていたら選択されている
-                val frameColor = this[left.toInt(), y.toInt()]
-                if (frameColor != transparent)
-                    paletteData.selectedPaletteIndex = index
+            // 太さを読み込む
+            run {
+                // スライダーの位置
+                val sliderSizeY = thicknessSliderSize.y.toInt()
+                val sliderPosX = thicknessSliderPosition.x.roundToInt()
+                val sliderPosY = thicknessSliderPosition.y.roundToInt()
+                // 線の太さを取得
+                var cursor = false
+                var cursorStart = 0
+                var cursorEnd = 0
+                // 一列を走査し開始位置と終了位置を取得
+                for (iy in -sliderSizeY / 2..sliderSizeY / 2) {
+                    if (this[sliderPosX + 1, sliderPosY + iy] != transparent) {
+                        if (!cursor) {
+                            cursorStart = sliderPosY + iy
+                            cursorEnd = sliderPosY + iy
+                            cursor = true
+                        } else {
+                            cursorStart = min(cursorStart, sliderPosY + iy)
+                            cursorEnd = max(cursorEnd, sliderPosY + iy)
+                        }
+                    }
+                }
+                if (cursor) {
+                    // カーソルがあれば開始位置と終了位置の中間がカーソルの位置
+                    // その位置からスライダーの位置を計算
+                    paletteData.thickness = getThickness((cursorStart + cursorEnd) / 2.0)
+                }
             }
         }
 

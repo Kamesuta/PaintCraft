@@ -1,7 +1,8 @@
 package com.kamesuta.paintcraft.palette
 
-import com.kamesuta.paintcraft.canvas.CanvasMode
+import com.kamesuta.paintcraft.util.color.HSBColor
 import com.kamesuta.paintcraft.util.color.RGBColor
+import com.kamesuta.paintcraft.util.color.RGBColor.MapColors.black
 import com.kamesuta.paintcraft.util.color.RGBColor.MapColors.transparent
 
 class PaletteData {
@@ -14,13 +15,25 @@ class PaletteData {
     /** 選択中のパレットスロット */
     var selectedPaletteIndex = 0
 
+    /** HSBカラー */
+    var hsbColor: HSBColor = HSBColor(0.0, 0.0, 0.0)
+
+    /** マップカラー */
+    var mapColor: Byte = black
+
+    /** 線の太さ */
+    var thickness = 1.0
+
+    /** ピッカーツールかどうか */
+    var isPickerTool = false
+
     /**
      * 選択中の色を変更する
      */
-    fun storeToPalette(mode: CanvasMode) {
+    fun storeColorToPalette() {
         // 色を保存
-        if (mode.mapColor != transparent && selectedPaletteIndex in 0 until storedPalettes.size) {
-            storedPalettes[selectedPaletteIndex] = mode.mapColor
+        if (mapColor != transparent && selectedPaletteIndex in 0 until storedPalettes.size) {
+            storedPalettes[selectedPaletteIndex] = mapColor
         }
     }
 

@@ -17,7 +17,4 @@ class DrawBehaviorPaint(private val renderer: DrawableMapRenderer) : DrawBehavio
     override fun draw(f: Drawable.() -> Unit) {
         f(renderer)
     }
-
-    override fun init() {
-    }
 }
