@@ -142,8 +142,8 @@ class FrameLocation(
             // -0.5～0.5の範囲を0.0～1.0の範囲に変換する
             val q = rotation.uv(this) + Vec2d(0.5, 0.5)
             // 0～128(ピクセル座標)の範囲に変換する
-            val x = q.x * (mapSize - 1)
-            val y = q.y * (mapSize - 1)
+            val x = q.x * mapSize - 0.5
+            val y = q.y * mapSize - 0.5
             // 変換した座標を返す
             return Vec2d(x, y)
         }
@@ -155,8 +155,8 @@ class FrameLocation(
          * @return キャンバス内にあるかどうか
          */
         fun Vec2d.isUvInMap(expand: Double = 0.0): Boolean {
-            if (x < -expand || mapSize + expand <= x) return false
-            if (y < -expand || mapSize + expand <= y) return false
+            if (x !in -expand..mapSize + expand) return false
+            if (y !in -expand..mapSize + expand) return false
             return true
         }
 
@@ -167,8 +167,8 @@ class FrameLocation(
          */
         fun Vec2d.clampUvInMap(): Vec2d {
             return Vec2d(
-                x.coerceIn(0.0, mapSize - 1.0),
-                y.coerceIn(0.0, mapSize - 1.0)
+                x.coerceIn(0.0, mapSize.toDouble()),
+                y.coerceIn(0.0, mapSize.toDouble())
             )
         }
 

@@ -7,7 +7,6 @@ import com.kamesuta.paintcraft.map.draw.DrawLine
 import com.kamesuta.paintcraft.map.draw.DrawRect
 import com.kamesuta.paintcraft.map.image.drawCircle
 import com.kamesuta.paintcraft.map.image.mapSize
-import kotlin.math.floor
 
 /**
  * フリーハンドのペンツール
@@ -42,6 +41,8 @@ class PaintPencil(override val session: CanvasSession) : PaintTool {
                             0.0, 0.0, mapSize - 1.0, mapSize - 1.0, 0, true, session.mode.thickness,
                         )
                     )
+                    // マップをプレイヤーへ同期するために記憶しておく
+                    session.drawing.edited.store(event.interact.ray.itemFrame, event.mapItem)
                     // クリックを持続させない
                     session.clicking.stopClicking()
                     // 描くのを終了
