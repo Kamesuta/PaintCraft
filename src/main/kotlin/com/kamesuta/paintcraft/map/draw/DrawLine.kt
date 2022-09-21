@@ -30,15 +30,16 @@ class DrawLine(
         // 伸ばしていく方向
         val sx = if (x0 < x1) 1 else -1
         val sy = if (y0 < y1) 1 else -1
+
         // 始点から終点までの幅と高さを取得
         val dx0 = abs(x1 - x0)
         val dy0 = abs(y1 - y0)
 
         // 線の長さ
-        var e2 = sqrt((dx0 * dx0 + dy0 * dy0).toDouble())
+        val length = sqrt((dx0 * dx0 + dy0 * dy0).toDouble())
 
         // 線が細い、または線の長さが0の場合、線を描画するだけ
-        if (thickness <= 0 || e2 fuzzyEq 0.0) {
+        if (thickness <= 0 || length fuzzyEq 0.0) {
             plotLine(canvas)
             return
         }
@@ -46,28 +47,30 @@ class DrawLine(
         val th = resolution * (thickness - 1)
 
         // 縦と横の差
-        val dx = dx0 * resolution / e2
-        val dy = dy0 * resolution / e2
+        val dx = dx0 * resolution / length
+        val dy = dy0 * resolution / length
 
         if (dx < dy) {
             // 急な線の場合
             // 開始オフセット
-            var x1 = ((e2 + th / 2) / dy).roundToInt()
+            val x1 = ((length + th / 2) / dy).roundToInt()
             // 誤差をオフセット幅までずらす
             var err = x1 * dy - th / 2
             var x0 = x0 - x1 * sx
             var y0 = y0
             while (true) {
                 // 開始点寄りの縁のピクセル (今回はアンチエイリアスしないため塗りつぶす)
-                canvas[x0.also { x1 = it }, y0] = color
-                e2 = dy - err - th
+                var x2 = x0
+                canvas[x2, y0] = color
+                var e2 = dy - err - th
                 while (e2 + dy < resolution) {
                     // 線上のピクセル
-                    canvas[sx.let { x1 += it; x1 }, y0] = color
+                    x2 += sx
+                    canvas[x2, y0] = color
                     e2 += dy
                 }
                 // 終了点寄りの縁のピクセル (今回はアンチエイリアスしないため塗りつぶす)
-                canvas[x1 + sx, y0] = color
+                canvas[x2 + sx, y0] = color
                 if (y0 == y1) break
                 // Yを1つ進める
                 err += dx
@@ -81,22 +84,24 @@ class DrawLine(
         } else {
             // 平らな線の場合
             // 開始オフセット
-            var y1 = ((e2 + th / 2) / dx).roundToInt()
+            val y1 = ((length + th / 2) / dx).roundToInt()
             // 誤差をオフセット幅までずらす
             var err = y1 * dx - th / 2
             var x0 = x0
             var y0 = y0 - y1 * sy
             while (true) {
                 // 開始点寄りの縁のピクセル (今回はアンチエイリアスしないため塗りつぶす)
-                canvas[x0, y0.also { y1 = it }] = color
-                e2 = dx - err - th
+                var y2 = y0
+                canvas[x0, y2] = color
+                var e2 = dx - err - th
                 while (e2 + dx < resolution) {
                     // 線上のピクセル
-                    canvas[x0, sy.let { y1 += it; y1 }] = color
+                    y2 += sy
+                    canvas[x0, y2] = color
                     e2 += dx
                 }
                 // 終了点寄りの縁のピクセル (今回はアンチエイリアスしないため塗りつぶす)
-                canvas[x0, y1 + sy] = color
+                canvas[x0, y2 + sy] = color
                 if (x0 == x1) break
                 // Xを1つ進める
                 err += dy

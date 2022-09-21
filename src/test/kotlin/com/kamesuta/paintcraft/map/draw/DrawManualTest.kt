@@ -156,6 +156,11 @@ class DrawManualTest : JFrame() {
                     g.fillRect(x1 + x * pixelSize, y1 + y * pixelSize, pixelSize, pixelSize)
                 }
             }
+
+            // 開始地点と終了地点を描画
+            g.color = Color.RED
+            g.fillRect(x1 + startUv.x * pixelSize, y1 + startUv.y * pixelSize, pixelSize, pixelSize)
+            g.fillRect(x1 + endUv.x * pixelSize, y1 + endUv.y * pixelSize, pixelSize, pixelSize)
         }
 
         companion object {
