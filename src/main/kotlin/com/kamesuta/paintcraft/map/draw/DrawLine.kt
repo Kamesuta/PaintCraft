@@ -61,19 +61,19 @@ class DrawLine(
             canvas[x, y] = color
         }
 
+        // 斜めの場合、線の太さを考慮して長めに描画する必要がある
+        // そのため、線の太さを考慮した長さの増加分を計算する
+        val th2 = th / 2.0 / resolution / resolution
         if (dx < dy) {
             // 急な線の場合
             // 開始オフセット
-            val x1 = ((length + th / 2) / dy).roundToInt()
+            val x1 = (length + th / 2.0) / dy
             // 誤差をオフセット幅までずらす
-            var err = x1 * dy - th / 2
-            // 斜めの場合、線の太さを考慮して長めに描画する必要がある
-            // そのため、線の太さを考慮した長さの増加分を計算する
-            val ty = (dx * (th / 2) / resolution / resolution).roundToInt()
+            var err = x1 * dy - th / 2.0
             // 線の太さを考慮した長さの増加分を加算する
-            var x0 = x0 - (x1 + ty) * sx
-            var y0 = y0 - ty * sy
-            val y1 = y1 + ty * sy
+            var x0 = x0 - ((x1 + th2 * dx) * sx).roundToInt()
+            var y0 = y0 - (th2 * dy * sy).roundToInt()
+            val y1 = y1 + (th2 * dy * sy).roundToInt()
             while (true) {
                 // 開始点寄りの縁のピクセル (今回はアンチエイリアスしないため塗りつぶす)
                 var x2 = x0
@@ -100,16 +100,13 @@ class DrawLine(
         } else {
             // 平らな線の場合
             // 開始オフセット
-            val y1 = ((length + th / 2) / dx).roundToInt()
+            val y1 = (length + th / 2.0) / dx
             // 誤差をオフセット幅までずらす
-            var err = y1 * dx - th / 2
-            // 斜めの場合、線の太さを考慮して長めに描画する必要がある
-            // そのため、線の太さを考慮した長さの増加分を計算する
-            val tx = (dy * (th / 2) / resolution / resolution).roundToInt()
+            var err = y1 * dx - th / 2.0
             // 線の太さを考慮した長さの増加分を加算する
-            var y0 = y0 - (y1 + tx) * sy
-            var x0 = x0 - tx * sx
-            val x1 = x1 + tx * sx
+            var y0 = y0 - ((y1 + th2 * dy) * sy).roundToInt()
+            var x0 = x0 - (th2 * dx * sx).roundToInt()
+            val x1 = x1 + (th2 * dx * sx).roundToInt()
             while (true) {
                 // 開始点寄りの縁のピクセル (今回はアンチエイリアスしないため塗りつぶす)
                 var y2 = y0

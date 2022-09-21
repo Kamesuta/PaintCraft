@@ -7,6 +7,7 @@ import com.kamesuta.paintcraft.util.color.RGBColor.MapColors.black
 import com.kamesuta.paintcraft.util.vec.Vec2i
 import java.awt.BorderLayout
 import java.awt.Color
+import java.awt.FlowLayout
 import java.awt.Graphics
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
@@ -36,15 +37,31 @@ class DrawManualTest : JFrame() {
                     this@DrawManualTest.repaint()
                 }
             })
-            // 太さのスピナーの追加
-            val spinnerModel = SpinnerNumberModel(1, 0, 64, 1)
-            add("East", JSpinner(spinnerModel).apply {
-                addChangeListener {
-                    // 太さのスピナーの値を取得
-                    canvas.thickness = value as Int
-                    // アプリ画面全体を再描画
-                    this@DrawManualTest.repaint()
-                }
+            add("East", JPanel(FlowLayout()).apply {
+                // 太さのスピナーの追加
+                val spinnerModel = SpinnerNumberModel(1, 0, 64, 1)
+                add(JSpinner(spinnerModel).apply {
+                    addChangeListener {
+                        // 太さのスピナーの値を取得
+                        canvas.thickness = value as Int
+                        // アプリ画面全体を再描画
+                        this@DrawManualTest.repaint()
+                    }
+                })
+                add(JButton("Swap").apply {
+                    addActionListener {
+                        // 始点と終点を入れ替える
+                        canvas.swap()
+                        // アプリ画面全体を再描画
+                        this@DrawManualTest.repaint()
+                    }
+                })
+                add(JButton("Update").apply {
+                    addActionListener {
+                        // アプリ画面全体を再描画
+                        this@DrawManualTest.repaint()
+                    }
+                })
             })
         })
 
@@ -145,6 +162,13 @@ class DrawManualTest : JFrame() {
             })
         }
 
+        /** 始点と終点を入れ替える */
+        fun swap() {
+            val tmp = startUv
+            startUv = endUv
+            endUv = tmp
+        }
+
         override fun paint(g: Graphics) {
             /** ピクセルデータの作成 */
             val mapCanvas = PixelImageMapBuffer()
@@ -174,6 +198,7 @@ class DrawManualTest : JFrame() {
             // 開始地点と終了地点を描画
             g.color = Color.RED
             g.fillRect(x1 + startUv.x * pixelSize, y1 + startUv.y * pixelSize, pixelSize, pixelSize)
+            g.color = Color.BLUE
             g.fillRect(x1 + endUv.x * pixelSize, y1 + endUv.y * pixelSize, pixelSize, pixelSize)
         }
     }
