@@ -34,8 +34,11 @@ class DrawableMapRenderer(private val behaviorDesc: DrawBehaviorTypes.Desc) : Ma
     lateinit var behavior: DrawBehavior
         private set
 
+    /** キャンバス初回初期化フラグ */
+    private var canvasInitialized = false
+
     /** 変更フラグ */
-    private var dirty = false
+    private var dirty = true
 
     /**
      * addRenderer() された時に呼ばれるため、必ず使えるはず
@@ -62,16 +65,26 @@ class DrawableMapRenderer(private val behaviorDesc: DrawBehaviorTypes.Desc) : Ma
      * @param player プレイヤー
      */
     override fun render(map: MapView, canvas: MapCanvas, player: Player) {
+        // 最初は永続化されたマップビューのデータをキャンバスに書き込む
+        if (!canvasInitialized) {
+            // キャンバス初回初期化
+            canvasInitialized = true
+            // データをキャンバスにコピーする
+            PixelImageMapCanvas.wrap(canvas)?.let {
+                mapImage.copyTo(it)
+            }
+        }
+
         // 変更がある場合保存する
         if (dirty) {
+            // 変更フラグをリセットする
+            dirty = false
             // データを永続化されたマップビューのデータにコピーする
             saveToMapView()
             // データをキャンバスにコピーする
             PixelImageMapCanvas.wrap(canvas)?.let {
                 mapImage.copyTo(it)
             }
-            // 変更フラグをリセットする
-            dirty = false
         }
     }
 
