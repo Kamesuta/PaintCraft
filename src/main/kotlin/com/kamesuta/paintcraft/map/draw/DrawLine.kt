@@ -24,6 +24,10 @@ class DrawLine(
     private val thickness: Int,
 ) : Draw {
     override fun draw(canvas: PixelImage) {
+        // Bresenham's Algorithm
+        // http://members.chello.at/~easyfilter/bresenham.html
+        // http://members.chello.at/~easyfilter/canvas.html
+
         // 処理の解像度
         val resolution = 255
 
