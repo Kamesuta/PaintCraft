@@ -56,10 +56,19 @@ class RGBColor(val color: Color) {
         const val transparent: Byte = 0
 
         /** 白 */
-        val white = fromRGB(1.0, 1.0, 1.0).toMapColor()
+        const val white: Byte = 34
 
         /** 黒 */
-        val black = fromRGB(0.0, 0.0, 0.0).toMapColor()
+        const val black: Byte = -49
+
+        /** 赤のマップカラー */
+        const val red: Byte = 18
+
+        /** 緑のマップカラー */
+        const val green: Byte = -122
+
+        /** 青のマップカラー */
+        const val blue: Byte = 49
     }
 
     companion object {

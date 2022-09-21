@@ -2,6 +2,8 @@ package com.kamesuta.paintcraft.map.draw
 
 import com.kamesuta.paintcraft.map.image.PixelImageMapBuffer
 import com.kamesuta.paintcraft.map.image.mapSize
+import com.kamesuta.paintcraft.util.color.RGBColor.MapColors
+import com.kamesuta.paintcraft.util.color.RGBColor.MapColors.black
 import com.kamesuta.paintcraft.util.vec.Vec2i
 import java.awt.BorderLayout
 import java.awt.Color
@@ -55,12 +57,6 @@ class DrawManualTest : JFrame() {
         /** 1ピクセルの大きさ */
         const val pixelSize = 4
 
-        /** 色1のマップカラー */
-        const val color1: Byte = 58
-
-        /** 色2のマップカラー */
-        const val color2: Byte = 59
-
         /** テストツールのメイン関数 */
         @JvmStatic
         fun main(args: Array<String>) {
@@ -91,8 +87,8 @@ class DrawManualTest : JFrame() {
          */
         fun getDraw(startUv: Vec2i, endUv: Vec2i, thickness: Int): Draw {
             return when (this) {
-                LINE -> DrawLine(startUv.x, startUv.y, endUv.x, endUv.y, color1, thickness)
-                RECT -> DrawRect(startUv.x, startUv.y, endUv.x, endUv.y, color1, false, thickness)
+                LINE -> DrawLine(startUv.x, startUv.y, endUv.x, endUv.y, black, thickness)
+                RECT -> DrawRect(startUv.x, startUv.y, endUv.x, endUv.y, black, false, thickness)
             }
         }
     }
@@ -156,11 +152,15 @@ class DrawManualTest : JFrame() {
             val y1 = y1
             for (x in 0 until mapCanvas.width) {
                 for (y in 0 until mapCanvas.height) {
-                    // とりあえず黒か白かだけ判定
+                    // とりあえず基本色だけ判定
                     g.color = when (mapCanvas[x, y]) {
-                        color1 -> Color.BLACK
-                        color2 -> Color.RED
-                        else -> Color.WHITE
+                        MapColors.white -> Color.LIGHT_GRAY
+                        MapColors.black -> Color.BLACK
+                        MapColors.red -> Color.BLACK
+                        MapColors.blue -> Color.BLACK
+                        MapColors.green -> Color.RED
+                        MapColors.transparent -> Color.WHITE
+                        else -> Color.MAGENTA
                     }
                     // 四角形でピクセルを描画
                     g.fillRect(x1 + x * pixelSize, y1 + y * pixelSize, pixelSize, pixelSize)
