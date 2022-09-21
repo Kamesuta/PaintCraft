@@ -197,13 +197,14 @@ class DrawPalette(
             }
 
             // カラーコードを描画する
-            val mapColorHex = String.format("%02X", color)
+            val hexCode = rgbColor.toHexCode()
+            val textWidth = MinecraftFont.Font.getWidth(hexCode)
             canvas.drawText(
-                colorCodePosition.x - colorCodeSize.x / 2,
+                colorCodePosition.x - textWidth / 2,
                 colorCodePosition.y - colorCodeSize.y / 2,
                 MinecraftFont.Font,
                 color,
-                "${rgbColor.toHexCode()} ($mapColorHex)",
+                hexCode,
             )
         }
     }
@@ -237,7 +238,7 @@ class DrawPalette(
         private val colorCodePosition = Vec2d(mapSize / 2.0, 21.0)
 
         /** カラーコードのサイズ */
-        private val colorCodeSize = Vec2d(66.0, 9.0)
+        private val colorCodeSize = Vec2d(50.0, 9.0)
 
         /** 最大の太さ */
         private const val thicknessMax = 7.0
