@@ -2,6 +2,7 @@ package com.kamesuta.paintcraft.canvas
 
 import com.kamesuta.paintcraft.canvas.paint.PaintLine
 import com.kamesuta.paintcraft.canvas.paint.PaintTool
+import com.kamesuta.paintcraft.util.color.RGBColor.MapColors.black
 
 /**
  * 選択中の色情報、太さなどほ保持する
@@ -9,14 +10,14 @@ import com.kamesuta.paintcraft.canvas.paint.PaintTool
  */
 class CanvasMode(private val session: CanvasSession) {
     /** 現在の選択中のRGB色 */
-    var mapColor: Byte = 0
+    var mapColor: Byte = black
         set(value) {
             field = value
             onColorChanged?.invoke()
         }
 
     /** ペンの太さ */
-    var thickness: Double = 1.0
+    var thickness: Double = 0.0
 
     /** 描き込みツール */
     var tool: PaintTool = PaintLine(session)

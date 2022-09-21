@@ -99,6 +99,12 @@ class PaintPencil(override val session: CanvasSession) : PaintTool {
                     if (session.mode.thickness > 1.0) {
                         g { draw ->
                             draw.drawCircle(
+                                uvStart.x,
+                                uvStart.y,
+                                session.mode.thickness / 2.0 + 0.5,
+                                color,
+                            )
+                            draw.drawCircle(
                                 uvEnd.x,
                                 uvEnd.y,
                                 session.mode.thickness / 2.0 + 0.5,
