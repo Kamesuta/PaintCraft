@@ -32,6 +32,15 @@ class DrawBehaviorPalette(private val renderer: DrawableMapRenderer) : DrawBehav
             // 新しい調整モードを取得して置き換える
             paletteData.adjustingType = DrawPalette.getAdjustingType(uv.x, uv.y)
 
+            // コールバックをリセット
+            session.mode.onColorChanged = null
+            // 元のツールに戻す
+            val isPickerTool = session.mode.tool is PaintColorPicker
+            if (isPickerTool) {
+                session.mode.tool = session.mode.prevTool
+            }
+            paletteData.isPickerTool = false
+
             // 保存パレットの場合は選択中の色を変更
             when (paletteData.adjustingType) {
                 // パレットを選択した場合
@@ -66,12 +75,8 @@ class DrawBehaviorPalette(private val renderer: DrawableMapRenderer) : DrawBehav
 
                 // カラーピッカーボタンを選択した場合
                 PaletteAdjustingType.COLOR_PICKER_COLOR -> {
-                    // カラーピッカーツールを選択している場合は戻す
-                    if (session.mode.tool is PaintColorPicker) {
-                        // 元のツールに戻す
-                        session.mode.tool = session.mode.prevTool
-                        paletteData.isPickerTool = false
-                    } else {
+                    // カラーピッカーツールを選択していない場合はカラーピッカーツールを選択する
+                    if (!isPickerTool) {
                         // カラーピッカーツールに変更
                         session.mode.tool = PaintColorPicker(session)
                         paletteData.isPickerTool = true
@@ -99,12 +104,12 @@ class DrawBehaviorPalette(private val renderer: DrawableMapRenderer) : DrawBehav
                         drawPalette(event)
                     }
                     // カラーコードテキスト
-                    val mapColor = RGBColor.fromMapColor(paletteData.mapColor)
-                    val hexCode = mapColor.toHexCode()
+                    val rgbColor = RGBColor.fromMapColor(paletteData.mapColor)
+                    val hexCode = rgbColor.toHexCode()
                     // チャット生成
-                    val text = Component.text("Color Code: ")
+                    val hexColorText = Component.text("Color Code: ")
                         .color(TextColor.color(0x00FFFF))
-                        .append(Component.text(hexCode).color(TextColor.color(mapColor.toCode())))
+                        .append(Component.text(hexCode).color(TextColor.color(rgbColor.toCode())))
                         .append(Component.text(" "))
                         .append(
                             Component.text("[Copy]")
@@ -134,22 +139,47 @@ class DrawBehaviorPalette(private val renderer: DrawableMapRenderer) : DrawBehav
                                     )
                                 )
                         )
+                    val mapColor = paletteData.mapColor
+                    val mapColorText = Component.text("Map Color: ")
+                        .color(TextColor.color(0x00FFFF))
+                        .append(Component.text("$mapColor").color(TextColor.color(rgbColor.toCode())))
+                        .append(Component.text(" "))
+                        .append(
+                            Component.text("[Copy]")
+                                .color(TextColor.color(0xFF7700))
+                                .hoverEvent(
+                                    HoverEvent.hoverEvent(
+                                        HoverEvent.Action.SHOW_TEXT,
+                                        Component.text("Click to copy: $mapColor")
+                                    )
+                                )
+                                .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, "$mapColor"))
+                        )
+                        .append(Component.text(" "))
+                        .append(
+                            Component.text("[Replace]")
+                                .color(TextColor.color(0xFF7700))
+                                .hoverEvent(
+                                    HoverEvent.hoverEvent(
+                                        HoverEvent.Action.SHOW_TEXT,
+                                        Component.text("Click and type map color to use it")
+                                    )
+                                )
+                                .clickEvent(
+                                    ClickEvent.clickEvent(
+                                        ClickEvent.Action.SUGGEST_COMMAND,
+                                        "/paintcraft mapcolor @s "
+                                    )
+                                )
+                        )
                     // チャット送信
                     session.player.sendMessage("")
-                    session.player.sendMessage(text)
+                    session.player.sendMessage(hexColorText)
+                    session.player.sendMessage(mapColorText)
                     session.player.sendMessage("")
                 }
 
                 else -> {}
-            }
-
-            // カラーピッカーボタン以外を選択された際、既にカラーピッカーの場合は戻す
-            if (paletteData.adjustingType != PaletteAdjustingType.COLOR_PICKER_COLOR
-                && session.mode.tool is PaintColorPicker
-            ) {
-                // 元のツールに戻す
-                session.mode.tool = session.mode.prevTool
-                paletteData.isPickerTool = false
             }
         }
 
