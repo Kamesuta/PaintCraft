@@ -20,6 +20,6 @@ object CanvasSessionManager {
      * @return プレイヤーのキャンバスステート
      */
     fun getSession(player: Player): CanvasSession {
-        return sessions.computeIfAbsent(player.uniqueId) { CanvasSession(player) }
+        return sessions.getOrPut(player.uniqueId) { CanvasSession(player) }
     }
 }

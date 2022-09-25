@@ -13,7 +13,7 @@ internal class DebugPlayerState(private val player: Player) {
 
     /** 指定タイプのデバッグ座標を更新 */
     fun location(type: DebugLocationType, location: DebugLocatable) {
-        locations.computeIfAbsent(type) { mutableListOf() } += location
+        locations.getOrPut(type) { mutableListOf() } += location
     }
 
     /** 指定グループのデバッグ座標をクリア */
