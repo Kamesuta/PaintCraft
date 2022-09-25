@@ -30,20 +30,28 @@ class PaintColorPicker(
         val color = event.mapItem.renderer.mapImage[uv.x.roundToInt(), uv.y.roundToInt()]
         val oppositeColor = RGBColor.fromMapColor(color).toOpposite().toMapColor()
         // カーソルを描画
-        event.mapItem.renderer.mapImage.drawCursor(uv.x, uv.y, color, oppositeColor)
-        // 固定位置のカーソルを描画
-        if (uv.x < CURSOR_THRESHOLD && uv.y < CURSOR_THRESHOLD) {
-            // カーソルが左上にある場合は右上にカーソルを描画
-            event.mapItem.renderer.mapImage.drawCursor(
-                mapSize - CURSOR_OFFSET,
-                CURSOR_OFFSET,
-                color,
-                oppositeColor,
-                7.0
-            )
-        } else {
-            // その他は左上にカーソルを描画
-            event.mapItem.renderer.mapImage.drawCursor(CURSOR_OFFSET, CURSOR_OFFSET, color, oppositeColor, 7.0)
+        event.mapItem.draw {
+            g { draw ->
+                draw.drawCursor(uv.x, uv.y, color, oppositeColor)
+            }
+            // 固定位置のカーソルを描画
+            if (uv.x < CURSOR_THRESHOLD && uv.y < CURSOR_THRESHOLD) {
+                // カーソルが左上にある場合は右上にカーソルを描画
+                g { draw ->
+                    draw.drawCursor(
+                        mapSize - CURSOR_OFFSET,
+                        CURSOR_OFFSET,
+                        color,
+                        oppositeColor,
+                        7.0
+                    )
+                }
+            } else {
+                // その他は左上にカーソルを描画
+                g { draw ->
+                    draw.drawCursor(CURSOR_OFFSET, CURSOR_OFFSET, color, oppositeColor, 7.0)
+                }
+            }
         }
         // 現在使用している色を設定
         session.mode.mapColor = color

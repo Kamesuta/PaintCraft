@@ -16,26 +16,36 @@ data class CanvasMemento(val entries: Collection<Entry>) {
      * @param mapItem マップ
      * @param data スナップショット
      */
-    data class Entry(val itemFrame: ItemFrame, val mapItem: DrawableMapItem, val data: DrawRollback)
+    data class Entry(val itemFrame: ItemFrame, val mapItem: DrawableMapItem, val data: DrawRollback) {
+        /**
+         * スナップショットを反映する
+         */
+        fun rollback() {
+            mapItem.draw {
+                g(data)
+            }
+        }
+
+        /**
+         * 変更点をプレイヤーに送信する
+         */
+        fun updatePlayer() {
+            mapItem.renderer.updatePlayer(itemFrame.location.origin)
+        }
+    }
 
     /**
      * スナップショットを反映する
      */
     fun rollback() {
-        entries.forEach { (_, mapItem, data) ->
-            mapItem.draw {
-                g(data)
-            }
-        }
+        entries.forEach(Entry::rollback)
     }
 
     /**
      * 変更点をプレイヤーに送信する
      */
     fun updatePlayer() {
-        entries.forEach { (itemFrame, mapItem, _) ->
-            mapItem.renderer.updatePlayer(itemFrame.location.origin)
-        }
+        entries.forEach(Entry::updatePlayer)
     }
 
     /** スナップショットを記憶するツール */
