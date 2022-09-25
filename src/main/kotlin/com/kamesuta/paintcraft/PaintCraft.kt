@@ -5,6 +5,7 @@ import com.comphenix.protocol.ProtocolManager
 import com.kamesuta.paintcraft.frame.FrameDrawListener
 import com.kamesuta.paintcraft.frame.FrameReflection
 import com.kamesuta.paintcraft.map.DrawableMapReflection
+import com.kamesuta.paintcraft.palette.DrawPalette
 import com.kamesuta.paintcraft.util.clienttype.ClientTypeReflection
 import com.kamesuta.paintcraft.util.clienttype.ClientTypeUpdateListener
 import com.kamesuta.paintcraft.util.vec.debug.DebugLocationVisualizer
@@ -70,6 +71,9 @@ class PaintCraft : JavaPlugin() {
         val clientTypeUpdateListener = ClientTypeUpdateListener()
         server.pluginManager.registerEvents(clientTypeUpdateListener, this)
         clientTypeUpdateListener.updateAll()
+
+        // パレットの色プレビュー生成
+        DrawPalette.cachedPalette
     }
 
     override fun onDisable() {

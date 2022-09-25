@@ -244,7 +244,7 @@ class DrawPalette(
         private val thicknessSliderSize = Vec2d(6.0, mapSize - 30.0)
 
         /** 色相ごとのパレットを事前に計算しておく */
-        private val cachedPalette = (0..255).associateWith { hue ->
+        val cachedPalette = (0..255).associateWith { hue ->
             val map = PixelImageMapBuffer()
             for (iy in 0 until mapSize) {
                 for (ix in 0 until mapSize) {
