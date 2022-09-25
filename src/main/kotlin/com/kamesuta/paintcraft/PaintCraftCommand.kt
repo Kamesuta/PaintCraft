@@ -168,6 +168,10 @@ class MapColorCommand : Command("mapcolor") {
             executes {
                 val entities = typedArgs[0] as List<*>
                 val color = (typedArgs[1] as Int).toByte()
+                if (color > -21 && color < 0) {
+                    sender.sendMessage("Invalid color: $color")
+                    return@executes
+                }
                 entities.filterIsInstance<Player>().forEach {
                     val session = CanvasSessionManager.getSession(it)
                     session.mode.mapColor = color

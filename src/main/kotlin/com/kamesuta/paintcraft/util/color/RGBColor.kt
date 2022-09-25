@@ -52,6 +52,9 @@ class RGBColor(val color: Color) {
 
     /** よく使うマップカラー */
     object MapColors {
+        /** 変更なし */
+        const val unchanged: Byte = -1
+
         /** 透明 */
         const val transparent: Byte = 0
 

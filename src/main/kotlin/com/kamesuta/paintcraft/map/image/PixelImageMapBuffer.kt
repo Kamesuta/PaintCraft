@@ -1,6 +1,7 @@
 package com.kamesuta.paintcraft.map.image
 
 import com.kamesuta.paintcraft.util.DirtyRect
+import com.kamesuta.paintcraft.util.color.RGBColor.MapColors.unchanged
 
 /**
  * マップピクセルデータ
@@ -46,5 +47,15 @@ open class PixelImageMapBuffer(pixels: ByteArray) : Cloneable, PixelImageBuffer(
      */
     override fun clone(): PixelImageMapBuffer {
         return PixelImageMapBuffer(pixels.clone())
+    }
+
+    companion object {
+        /**
+         * 変更がない状態で初期化
+         * @return 初期化されたインスタンス
+         */
+        fun createUnchanged(): PixelImageMapBuffer {
+            return PixelImageMapBuffer(ByteArray(mapSize * mapSize) { unchanged })
+        }
     }
 }

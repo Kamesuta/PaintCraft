@@ -1,6 +1,7 @@
 package com.kamesuta.paintcraft.map.image
 
 import com.kamesuta.paintcraft.util.color.RGBColor
+import com.kamesuta.paintcraft.util.color.RGBColor.MapColors.unchanged
 import com.kamesuta.paintcraft.util.vec.Rect2i
 import org.bukkit.map.MapFont
 import java.awt.image.BufferedImage
@@ -75,7 +76,9 @@ fun PixelImage.drawPixelImage(x: Double, y: Double, image: PixelImage) {
     val maxY = (y0 + image.height).coerceIn(0, height)
     for (iy in minY until maxY) {
         for (ix in minX until maxX) {
-            this[ix, iy] = image[ix - x0, iy - y0]
+            val color = image[ix - x0, iy - y0]
+            if (color == unchanged) continue
+            this[ix, iy] = color
         }
     }
 }
@@ -95,7 +98,9 @@ fun PixelImage.drawPixelImageWithResize(rect: Rect2i, image: PixelImage) {
         for (ix in minX until maxX) {
             val x = (ix - rect.p1.x) * image.width / rect.width
             val y = (iy - rect.p1.y) * image.height / rect.height
-            this[ix, iy] = image[x, y]
+            val color = image[x, y]
+            if (color == unchanged) continue
+            this[ix, iy] = color
         }
     }
 }
