@@ -51,13 +51,22 @@ class DrawBehaviorPalette(private val renderer: DrawableMapRenderer) : DrawBehav
 
                 // 透明ボタンを選択した場合
                 PaletteAdjustingType.TRANSPARENT_COLOR -> {
-                    // 透明ボタンを押した場合は色を透明にする
-                    paletteData.mapColor = transparent
+                    // 既に透明かどうかを判定
+                    if (paletteData.mapColor != transparent) {
+                        // 透明ボタンを押した場合は色を透明にする
+                        paletteData.mapColor = transparent
+                    } else {
+                        // 元の色に戻す
+                        // パレットから色を読み込む
+                        val color = paletteData.storedPalettes.getOrNull(paletteData.selectedPaletteIndex)
+                        // 透明ボタンを押した場合は色を白にする
+                        paletteData.mapColor = color ?: paletteData.hsbColor.toRGB().toMapColor()
+                    }
                 }
 
                 // カラーピッカーボタンを選択した場合
                 PaletteAdjustingType.COLOR_PICKER_COLOR -> {
-                    // 既にカラーピッカーの場合は戻す
+                    // カラーピッカーツールを選択している場合は戻す
                     if (session.mode.tool is PaintColorPicker) {
                         // 元のツールに戻す
                         session.mode.tool = session.mode.prevTool
@@ -132,6 +141,15 @@ class DrawBehaviorPalette(private val renderer: DrawableMapRenderer) : DrawBehav
                 }
 
                 else -> {}
+            }
+
+            // カラーピッカーボタン以外を選択された際、既にカラーピッカーの場合は戻す
+            if (paletteData.adjustingType != PaletteAdjustingType.COLOR_PICKER_COLOR
+                && session.mode.tool is PaintColorPicker
+            ) {
+                // 元のツールに戻す
+                session.mode.tool = session.mode.prevTool
+                paletteData.isPickerTool = false
             }
         }
 

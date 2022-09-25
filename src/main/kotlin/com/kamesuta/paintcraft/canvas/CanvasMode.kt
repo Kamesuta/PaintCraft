@@ -25,6 +25,8 @@ class CanvasMode(private val session: CanvasSession) {
             // 一つ前のツールを記憶
             prevTool = field
             field = value
+            // ツールを変更したらコールバックをリセット
+            onColorChanged = null
         }
 
     /** 一つ前の描き込みツール */
