@@ -4,8 +4,10 @@ import com.kamesuta.paintcraft.map.behavior.DrawBehavior
 import com.kamesuta.paintcraft.map.behavior.DrawBehaviorTypes
 import com.kamesuta.paintcraft.map.draw.Draw
 import com.kamesuta.paintcraft.map.draw.Drawable
+import com.kamesuta.paintcraft.map.image.PixelImageLayer
 import com.kamesuta.paintcraft.map.image.PixelImageMapBuffer
 import com.kamesuta.paintcraft.map.image.PixelImageMapCanvas
+import com.kamesuta.paintcraft.map.image.drawPixelImage
 import com.kamesuta.paintcraft.util.DirtyRect
 import org.bukkit.entity.Player
 import org.bukkit.map.MapCanvas
@@ -17,7 +19,7 @@ import org.bukkit.util.Vector
  * 書き込み可能レンダラー
  * @param behaviorDesc 描画ツール生成情報
  */
-class DrawableMapRenderer(private val behaviorDesc: DrawBehaviorTypes.Desc) : MapRenderer(), Drawable {
+class DrawableMapRenderer(private val behaviorDesc: DrawBehaviorTypes.Desc) : MapRenderer() {
     /** マップビュー */
     private lateinit var mapView: MapView
 
@@ -28,7 +30,13 @@ class DrawableMapRenderer(private val behaviorDesc: DrawBehaviorTypes.Desc) : Ma
     private val mapViewBufferDirty = DirtyRect()
 
     /** マップピクセルデータ */
-    val mapImage: PixelImageMapBuffer = PixelImageMapBuffer()
+    private val composedCache = PixelImageMapBuffer()
+
+    /** レイヤー書き出し先 */
+    private val mapLayerCache = PixelImageMapBuffer()
+
+    /** 書き込み中のピクセルデータのレイヤー */
+    val mapLayer = PixelImageLayer<Player>(PixelImageMapBuffer())
 
     /** 描画ツール */
     lateinit var behavior: DrawBehavior
@@ -53,7 +61,7 @@ class DrawableMapRenderer(private val behaviorDesc: DrawBehaviorTypes.Desc) : Ma
         mapViewBuffer = DrawableMapReflection.getMapBuffer(mapView)
             ?.let { PixelImageMapBuffer(it) }
         // マップビューのデータがあればコピーする (そのまま使うとスレッドセーフでないため)
-        mapViewBuffer?.copyTo(mapImage)
+        mapViewBuffer?.copyTo(mapLayer.base)
     }
 
     /**
@@ -71,7 +79,7 @@ class DrawableMapRenderer(private val behaviorDesc: DrawBehaviorTypes.Desc) : Ma
             canvasInitialized = true
             // データをキャンバスにコピーする
             PixelImageMapCanvas.wrap(canvas)?.let {
-                mapImage.copyTo(it)
+                mapLayer.base.copyTo(it)
             }
         }
 
@@ -83,35 +91,53 @@ class DrawableMapRenderer(private val behaviorDesc: DrawBehaviorTypes.Desc) : Ma
             saveToMapView()
             // データをキャンバスにコピーする
             PixelImageMapCanvas.wrap(canvas)?.let {
-                mapImage.copyTo(it)
+                composedCache.copyTo(it)
             }
         }
     }
 
     /**
-     * 書き込みを行う
+     * ベースイメージへ書き込みを行う
+     * @param draw 描画関数
      */
-    override fun g(draw: Draw) {
+    fun drawBase(draw: Draw) {
         // 描画
-        draw.draw(mapImage)
+        draw.draw(mapLayer.base)
         // 変更フラグを設定する
         dirty = true
     }
 
     /**
+     * 書き込みを行うオブジェクトを取得する
+     * @param player 描き込んだプレイヤー
+     * @return 書き込みを行うオブジェクト
+     */
+    fun drawer(player: Player): Drawable {
+        return Drawable { draw ->
+            // 描画
+            draw.draw(mapLayer[player])
+            // 変更フラグを設定する
+            dirty = true
+        }
+    }
+
+    /**
      * プレイヤーに更新を通知する
+     * @param location アイテムフレームの位置
      */
     fun updatePlayer(location: Vector) {
         // 更新する半径 ( TODO: 半径のコンフィグ化 )
         val radius = 10.0
+        // レイヤーを更新する
+        composeLayer()
         // 変更箇所を取得する
-        val updateArea = mapImage.dirty.rect
+        val updateArea = composedCache.dirty.rect
             ?: return // 変更箇所がなければ何もしない
         // 更新があるプレイヤーに通知する
         val players = DrawableMapReflection.getMapTrackingPlayers(mapView)
             ?: return
         // 更新領域のみのピクセルデータを作成する
-        val part = mapImage.createSubImage(updateArea)
+        val part = composedCache.createSubImage(updateArea)
         for (player in players) {
             // 近くのプレイヤーのみに通知する
             if (player.location.toVector().distanceSquared(location) < radius * radius) {
@@ -120,17 +146,17 @@ class DrawableMapRenderer(private val behaviorDesc: DrawBehaviorTypes.Desc) : Ma
             }
         }
         // 永続化用の更新領域に追加する
-        mapViewBufferDirty.flagDirty(mapImage.dirty)
-        // 変更箇所をクリアする
-        mapImage.dirty.clear()
+        mapViewBufferDirty.flagDirty(composedCache.dirty)
     }
 
     /** ピクセルデータの内容をマップビューに保存し永続化する */
     private fun saveToMapView() {
+        // 出力先のピクセルデータを取得する
         val dst = mapViewBuffer ?: return
+        // レイヤーを更新する
+        composeLayer()
         // 永続化されるバッファーにコピーする
-        mapImage.copyTo(dst)
-
+        composedCache.copyTo(dst)
         // 変更箇所を取得する
         val updateArea = mapViewBufferDirty.rect
             ?: return
@@ -139,5 +165,15 @@ class DrawableMapRenderer(private val behaviorDesc: DrawBehaviorTypes.Desc) : Ma
         DrawableMapReflection.flagDirty(mapView, updateArea.p2.x, updateArea.p2.y)
         // 永続化用の更新領域をクリアする
         mapViewBufferDirty.clear()
+    }
+
+    /** レイヤーを合成する */
+    private fun composeLayer() {
+        // レイヤーを合成する
+        mapLayer.compose(mapLayerCache)
+        // 変更箇所をクリアする
+        composedCache.dirty.clear()
+        // レイヤーを更新する
+        composedCache.drawPixelImage(0.0, 0.0, mapLayerCache)
     }
 }

@@ -7,6 +7,7 @@ import org.bukkit.map.MapFont
 import java.awt.image.BufferedImage
 import kotlin.math.ceil
 import kotlin.math.floor
+import kotlin.math.min
 import kotlin.math.roundToInt
 
 /**
@@ -151,6 +152,23 @@ fun PixelImage.drawText(x: Double, y: Double, font: MapFont, color: Byte, text: 
             }
             // 次の文字の描画位置に移動する
             ix += sprite.width + 1
+        }
+    }
+}
+
+/**
+ * マスクでピクセルデータを切り抜く (マスクがunchangedのピクセルはunchangedになる)
+ * @receiver 切り抜かれる前のピクセルデータ
+ * @param mask 切り抜くマスク (unchanged: 切り抜かない, それ以外: 切り抜く)
+ */
+fun PixelImage.maskPixelImage(mask: PixelImage) {
+    val width = min(mask.width, width)
+    val height = min(mask.height, height)
+    for (iy in 0 until height) {
+        for (ix in 0 until width) {
+            val color = mask[ix, iy]
+            if (color != unchanged) continue
+            this[ix, iy] = unchanged
         }
     }
 }

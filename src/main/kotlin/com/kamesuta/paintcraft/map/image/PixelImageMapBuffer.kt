@@ -49,13 +49,11 @@ open class PixelImageMapBuffer(pixels: ByteArray) : Cloneable, PixelImageBuffer(
         return PixelImageMapBuffer(pixels.clone())
     }
 
-    companion object {
-        /**
-         * 変更がない状態で初期化
-         * @return 初期化されたインスタンス
-         */
-        fun createUnchanged(): PixelImageMapBuffer {
-            return PixelImageMapBuffer(ByteArray(mapSize * mapSize) { unchanged })
-        }
+    /**
+     * 変更がない状態で初期化
+     * @return 初期化されたインスタンス
+     */
+    fun clearToUnchanged() {
+        pixels.fill(unchanged)
     }
 }

@@ -1,6 +1,5 @@
 package com.kamesuta.paintcraft.map.image
 
-import com.kamesuta.paintcraft.util.color.RGBColor
 import com.kamesuta.paintcraft.util.vec.Rect2i
 
 /**
@@ -69,15 +68,5 @@ open class PixelImageBuffer(
      */
     override fun clone(): PixelImageBuffer {
         return PixelImageBuffer(width, height, pixels.clone())
-    }
-
-    companion object {
-        /**
-         * 変更がない状態で初期化
-         * @return 初期化されたインスタンス
-         */
-        fun createUnchanged(width: Int, height: Int): PixelImageBuffer {
-            return PixelImageBuffer(width, height, ByteArray(width * height) { RGBColor.MapColors.unchanged })
-        }
     }
 }

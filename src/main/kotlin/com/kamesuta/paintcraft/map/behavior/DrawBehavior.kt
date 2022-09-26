@@ -3,6 +3,7 @@ package com.kamesuta.paintcraft.map.behavior
 import com.kamesuta.paintcraft.canvas.CanvasSession
 import com.kamesuta.paintcraft.canvas.paint.PaintEvent
 import com.kamesuta.paintcraft.map.draw.Drawable
+import org.bukkit.entity.Player
 
 /**
  * マップの描きこみを行うクラス
@@ -17,10 +18,10 @@ interface DrawBehavior {
 
     /**
      * マップの描きこみを行う
-     * @param draw 描き込み対象
+     * @param player 描き込んだプレイヤー
      * @param f 描きこむ
      */
-    fun draw(f: Drawable.() -> Unit) {}
+    fun draw(player: Player, f: Drawable.() -> Unit) {}
 
     /**
      * 初期描画

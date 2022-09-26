@@ -87,9 +87,9 @@ class PaintRect(override val session: CanvasSession) : PaintTool {
             // 描画
             PaintDrawTool.drawRect(session, event, it) {
                 // 後で戻せるよう記憶しておく
-                session.drawing.edited.store(itemFrame, mapItem)
+                session.drawing.edited.store(event.interact.player, itemFrame, mapItem)
                 // マップに描きこむ
-                mapItem.draw {
+                mapItem.draw(event.interact.player) {
                     g(
                         DrawRect(
                             uvStart.x,

@@ -4,6 +4,7 @@ import com.kamesuta.paintcraft.canvas.CanvasSession
 import com.kamesuta.paintcraft.canvas.paint.PaintEvent
 import com.kamesuta.paintcraft.map.DrawableMapRenderer
 import com.kamesuta.paintcraft.map.draw.Drawable
+import org.bukkit.entity.Player
 
 /**
  * 描きこみを行うツール
@@ -14,7 +15,7 @@ class DrawBehaviorPaint(private val renderer: DrawableMapRenderer) : DrawBehavio
         session.mode.tool.paint(event)
     }
 
-    override fun draw(f: Drawable.() -> Unit) {
-        f(renderer)
+    override fun draw(player: Player, f: Drawable.() -> Unit) {
+        f(renderer.drawer(player))
     }
 }

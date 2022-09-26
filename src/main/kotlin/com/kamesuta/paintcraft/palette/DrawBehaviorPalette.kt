@@ -208,10 +208,10 @@ class DrawBehaviorPalette(private val renderer: DrawableMapRenderer) : DrawBehav
 
     override fun init() {
         // テクスチャからパレットを復元
-        renderer.mapImage.loadPalette(paletteData)
+        renderer.mapLayer.base.loadPalette(paletteData)
 
         // パレットを描画
-        renderer.g(DrawPalette(paletteData))
+        renderer.drawBase(DrawPalette(paletteData))
     }
 
     /**
@@ -220,7 +220,7 @@ class DrawBehaviorPalette(private val renderer: DrawableMapRenderer) : DrawBehav
      */
     private fun drawPalette(event: PaintEvent) {
         // パレットを描画
-        event.mapItem.renderer.g(DrawPalette(paletteData))
+        event.mapItem.renderer.drawBase(DrawPalette(paletteData))
 
         // 更新をプレイヤーに送信
         renderer.updatePlayer(event.interact.ray.itemFrame.location.origin)

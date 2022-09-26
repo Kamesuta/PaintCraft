@@ -6,6 +6,7 @@ import com.kamesuta.paintcraft.util.PersistentDataProperty
 import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.World
+import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.MapMeta
 import org.bukkit.map.MapView
@@ -23,10 +24,11 @@ class DrawableMapItem(
 ) {
     /**
      * マップに描画する
+     * @param player 描き込んだプレイヤー
      * @param f 描画する関数
      */
-    fun draw(f: Drawable.() -> Unit) {
-        renderer.behavior.draw(f)
+    fun draw(player: Player, f: Drawable.() -> Unit) {
+        renderer.behavior.draw(player, f)
     }
 
     companion object {

@@ -31,12 +31,12 @@ class PaintPencil(override val session: CanvasSession) : PaintTool {
         val color = session.mode.mapColor
 
         // キャンバスに描く
-        event.mapItem.draw {
+        event.mapItem.draw(event.interact.player) {
             when (event.drawMode) {
                 // 描くモードが左クリックの場合
                 CanvasActionType.LEFT_CLICK -> {
                     // マップをプレイヤーへ同期するために記憶しておく
-                    session.drawing.edited.store(event.interact.ray.itemFrame, event.mapItem)
+                    session.drawing.edited.store(event.interact.player, event.interact.ray.itemFrame, event.mapItem)
                     // 全消し
                     g(
                         DrawRect(
@@ -83,9 +83,9 @@ class PaintPencil(override val session: CanvasSession) : PaintTool {
                 listOfNotNull(event.interact.ray.itemFrame, lastEvent?.interact?.ray?.itemFrame)
             ) {
                 // マップをプレイヤーへ同期するために記憶しておく
-                session.drawing.edited.store(itemFrame, mapItem)
+                session.drawing.edited.store(event.interact.player, itemFrame, mapItem)
                 // 線を描く
-                mapItem.draw {
+                mapItem.draw(event.interact.player) {
                     g(
                         DrawLine(
                             uvStart.x,

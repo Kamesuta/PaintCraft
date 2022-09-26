@@ -56,6 +56,8 @@ class CanvasDrawing {
      * @param event クリック開始時の操作
      */
     fun beginDrawing(event: PaintEvent) {
+        // 前回の変更を適用
+        edited.editing.applyChange()
         // 前回の状態を履歴に保存
         history.add(edited.build())
         // 前回の状態に破棄

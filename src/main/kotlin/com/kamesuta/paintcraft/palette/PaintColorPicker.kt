@@ -25,12 +25,12 @@ class PaintColorPicker(
         val uv = event.interact.uv
         // カーソルを消す
         session.drawing.edited.editing.rollback()
-        session.drawing.edited.store(event.interact.ray.itemFrame, event.mapItem)
+        session.drawing.edited.store(event.interact.player, event.interact.ray.itemFrame, event.mapItem)
         // 選択している場所の色を取得
-        val color = event.mapItem.renderer.mapImage[uv.x.roundToInt(), uv.y.roundToInt()]
+        val color = event.mapItem.renderer.mapLayer.base[uv.x.roundToInt(), uv.y.roundToInt()]
         val oppositeColor = RGBColor.fromMapColor(color).toOpposite().toMapColor()
         // カーソルを描画
-        event.mapItem.draw {
+        event.mapItem.draw(event.interact.player) {
             g { draw ->
                 draw.drawCursor(uv.x, uv.y, color, oppositeColor)
             }

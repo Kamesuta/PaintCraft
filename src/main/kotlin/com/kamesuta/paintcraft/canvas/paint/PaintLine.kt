@@ -94,9 +94,9 @@ class PaintLine(override val session: CanvasSession) : PaintTool {
             // 描画
             PaintDrawTool.drawLine(session, event, it, entities) {
                 // 後で戻せるよう記憶しておく
-                session.drawing.edited.store(itemFrame, mapItem)
+                session.drawing.edited.store(event.interact.player, itemFrame, mapItem)
                 // マップに描きこむ
-                mapItem.draw {
+                mapItem.draw(event.interact.player) {
                     g(
                         DrawLine(
                             uvStart.x,

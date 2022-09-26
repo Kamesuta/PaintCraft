@@ -5,37 +5,30 @@ package com.kamesuta.paintcraft.map.image
  * 複数プレイヤーが同時にキャンバスに描画することをサポートします
  * @param base レイヤーのベース
  */
-class PixelImageLayer<T>(private val base: PixelImageMapBuffer) {
+class PixelImageLayer<T>(val base: PixelImageMapBuffer) {
     /** レイヤー */
     private val layers = mutableListOf<Pair<T, PixelImageMapBuffer>>()
 
     /** プレイヤー->レイヤーのマップ */
     private val layerMap = mutableMapOf<T, PixelImageMapBuffer>()
 
-    /** キャッシュ */
-    private val cache = PixelImageMapBuffer()
-
     /**
-     * レイヤーを追加する (nullの場合削除)
-     * @param layer 追加するレイヤー
-     */
-    operator fun set(key: T, layer: PixelImageMapBuffer?) {
-        if (layer != null) {
-            layerMap.put(key, layer)
-                ?: return
-            layers.add(key to layer)
-        } else {
-            layerMap.remove(key)
-                ?: return
-            layers.removeIf { it.first == key }
-        }
-    }
-
-    /**
-     * レイヤーを取得する
+     * レイヤーを取得または作成し、変更なし状態にする
      * @return レイヤー
      */
-    fun get(key: T): PixelImageMapBuffer? = layerMap[key]
+    operator fun get(key: T): PixelImageMapBuffer {
+        // レイヤーが存在する場合はそれを使用
+        val layer = layerMap[key]
+        // レイヤーが存在しない場合は作成
+            ?: PixelImageMapBuffer().also {
+                layerMap.put(key, it)
+                    ?: layers.add(key to it)
+            }
+        // レイヤーを変更なし状態で初期化
+        layer.clearToUnchanged()
+        // レイヤーを返す
+        return layer
+    }
 
     /**
      * レイヤーをベースレイヤーに適用する
@@ -48,20 +41,26 @@ class PixelImageLayer<T>(private val base: PixelImageMapBuffer) {
         base.drawPixelImage(0.0, 0.0, layer)
     }
 
-    /** レイヤーを削除する */
-    fun clear() {
-        layers.clear()
-        layerMap.clear()
+    /**
+     * 変更を破棄する
+     * @param key プレイヤー
+     */
+    fun reset(key: T) {
+        layerMap.remove(key)
+            ?: return
+        layers.removeIf { it.first == key }
     }
 
     /**
      * レイヤーを合成する
      * @return 合成したレイヤー
      */
-    fun compose(): PixelImageMapBuffer {
-        cache.dirty.clear()
-        base.copyTo(cache)
-        layers.forEach { cache.drawPixelImage(0.0, 0.0, it.second) }
-        return cache
+    fun compose(output: PixelImageMapBuffer) {
+        // まずコピーする
+        base.copyTo(output)
+        // コピーした後に変更フラグをリセット
+        output.dirty.clear()
+        // 差分を適用
+        layers.forEach { output.drawPixelImage(0.0, 0.0, it.second) }
     }
 }
