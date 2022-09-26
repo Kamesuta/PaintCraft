@@ -8,10 +8,12 @@ import com.kamesuta.paintcraft.canvas.paint.PaintRect
 import com.kamesuta.paintcraft.map.DrawableMapItem
 import com.kamesuta.paintcraft.map.behavior.DrawBehaviorTypes.DrawBehaviorPaintDesc
 import com.kamesuta.paintcraft.map.behavior.DrawBehaviorTypes.DrawBehaviorPaletteDesc
+import com.kamesuta.paintcraft.map.image.debug.PixelImageManualTest
 import com.kamesuta.paintcraft.util.color.RGBColor
 import com.kamesuta.paintcraft.util.enumValueOrNull
 import com.kamesuta.paintcraft.util.vec.debug.DebugLocationCommand
 import dev.kotx.flylib.command.Command
+import dev.kotx.flylib.command.CommandContext
 import dev.kotx.flylib.command.arguments.StringArgument
 import org.bukkit.NamespacedKey
 import org.bukkit.entity.ItemFrame
@@ -30,6 +32,7 @@ class PaintCraftCommand : Command("paintcraft") {
             MapColorCommand(),
             ThicknessCommand(),
             DebugPlaceCommand(),
+            DebugImageVisualizerCommand(),
         )
     }
 }
@@ -236,5 +239,11 @@ class DebugPlaceCommand : Command("debug_place") {
                 }
             }
         }
+    }
+}
+
+class DebugImageVisualizerCommand : Command("debug_image_visualizer") {
+    override fun CommandContext.execute() {
+        PixelImageManualTest.startTool()
     }
 }
