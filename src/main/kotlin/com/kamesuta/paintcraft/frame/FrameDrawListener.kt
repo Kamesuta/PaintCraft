@@ -531,7 +531,7 @@ class FrameDrawListener : Listener, Runnable {
         ray.mapItem.renderer.behavior.paint(session, paintEvent)
 
         // 変更箇所をプレイヤーに送信
-        session.drawing.edited.editing.updatePlayer()
+        session.drawing.edited.updatePlayer()
     }
 
     companion object {

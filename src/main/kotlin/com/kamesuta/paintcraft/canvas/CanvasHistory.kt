@@ -24,11 +24,9 @@ class CanvasHistory(private val drawing: CanvasDrawing) {
     fun undo() {
         if (drawing.edited.isDirty) {
             // 編集中の変更点がある場合は戻す
-            drawing.edited.editing.rollback()
-            // 更新を通知
-            drawing.edited.editing.updatePlayer()
-            // 編集中の変更点をクリア
             drawing.edited.clear()
+            // 更新を通知
+            drawing.edited.updatePlayer()
         } else {
             // 履歴を取り出す
             val memento = history.removeLastOrNull() ?: return

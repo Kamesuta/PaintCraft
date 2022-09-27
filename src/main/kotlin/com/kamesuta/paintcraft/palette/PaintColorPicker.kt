@@ -17,14 +17,14 @@ class PaintColorPicker(
 ) : PaintTool {
     override fun endPainting() {
         // カーソルは終わったら非表示にする
-        session.drawing.edited.editing.rollback()
+        session.drawing.edited.clearChange()
     }
 
     override fun paint(event: PaintEvent) {
         // UV座標を取得
         val uv = event.interact.uv
         // カーソルを消す
-        session.drawing.edited.editing.rollback()
+        session.drawing.edited.clearChange()
         session.drawing.edited.store(event.interact.player, event.interact.ray.itemFrame, event.mapItem)
         // 選択している場所の色を取得
         val color = event.mapItem.renderer.mapLayer.base[uv.x.roundToInt(), uv.y.roundToInt()]

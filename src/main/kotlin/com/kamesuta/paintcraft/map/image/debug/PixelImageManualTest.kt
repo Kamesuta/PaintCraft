@@ -2,7 +2,10 @@ package com.kamesuta.paintcraft.map.image.debug
 
 import com.kamesuta.paintcraft.map.image.mapSize
 import com.kamesuta.paintcraft.util.color.RGBColor
+import com.kamesuta.paintcraft.util.color.RGBColor.MapColors.transparent
+import com.kamesuta.paintcraft.util.color.RGBColor.MapColors.unchanged
 import java.awt.BorderLayout
+import java.awt.Color
 import java.awt.Graphics
 import javax.swing.JButton
 import javax.swing.JFrame
@@ -67,7 +70,12 @@ class PixelImageManualTest : JFrame() {
             for (x in 0 until mapCanvas.width) {
                 for (y in 0 until mapCanvas.height) {
                     // 色を変換
-                    g.color = RGBColor.fromMapColor(mapCanvas[x, y]).color
+                    val mapColor = mapCanvas[x, y]
+                    g.color = when (mapColor) {
+                        transparent -> Color(128, 128, 128)
+                        unchanged -> Color(255, 0, 255)
+                        else -> RGBColor.fromMapColor(mapColor).color
+                    }
                     // 四角形でピクセルを描画
                     g.fillRect(x1 + x * pixelSize, y1 + y * pixelSize, pixelSize, pixelSize)
                 }

@@ -13,7 +13,7 @@ class PixelImageLayer<T>(val base: PixelImageMapBuffer) {
     private val layerMap = mutableMapOf<T, PixelImageMapBuffer>()
 
     /**
-     * レイヤーを取得または作成し、変更なし状態にする
+     * レイヤーを取得または作成して初期化する
      * @return レイヤー
      */
     operator fun get(key: T): PixelImageMapBuffer {
@@ -24,8 +24,6 @@ class PixelImageLayer<T>(val base: PixelImageMapBuffer) {
                 layerMap.put(key, it)
                     ?: layers.add(key to it)
             }
-        // レイヤーを変更なし状態で初期化
-        layer.clearToUnchanged()
         // レイヤーを返す
         return layer
     }
@@ -42,13 +40,23 @@ class PixelImageLayer<T>(val base: PixelImageMapBuffer) {
     }
 
     /**
-     * 変更を破棄する
+     * 変更を破棄して削除する
      * @param key プレイヤー
      */
     fun reset(key: T) {
         layerMap.remove(key)
             ?: return
         layers.removeIf { it.first == key }
+    }
+
+    /**
+     * 変更を破棄する
+     * @param key プレイヤー
+     */
+    fun clear(key: T) {
+        val layer = layerMap[key]
+            ?: return
+        layer.clearToUnchanged()
     }
 
     /**
