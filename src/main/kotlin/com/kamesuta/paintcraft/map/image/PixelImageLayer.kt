@@ -39,7 +39,7 @@ class PixelImageLayer<T>(val base: PixelImageMapBuffer) {
         val layer = layerMap.remove(key)
             ?: return
         layers.removeIf { it.first == key }
-        base.drawPixelImage(0.0, 0.0, layer)
+        base.drawPixelImage(layer)
     }
 
     /**
@@ -72,6 +72,6 @@ class PixelImageLayer<T>(val base: PixelImageMapBuffer) {
         // コピーした後に変更フラグをリセット
         output.dirty.clear()
         // 差分を適用
-        layers.forEach { output.drawPixelImage(0.0, 0.0, it.second) }
+        layers.forEach { output.drawPixelImage(it.second) }
     }
 }

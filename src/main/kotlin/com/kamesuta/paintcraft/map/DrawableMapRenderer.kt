@@ -166,6 +166,6 @@ class DrawableMapRenderer(private val behaviorDesc: DrawBehaviorTypes.Desc) : Ma
         // 変更箇所をクリアする
         cache.dirty.clear()
         // レイヤーを更新する
-        cache.drawPixelImage(0.0, 0.0, mapLayerCache)
+        cache.drawPixelImage(mapLayerCache)
     }
 }

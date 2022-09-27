@@ -85,6 +85,23 @@ fun PixelImage.drawPixelImage(x: Double, y: Double, image: PixelImage) {
 }
 
 /**
+ * ピクセルデータを描画する
+ * @receiver 描画先のピクセルデータ
+ * @param image 描画するピクセルデータ
+ */
+fun PixelImage.drawPixelImage(image: PixelImage) {
+    val width = min(image.width, width)
+    val height = min(image.height, height)
+    for (iy in 0 until height) {
+        for (ix in 0 until width) {
+            val color = image[ix, iy]
+            if (color == unchanged) continue
+            this[ix, iy] = color
+        }
+    }
+}
+
+/**
  * ピクセルデータを拡大、縮小して描画する
  * @receiver 描画先のピクセルデータ
  * @param rect 描画する範囲

@@ -21,6 +21,6 @@ class DrawRollback(prev: PixelImage, mask: PixelImage) : Draw {
 
     override fun draw(canvas: PixelImage) {
         // すべてのピクセルのうち、前の状態と異なるピクセルだけ前の状態を描画する
-        canvas.drawPixelImage(0.0, 0.0, masked)
+        canvas.drawPixelImage(masked)
     }
 }
