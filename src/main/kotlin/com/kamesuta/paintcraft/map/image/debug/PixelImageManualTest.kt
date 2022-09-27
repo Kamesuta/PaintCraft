@@ -7,6 +7,8 @@ import com.kamesuta.paintcraft.util.color.RGBColor.MapColors.unchanged
 import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Graphics
+import java.awt.event.WindowAdapter
+import java.awt.event.WindowEvent
 import javax.swing.JButton
 import javax.swing.JFrame
 import javax.swing.JPanel
@@ -34,6 +36,17 @@ class PixelImageManualTest : JFrame() {
         // ウィンドウの設定
         setSize(600, 600)
         title = "PixelImageManualTest"
+
+        // ピクセルが更新されたときに更新
+        onDebugPixelImageChanged = {
+            repaint()
+        }
+        // 終了
+        addWindowListener(object : WindowAdapter() {
+            override fun windowClosing(e: WindowEvent) {
+                onDebugPixelImageChanged = null
+            }
+        })
     }
 
     companion object {

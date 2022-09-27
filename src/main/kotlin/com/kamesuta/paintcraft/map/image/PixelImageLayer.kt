@@ -21,6 +21,9 @@ class PixelImageLayer<T>(val base: PixelImageMapBuffer) {
         val layer = layerMap[key]
         // レイヤーが存在しない場合は作成
             ?: PixelImageMapBuffer().also {
+                // 変更なしで初期化
+                it.clearToUnchanged()
+                // レイヤーを追加
                 layerMap.put(key, it)
                     ?: layers.add(key to it)
             }
