@@ -33,7 +33,6 @@ class PaintLine(override val session: CanvasSession) : PaintTool {
             CanvasActionType.LEFT_CLICK -> {
                 // 復元 (前回の状態を破棄)
                 session.drawing.edited.clearChange()
-                session.drawing.edited.clear()
             }
             // 描くモードが右クリックの場合
             CanvasActionType.RIGHT_CLICK -> {
