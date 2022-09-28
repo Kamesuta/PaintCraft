@@ -45,13 +45,22 @@ repositories {
     maven("https://repo.dmulloy2.net/repository/public/")
 }
 
-dependencies {
-    // PaperAPI
-    compileOnly("com.destroystokyo.paper:paper-api:1.16.5-R0.1-SNAPSHOT")
-    // ProtocolLib
-    compileOnly("com.comphenix.protocol:ProtocolLib:4.6.0")
-    // FlyLib (コマンド用, 廃止予定)
-    implementation("dev.kotx:flylib-reloaded:0.5.0")
+sourceSets {
+    val common by creating
+    val main by getting {
+        // 共通ソースを追加
+        compileClasspath += common.output
+        runtimeClasspath += common.output
+
+        dependencies {
+            // PaperAPI
+            compileOnly("com.destroystokyo.paper:paper-api:1.16.5-R0.1-SNAPSHOT")
+            // ProtocolLib
+            compileOnly("com.comphenix.protocol:ProtocolLib:4.6.0")
+            // FlyLib (コマンド用, 廃止予定)
+            implementation("dev.kotx:flylib-reloaded:0.5.0")
+        }
+    }
 }
 
 java {
@@ -93,11 +102,17 @@ tasks {
 
     // デバッグ用のfatJarを生成する (ホットリロードできるようにリロケートを行わない)
     val shadowJarDev by registering(ShadowJar::class) {
+        // jarタスクの出力を依存関係に追加
         dependsOn(jar)
+        // 必要な変数を取得
+        val common by sourceSets.getting
+        val main by sourceSets.getting
+        val runtimeClasspath by project.configurations.getting
         // ShadowJarタスクを新規作成する際の設定を行う (ShadowJavaPlugin.groovyを参照)
         // https://github.com/johnrengelman/shadow/issues/108#issuecomment-62418005
-        from(sourceSets.main.get().output)
-        configurations = listOf(project.configurations.runtimeClasspath.get())
+        from(common.output)
+        from(main.output)
+        configurations = listOf(runtimeClasspath)
         exclude("META-INF/INDEX.LIST", "META-INF/*.SF", "META-INF/*.DSA", "META-INF/*.RSA", "module-info.class")
         // デバッグ用は末尾に-devを付与する
         archiveClassifier.set("dev")
