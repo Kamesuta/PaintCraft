@@ -10,6 +10,7 @@ import com.kamesuta.paintcraft.map.behavior.DrawBehaviorTypes.DrawBehaviorPaintD
 import com.kamesuta.paintcraft.map.behavior.DrawBehaviorTypes.DrawBehaviorPaletteDesc
 import com.kamesuta.paintcraft.map.image.debug.PixelImageManualTest
 import com.kamesuta.paintcraft.util.color.RGBColor
+import com.kamesuta.paintcraft.util.color.toMapColor
 import com.kamesuta.paintcraft.util.enumValueOrNull
 import com.kamesuta.paintcraft.util.vec.debug.DebugLocationCommand
 import dev.kotx.flylib.command.Command

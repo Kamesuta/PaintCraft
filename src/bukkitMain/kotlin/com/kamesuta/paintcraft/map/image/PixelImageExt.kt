@@ -2,6 +2,7 @@ package com.kamesuta.paintcraft.map.image
 
 import com.kamesuta.paintcraft.util.color.RGBColor
 import com.kamesuta.paintcraft.util.color.RGBColor.MapColors.unchanged
+import com.kamesuta.paintcraft.util.color.toMapColor
 import com.kamesuta.paintcraft.util.vec.Rect2i
 import org.bukkit.map.MapFont
 import java.awt.image.BufferedImage

@@ -1,6 +1,5 @@
 package com.kamesuta.paintcraft.util.color
 
-import org.bukkit.map.MapPalette
 import java.awt.Color
 
 /**
@@ -8,15 +7,6 @@ import java.awt.Color
  * (awtのColorのラッパー)
  */
 class RGBColor(val color: Color) {
-    /**
-     * マップパレットの色に変換
-     * @return マップパレットの色 (Byte)
-     */
-    fun toMapColor(): Byte {
-        @Suppress("DEPRECATION")
-        return MapPalette.matchColor(color)
-    }
-
     /**
      * RGBカラーからHSBカラーに変換
      * @return HSBカラー
@@ -81,16 +71,6 @@ class RGBColor(val color: Color) {
          */
         fun HSBColor.toRGB(): RGBColor {
             return RGBColor(Color.getHSBColor(hue.toFloat(), saturation.toFloat(), brightness.toFloat()))
-        }
-
-        /**
-         * マップパレットの色からRGBカラーに変換
-         * @param mapColor マップパレットの色 (Byte)
-         * @return RGBカラー
-         */
-        fun fromMapColor(mapColor: Byte): RGBColor {
-            @Suppress("DEPRECATION")
-            return RGBColor(MapPalette.getColor(mapColor))
         }
 
         /**

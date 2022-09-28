@@ -6,11 +6,12 @@ import com.kamesuta.paintcraft.map.image.PixelImageMapBuffer
 import com.kamesuta.paintcraft.map.image.drawText
 import com.kamesuta.paintcraft.map.image.mapSize
 import com.kamesuta.paintcraft.util.color.HSBColor
-import com.kamesuta.paintcraft.util.color.RGBColor
+import com.kamesuta.paintcraft.util.color.MapColor
 import com.kamesuta.paintcraft.util.color.RGBColor.Companion.toRGB
 import com.kamesuta.paintcraft.util.color.RGBColor.MapColors.black
 import com.kamesuta.paintcraft.util.color.RGBColor.MapColors.transparent
 import com.kamesuta.paintcraft.util.color.RGBColor.MapColors.white
+import com.kamesuta.paintcraft.util.color.toMapColor
 import com.kamesuta.paintcraft.util.vec.Vec2d
 import org.bukkit.map.MinecraftFont
 import kotlin.math.*
@@ -50,7 +51,7 @@ class DrawPalette(
                 val color = palette.storedPalettes.getOrNull(palette.selectedPaletteIndex)
                     ?: return@run
                 if (palette.mapColor == color) {
-                    val oppositeColor = RGBColor.fromMapColor(color).toOpposite().toMapColor()
+                    val oppositeColor = MapColor.toRGBColor(color).toOpposite().toMapColor()
                     canvas.drawCursor(storedPalettePositionX, y, color, oppositeColor, storedPaletteSize / 2)
                 }
             }
@@ -428,7 +429,7 @@ class DrawPalette(
                     if (frameColor != transparent) {
                         paletteData.selectedPaletteIndex = index
                         paletteData.mapColor = color
-                        paletteData.hsbColor = RGBColor.fromMapColor(color).toHSB()
+                        paletteData.hsbColor = MapColor.toRGBColor(color).toHSB()
                     }
                 }
             }

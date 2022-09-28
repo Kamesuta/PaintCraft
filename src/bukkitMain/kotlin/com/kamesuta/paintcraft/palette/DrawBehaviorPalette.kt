@@ -7,9 +7,10 @@ import com.kamesuta.paintcraft.canvas.paint.PaintEvent
 import com.kamesuta.paintcraft.map.DrawableMapRenderer
 import com.kamesuta.paintcraft.map.behavior.DrawBehavior
 import com.kamesuta.paintcraft.palette.DrawPalette.Companion.loadPalette
-import com.kamesuta.paintcraft.util.color.RGBColor
+import com.kamesuta.paintcraft.util.color.MapColor
 import com.kamesuta.paintcraft.util.color.RGBColor.Companion.toRGB
 import com.kamesuta.paintcraft.util.color.RGBColor.MapColors.transparent
+import com.kamesuta.paintcraft.util.color.toMapColor
 import com.kamesuta.paintcraft.util.vec.origin
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.event.ClickEvent
@@ -54,7 +55,7 @@ class DrawBehaviorPalette(private val renderer: DrawableMapRenderer) : DrawBehav
                         paletteData.selectedPaletteIndex = paletteIndex
                         // 色を変更
                         paletteData.mapColor = color
-                        paletteData.hsbColor = RGBColor.fromMapColor(color).toHSB()
+                        paletteData.hsbColor = MapColor.toRGBColor(color).toHSB()
                     }
                 }
 
@@ -84,7 +85,7 @@ class DrawBehaviorPalette(private val renderer: DrawableMapRenderer) : DrawBehav
                         session.mode.onColorChanged = {
                             // パレットに保存
                             paletteData.mapColor = session.mode.mapColor
-                            paletteData.hsbColor = RGBColor.fromMapColor(paletteData.mapColor).toHSB()
+                            paletteData.hsbColor = MapColor.toRGBColor(paletteData.mapColor).toHSB()
                             paletteData.storeColorToPalette()
                             // パレットを描画
                             drawPalette(event)
@@ -98,13 +99,13 @@ class DrawBehaviorPalette(private val renderer: DrawableMapRenderer) : DrawBehav
                     session.mode.onColorChanged = {
                         // パレットに保存
                         paletteData.mapColor = session.mode.mapColor
-                        paletteData.hsbColor = RGBColor.fromMapColor(paletteData.mapColor).toHSB()
+                        paletteData.hsbColor = MapColor.toRGBColor(paletteData.mapColor).toHSB()
                         paletteData.storeColorToPalette()
                         // パレットを描画
                         drawPalette(event)
                     }
                     // カラーコードテキスト
-                    val rgbColor = RGBColor.fromMapColor(paletteData.mapColor)
+                    val rgbColor = MapColor.toRGBColor(paletteData.mapColor)
                     val hexCode = rgbColor.toHexCode()
                     // チャット生成
                     val hexColorText = Component.text("Color Code: ")

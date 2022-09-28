@@ -5,7 +5,8 @@ import com.kamesuta.paintcraft.canvas.paint.PaintEvent
 import com.kamesuta.paintcraft.canvas.paint.PaintTool
 import com.kamesuta.paintcraft.map.image.mapSize
 import com.kamesuta.paintcraft.palette.DrawPalette.Companion.drawCursor
-import com.kamesuta.paintcraft.util.color.RGBColor
+import com.kamesuta.paintcraft.util.color.MapColor
+import com.kamesuta.paintcraft.util.color.toMapColor
 import kotlin.math.roundToInt
 
 /**
@@ -28,7 +29,7 @@ class PaintColorPicker(
         session.drawing.edited.store(event.interact.player, event.interact.ray.itemFrame, event.mapItem)
         // 選択している場所の色を取得
         val color = event.mapItem.renderer.mapLayer.base[uv.x.roundToInt(), uv.y.roundToInt()]
-        val oppositeColor = RGBColor.fromMapColor(color).toOpposite().toMapColor()
+        val oppositeColor = MapColor.toRGBColor(color).toOpposite().toMapColor()
         // カーソルを描画
         event.mapItem.draw(event.interact.player) {
             g { draw ->

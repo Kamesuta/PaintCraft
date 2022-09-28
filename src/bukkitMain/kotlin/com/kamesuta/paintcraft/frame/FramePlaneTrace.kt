@@ -2,8 +2,8 @@ package com.kamesuta.paintcraft.frame
 
 import com.kamesuta.paintcraft.frame.FrameLocation.Companion.clipBlockUV
 import com.kamesuta.paintcraft.frame.FrameLocation.Companion.transformUv
-import com.kamesuta.paintcraft.map.image.mapSize
 import com.kamesuta.paintcraft.map.DrawableMapItem
+import com.kamesuta.paintcraft.map.image.mapSize
 import com.kamesuta.paintcraft.util.vec.Line2d
 import com.kamesuta.paintcraft.util.vec.debug.DebugLocatables.DebugLineType.LINE
 import com.kamesuta.paintcraft.util.vec.debug.DebugLocatables.DebugLineType.SEGMENT

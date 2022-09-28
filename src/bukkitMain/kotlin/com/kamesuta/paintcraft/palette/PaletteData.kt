@@ -4,6 +4,7 @@ import com.kamesuta.paintcraft.util.color.HSBColor
 import com.kamesuta.paintcraft.util.color.RGBColor
 import com.kamesuta.paintcraft.util.color.RGBColor.MapColors.black
 import com.kamesuta.paintcraft.util.color.RGBColor.MapColors.transparent
+import com.kamesuta.paintcraft.util.color.toMapColor
 
 class PaletteData {
     /** 現在の操作中の色相 or 明度/彩度 */
