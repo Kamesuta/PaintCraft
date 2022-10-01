@@ -11,6 +11,8 @@ import com.kamesuta.paintcraft.util.vec.debug.DebugLocatables.DebugLineType.SEGM
 import com.kamesuta.paintcraft.util.vec.debug.DebugLocatables.toDebug
 import com.kamesuta.paintcraft.util.vec.debug.DebugLocationType
 import com.kamesuta.paintcraft.util.vec.debug.DebugLocationVisualizer.debugLocation
+import com.kamesuta.paintcraft.util.vec.toVec3d
+import com.kamesuta.paintcraft.util.vec.toVector
 import org.bukkit.Material
 import org.bukkit.entity.ItemFrame
 import org.bukkit.entity.Player
@@ -45,15 +47,16 @@ class FrameRayTrace(
         // 範囲を全方向にmarginずつ拡張
         val margin = 1.0
         // エンティティを取得する範囲のバウンディングボックス
-        val box = BoundingBox.of(eyeLocation.origin, 0.0, 0.0, 0.0).expand(eyeLocation.direction, distance)
+        val box = BoundingBox.of(eyeLocation.origin.toVector(), 0.0, 0.0, 0.0)
+            .expand(eyeLocation.direction.toVector(), distance)
         // レイキャストを行い、ヒットしたブロックがあればそのブロック座標と目線の位置から範囲の中心座標とサイズを計算する
         val blockRay = player.world.rayTraceBlocks(
-            eyeLocation.origin.toLocation(player.world),
-            eyeLocation.direction,
+            eyeLocation.origin.toVector().toLocation(player.world),
+            eyeLocation.direction.toVector(),
             distance + margin
         )
         // クリックがヒットした座標
-        val blockHitLocation = blockRay?.hitPosition
+        val blockHitLocation = blockRay?.hitPosition?.toVec3d()
         player.debugLocation {
             locate(DebugLocationType.BLOCK_HIT_LOCATION, blockHitLocation?.toDebug())
         }

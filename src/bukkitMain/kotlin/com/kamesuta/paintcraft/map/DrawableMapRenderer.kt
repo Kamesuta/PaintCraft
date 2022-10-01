@@ -8,11 +8,12 @@ import com.kamesuta.paintcraft.map.image.PixelImageLayer
 import com.kamesuta.paintcraft.map.image.PixelImageMapBuffer
 import com.kamesuta.paintcraft.map.image.PixelImageMapCanvas
 import com.kamesuta.paintcraft.map.image.drawPixelImage
+import com.kamesuta.paintcraft.util.vec.Vec3d
+import com.kamesuta.paintcraft.util.vec.origin
 import org.bukkit.entity.Player
 import org.bukkit.map.MapCanvas
 import org.bukkit.map.MapRenderer
 import org.bukkit.map.MapView
-import org.bukkit.util.Vector
 
 /**
  * 書き込み可能レンダラー
@@ -121,7 +122,7 @@ class DrawableMapRenderer(private val behaviorDesc: DrawBehaviorTypes.Desc) : Ma
      * プレイヤーに更新を通知する
      * @param location アイテムフレームの位置
      */
-    fun updatePlayer(location: Vector) {
+    fun updatePlayer(location: Vec3d) {
         // 更新する半径 ( TODO: 半径のコンフィグ化 )
         val radius = 10.0
         // アップデート用キャッシュ
@@ -138,7 +139,7 @@ class DrawableMapRenderer(private val behaviorDesc: DrawBehaviorTypes.Desc) : Ma
         val part = buffer.createSubImage(updateArea)
         for (player in players) {
             // 近くのプレイヤーのみに通知する
-            if (player.location.toVector().distanceSquared(location) < radius * radius) {
+            if (player.location.origin.distanceSquared(location) < radius * radius) {
                 // プレイヤーに地図を送信する
                 DrawableMapUpdater.sendMap(player, mapView, part, updateArea)
             }

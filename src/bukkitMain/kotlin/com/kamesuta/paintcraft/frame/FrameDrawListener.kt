@@ -18,7 +18,7 @@ import com.kamesuta.paintcraft.util.vec.debug.DebugLocationType
 import com.kamesuta.paintcraft.util.vec.debug.DebugLocationVisualizer.clearDebugLocation
 import com.kamesuta.paintcraft.util.vec.debug.DebugLocationVisualizer.debugLocation
 import com.kamesuta.paintcraft.util.vec.origin
-import com.kamesuta.paintcraft.util.vec.plus
+import com.kamesuta.paintcraft.util.vec.toVec3d
 import org.bukkit.Bukkit
 import org.bukkit.GameMode
 import org.bukkit.Location
@@ -493,7 +493,7 @@ class FrameDrawListener : Listener, Runnable {
             // アイテムフレームのブロック上での方向
             locate(
                 DebugLocationType.FRAME_FACING,
-                (itemFrameLocation.origin + ray.itemFrame.facing.direction).toDebug()
+                (itemFrameLocation.origin + ray.itemFrame.facing.direction.toVec3d()).toDebug()
             )
             // アイテムフレームのブロック
             locate(DebugLocationType.FRAME_FACING_BLOCK, itemFrameLocation.toCenterLocation().origin.toDebug())

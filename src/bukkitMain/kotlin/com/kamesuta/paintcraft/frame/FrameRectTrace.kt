@@ -3,7 +3,7 @@ package com.kamesuta.paintcraft.frame
 import com.kamesuta.paintcraft.frame.FrameLocation.Companion.transformUv
 import com.kamesuta.paintcraft.map.DrawableMapItem
 import com.kamesuta.paintcraft.util.vec.Line2d
-import com.kamesuta.paintcraft.util.vec.minus
+import com.kamesuta.paintcraft.util.vec.toVector
 import org.bukkit.Material
 import org.bukkit.entity.ItemFrame
 import org.bukkit.util.BoundingBox
@@ -31,7 +31,7 @@ object FrameRectTrace {
         */
 
         // 範囲 (平面+αの範囲、αの厚み)
-        val box = BoundingBox.of(plane.segment.origin, plane.segment.target).expand(0.05)
+        val box = BoundingBox.of(plane.segment.origin.toVector(), plane.segment.target.toVector()).expand(0.05)
         val entities = player.world.getNearbyEntities(box.clone().expand(0.5)) { it is ItemFrame }
             .asSequence()
             .mapNotNull { it as? ItemFrame }

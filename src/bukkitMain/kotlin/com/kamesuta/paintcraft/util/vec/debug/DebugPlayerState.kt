@@ -1,6 +1,7 @@
 package com.kamesuta.paintcraft.util.vec.debug
 
 import com.kamesuta.paintcraft.util.vec.Line3d.Companion.toLine
+import com.kamesuta.paintcraft.util.vec.toVector
 import org.bukkit.Particle
 import org.bukkit.entity.Player
 import java.util.*
@@ -34,7 +35,7 @@ internal class DebugPlayerState(private val player: Player) {
             if (particle != null) {
                 location.forEach { locator ->
                     locator.debugLocate(eyeLocation) {
-                        player.spawnParticle(particle, it.toLocation(world), 1, 0.0, 0.0, 0.0, 0.0)
+                        player.spawnParticle(particle, it.toVector().toLocation(world), 1, 0.0, 0.0, 0.0, 0.0)
                     }
                 }
             }

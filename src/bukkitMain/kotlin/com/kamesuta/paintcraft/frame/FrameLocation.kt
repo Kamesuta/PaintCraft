@@ -14,19 +14,19 @@ import org.bukkit.util.Vector
  * @param offsetZ アイテムフレーム表面の平面の座標のZオフセット (= キャンバス平面とアイテムフレームの座標の差 = アイテムフレームの厚さ/2)
  */
 class FrameLocation(
-    val center: Vector,
+    val center: Vec3d,
     val yaw: Float,
     val pitch: Float,
     val offsetZ: Double,
 ) {
     /** 前方向の向き */
-    val forward = Vector(0.0, 0.0, 1.0).rotate(yaw, pitch)
+    val forward = Vec3d(0.0, 0.0, 1.0).rotate(yaw, pitch)
 
     /** 上方向の向き */
-    val up = Vector(0.0, 1.0, 0.0).rotate(yaw, pitch)
+    val up = Vec3d(0.0, 1.0, 0.0).rotate(yaw, pitch)
 
     /** 右方向の向き */
-    val right = Vector(1.0, 0.0, 0.0).rotate(yaw, pitch)
+    val right = Vec3d(1.0, 0.0, 0.0).rotate(yaw, pitch)
 
     /** アイテムフレームの座標 */
     val origin = center + (forward * (offsetZ - 0.5))
@@ -42,7 +42,7 @@ class FrameLocation(
      * @param playerDirection プレイヤーの方向
      * @return キャンバスが表かどうか
      */
-    fun isCanvasFrontSide(playerDirection: Vector): Boolean {
+    fun isCanvasFrontSide(playerDirection: Vec3d): Boolean {
         // 裏からのクリックを判定
         return playerDirection.dot(forward) <= 0
     }
@@ -53,7 +53,7 @@ class FrameLocation(
      * @param location 交点座標
      * @return キャンバス上のUV座標 (-0.5～+0.5)
      */
-    fun toBlockUv(location: Vector): Vec2d {
+    fun toBlockUv(location: Vec3d): Vec2d {
         // 交点座標を(0,0)を中心に回転し、UV座標(x,-y)に対応するようにする
         val unRotated = (location - origin).unRotate(yaw, pitch)
         // UV座標を返す (3D座標はYが上ほど大きく、UV座標はYが下ほど大きいため、Yを反転する)
@@ -66,9 +66,9 @@ class FrameLocation(
      * @param blockUv キャンバス上のUV座標 (-0.5～+0.5)
      * @return 交点座標
      */
-    fun fromBlockUv(blockUv: Vec2d): Vector {
+    fun fromBlockUv(blockUv: Vec2d): Vec3d {
         // mapToBlockUVの逆変換
-        return Vector(blockUv.x, -blockUv.y, 0.0).rotate(yaw, pitch) + origin
+        return Vec3d(blockUv.x, -blockUv.y, 0.0).rotate(yaw, pitch) + origin
     }
 
     companion object {
@@ -105,7 +105,7 @@ class FrameLocation(
                 itemFrame.location.let { it.yaw to it.pitch }
             } else if (clientType.isFacingRotationOnly) {
                 // BE版はブロックに沿った回転のみサポートしている
-                val dir = Line3d(Vector(), itemFrame.facing.direction)
+                val dir = Line3d(Vec3d.Zero, itemFrame.facing.direction.toVec3d())
                 dir.yaw to dir.pitch
             } else {
                 // Java版1.12以前はYaw回転のみサポートしている、Pitchは常に0
@@ -118,19 +118,21 @@ class FrameLocation(
          * @param yaw Yaw角度
          * @param pitch Pitch角度
          */
-        private fun Vector.rotate(yaw: Float, pitch: Float) = clone()
+        private fun Vec3d.rotate(yaw: Float, pitch: Float) = Vector(x, y, z)
             // Y軸回転→X軸回転をX軸回転→Y軸回転にするために、一旦単位方向ベクトルに変換
             .rotateAroundY(Math.toRadians(-yaw.toDouble()))
             .rotateAroundX(Math.toRadians(pitch.toDouble()))
+            .toVec3d()
 
         /**
          * YawとPitchの回転を戻す
          * @param yaw Yaw角度
          * @param pitch Pitch角度
          */
-        private fun Vector.unRotate(yaw: Float, pitch: Float) = clone()
+        private fun Vec3d.unRotate(yaw: Float, pitch: Float) = Vector(x, y, z)
             .rotateAroundX(Math.toRadians(-pitch.toDouble()))
             .rotateAroundY(Math.toRadians(yaw.toDouble()))
+            .toVec3d()
 
         /**
          * ブロックのUV座標->キャンバスピクセルのUV座標を計算する

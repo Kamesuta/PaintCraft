@@ -1,7 +1,6 @@
 package com.kamesuta.paintcraft.util.vec
 
 import com.kamesuta.paintcraft.util.fuzzyEq
-import org.bukkit.util.Vector
 import kotlin.math.abs
 import kotlin.math.sqrt
 
@@ -21,7 +20,7 @@ data class Plane3d(
     /**
      * 正規化された法線と距離で初期化する
      */
-    constructor(normalizedNormal: Vector, d: Double) : this(
+    constructor(normalizedNormal: Vec3d, d: Double) : this(
         normalizedNormal.x,
         normalizedNormal.y,
         normalizedNormal.z,
@@ -40,14 +39,14 @@ data class Plane3d(
     /**
      * 法線
      */
-    val normal: Vector get() = Vector(a, b, c)
+    val normal: Vec3d get() = Vec3d(a, b, c)
 
     /**
      * 点までの符号付きの最短距離を返す
      * @param point 点
      * @return 点までの符号付きの最短距離
      */
-    fun signedDistance(point: Vector): Double {
+    fun signedDistance(point: Vec3d): Double {
         return normal.dot(point) + d
     }
 
@@ -56,7 +55,7 @@ data class Plane3d(
      * @param point 点
      * @return 点までの最短距離
      */
-    fun distance(point: Vector): Double {
+    fun distance(point: Vec3d): Double {
         return abs(signedDistance(point))
     }
 
@@ -65,7 +64,7 @@ data class Plane3d(
      * @param point 点
      * @return 点に一番近い平面上の点
      */
-    fun closestPoint(point: Vector): Vector {
+    fun closestPoint(point: Vec3d): Vec3d {
         return point - normal * signedDistance(point)
     }
 
@@ -74,7 +73,7 @@ data class Plane3d(
      * @param ray 線
      * @return 平面と線の交点
      */
-    fun intersect(ray: Line3d): Vector? {
+    fun intersect(ray: Line3d): Vec3d? {
         // 平面とベクトルとの交点を求める
         // https://qiita.com/edo_m18/items/c8808f318f5abfa8af1e
         // http://www.sousakuba.com/Programming/gs_plane_line_intersect.html
@@ -96,8 +95,8 @@ data class Plane3d(
         // 論理的には3つ目の平面を作るが、法線しか利用しない
         val normal1 = normal
         val normal2 = other.normal
-        val normal = normal1.getCrossProduct(normal2)
-        val det = normal.lengthSquared()
+        val normal = normal1.cross(normal2)
+        val det = normal.lengthSquared
 
         // detが0の場合は平行な面のため交わらない
         // 正確にはepsilonと比較するべきだが、厳密に平行を区別する必要がないので省略
@@ -106,27 +105,27 @@ data class Plane3d(
         }
 
         // 平面の座標を計算
-        val origin = ((normal.getCrossProduct(normal2) * d) + (normal1.getCrossProduct(normal) * other.d)) / det
+        val origin = ((normal.cross(normal2) * d) + (normal1.cross(normal) * other.d)) / det
         return Line3d(origin, normal)
     }
 
     /** 平面の右方向のベクトル (Y軸と平面の法線の外積) */
-    val right: Vector
+    val right: Vec3d
         get() {
             // 法線
             val normal = normal
             // Y軸と直交するベクトル (Y軸と法線が平行の場合0ベクトルになる)
-            val rightVectorOrZero = normal.getCrossProduct(Vector(0.0, 1.0, 0.0))
+            val rightVectorOrZero = normal.cross(Vec3d.AxisY)
             // Y軸と直交するベクトルが0ベクトルの場合はZ軸と直交するベクトルを返す
-            val rightVector = when (rightVectorOrZero.lengthSquared() > 0.0) {
+            val rightVector = when (rightVectorOrZero.lengthSquared > 0.0) {
                 true -> rightVectorOrZero.normalized
-                false -> normal.getCrossProduct(Vector(0.0, 0.0, 1.0))
+                false -> normal.cross(Vec3d.AxisZ)
             }
             return rightVector
         }
 
     /** 平面の上方向のベクトル (法線と右方向ベクトルの外積) */
-    val up get() = normal.getCrossProduct(right).normalized
+    val up get() = normal.cross(right).normalized
 
     companion object {
         /**
@@ -135,7 +134,7 @@ data class Plane3d(
          * @param normal 法線
          * @return 平面
          */
-        fun fromPointNormal(point: Vector, normal: Vector) =
+        fun fromPointNormal(point: Vec3d, normal: Vec3d) =
             Plane3d(normal, -normal.dot(point)).normalized
 
         /**
@@ -145,9 +144,9 @@ data class Plane3d(
          * @param v2 辺2
          * @return 平面
          */
-        fun fromPointVectors(point: Vector, v1: Vector, v2: Vector) = fromPointNormal(
+        fun fromPointVectors(point: Vec3d, v1: Vec3d, v2: Vec3d) = fromPointNormal(
             point,
-            v1.getCrossProduct(v2),
+            v1.cross(v2),
         )
 
         /**
@@ -157,10 +156,10 @@ data class Plane3d(
          * @param p2 点2
          * @return 平面
          */
-        fun fromPoints(p0: Vector, p1: Vector, p2: Vector): Plane3d {
+        fun fromPoints(p0: Vec3d, p1: Vec3d, p2: Vec3d): Plane3d {
             val v1 = p1 - p0
             val v2 = p2 - p0
-            val normal = v1.getCrossProduct(v2)
+            val normal = v1.cross(v2)
             return fromPointNormal(p0, normal)
         }
     }

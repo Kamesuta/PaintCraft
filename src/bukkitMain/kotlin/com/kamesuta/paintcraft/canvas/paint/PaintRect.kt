@@ -5,9 +5,6 @@ import com.kamesuta.paintcraft.canvas.CanvasSession
 import com.kamesuta.paintcraft.canvas.paint.tool.PaintDrawTool
 import com.kamesuta.paintcraft.map.draw.DrawRect
 import com.kamesuta.paintcraft.util.vec.Line3d
-import com.kamesuta.paintcraft.util.vec.normalized
-import com.kamesuta.paintcraft.util.vec.plus
-import com.kamesuta.paintcraft.util.vec.times
 import kotlin.math.abs
 import kotlin.math.min
 import kotlin.math.pow
