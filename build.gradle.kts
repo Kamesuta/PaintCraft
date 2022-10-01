@@ -60,6 +60,11 @@ kotlin {
 
     // Bukkit部分のみ依存関係を追加する
     sourceSets {
+        all {
+            // expect/actualを使用するための設定
+            languageSettings.enableLanguageFeature("MultiPlatformProjects")
+        }
+
         val commonMain by getting
         val bukkitMain by getting {
             dependencies {
