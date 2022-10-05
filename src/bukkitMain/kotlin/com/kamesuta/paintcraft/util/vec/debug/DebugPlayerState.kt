@@ -1,6 +1,6 @@
 package com.kamesuta.paintcraft.util.vec.debug
 
-import com.kamesuta.paintcraft.util.vec.Line3d.Companion.toLine
+import com.kamesuta.paintcraft.util.vec.toLine
 import com.kamesuta.paintcraft.util.vec.toVector
 import org.bukkit.Particle
 import org.bukkit.entity.Player

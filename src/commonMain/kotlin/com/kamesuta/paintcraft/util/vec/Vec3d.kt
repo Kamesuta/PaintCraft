@@ -1,20 +1,6 @@
 package com.kamesuta.paintcraft.util.vec
 
-import org.bukkit.Location
-import org.bukkit.util.Vector
 import kotlin.math.sqrt
-
-/** BukkitのVectorからVec3dへの変換 */
-fun Vector.toVec3d() = Vec3d(x, y, z)
-
-/** BukkitのVectorへの変換 */
-fun Vec3d.toVector() = Vector(x, y, z)
-
-/** 線の始点の位置 */
-val Location.origin: Vec3d get() = Vec3d(x, y, z)
-
-/** 線の先の位置 */
-val Location.target: Vec3d get() = toVector().add(direction).toVec3d()
 
 /**
  * 3Dベクトル(小数)を表すクラス

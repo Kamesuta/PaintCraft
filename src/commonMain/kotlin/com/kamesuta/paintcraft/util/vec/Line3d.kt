@@ -1,7 +1,5 @@
 package com.kamesuta.paintcraft.util.vec
 
-import org.bukkit.Location
-import org.bukkit.World
 import kotlin.math.asin
 import kotlin.math.atan2
 
@@ -78,21 +76,6 @@ data class Line3d(val origin: Vec3d, val direction: Vec3d) {
         return fromPoints(p1, p2)
     }
 
-    /**
-     * BukkitのLocationに変換する
-     * @param world ワールド
-     * @return Location座標
-     */
-    @Deprecated("Locationに変換するのはコストが高いため、Line3dのまま使用することを推奨します")
-    fun toLocation(world: World): Location {
-        // 始点を取得
-        val location = Location(world, origin.x, origin.y, origin.z)
-        // 方向ベクトルからyawとpitchを求める
-        location.yaw = yaw
-        location.pitch = pitch
-        return location
-    }
-
     companion object {
         /**
          * 始点と終点から線を作成する
@@ -101,14 +84,6 @@ data class Line3d(val origin: Vec3d, val direction: Vec3d) {
          */
         fun fromPoints(origin: Vec3d, target: Vec3d): Line3d {
             return Line3d(origin, target - origin)
-        }
-
-        /**
-         * 線に変換する
-         * @return 線
-         */
-        fun Location.toLine(): Line3d {
-            return Line3d(origin, direction.toVec3d())
         }
     }
 }

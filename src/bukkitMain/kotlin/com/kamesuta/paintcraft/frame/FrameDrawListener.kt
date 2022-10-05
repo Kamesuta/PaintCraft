@@ -11,13 +11,13 @@ import com.kamesuta.paintcraft.canvas.paint.PaintEvent
 import com.kamesuta.paintcraft.util.LocationOperation
 import com.kamesuta.paintcraft.util.TimeWatcher
 import com.kamesuta.paintcraft.util.vec.Line3d
-import com.kamesuta.paintcraft.util.vec.Line3d.Companion.toLine
 import com.kamesuta.paintcraft.util.vec.debug.DebugLocatables.DebugLineType.SEGMENT
 import com.kamesuta.paintcraft.util.vec.debug.DebugLocatables.toDebug
 import com.kamesuta.paintcraft.util.vec.debug.DebugLocationType
 import com.kamesuta.paintcraft.util.vec.debug.DebugLocationVisualizer.clearDebugLocation
 import com.kamesuta.paintcraft.util.vec.debug.DebugLocationVisualizer.debugLocation
 import com.kamesuta.paintcraft.util.vec.origin
+import com.kamesuta.paintcraft.util.vec.toLine
 import com.kamesuta.paintcraft.util.vec.toVec3d
 import org.bukkit.Bukkit
 import org.bukkit.GameMode
