@@ -4,7 +4,6 @@ import com.kamesuta.paintcraft.map.image.mapSize
 import com.kamesuta.paintcraft.util.clienttype.ClientType
 import com.kamesuta.paintcraft.util.vec.*
 import org.bukkit.entity.ItemFrame
-import org.bukkit.util.Vector
 
 /**
  * アイテムフレームの座標、回転
@@ -19,14 +18,17 @@ class FrameLocation(
     val pitch: Float,
     val offsetZ: Double,
 ) {
+    /** フレームの回転クォータニオン */
+    val rotation = rotation(yaw, pitch)
+
     /** 前方向の向き */
-    val forward = Vec3d(0.0, 0.0, 1.0).rotate(yaw, pitch)
+    val forward = rotation.transform(Vec3d.AxisZ)
 
     /** 上方向の向き */
-    val up = Vec3d(0.0, 1.0, 0.0).rotate(yaw, pitch)
+    val up = rotation.transform(Vec3d.AxisY)
 
     /** 右方向の向き */
-    val right = Vec3d(1.0, 0.0, 0.0).rotate(yaw, pitch)
+    val right = rotation.transform(Vec3d.AxisX)
 
     /** アイテムフレームの座標 */
     val origin = center + (forward * (offsetZ - 0.5))
@@ -55,7 +57,7 @@ class FrameLocation(
      */
     fun toBlockUv(location: Vec3d): Vec2d {
         // 交点座標を(0,0)を中心に回転し、UV座標(x,-y)に対応するようにする
-        val unRotated = (location - origin).unRotate(yaw, pitch)
+        val unRotated = rotation.conjugate.transform(location - origin)
         // UV座標を返す (3D座標はYが上ほど大きく、UV座標はYが下ほど大きいため、Yを反転する)
         return Vec2d(unRotated.x, -unRotated.y)
     }
@@ -68,7 +70,7 @@ class FrameLocation(
      */
     fun fromBlockUv(blockUv: Vec2d): Vec3d {
         // mapToBlockUVの逆変換
-        return Vec3d(blockUv.x, -blockUv.y, 0.0).rotate(yaw, pitch) + origin
+        return rotation.transform(Vec3d(blockUv.x, -blockUv.y, 0.0)) + origin
     }
 
     companion object {
@@ -88,6 +90,7 @@ class FrameLocation(
             // アイテムフレームが透明かどうか
             val isFrameVisible = itemFrame.isVisible || !clientType.isInvisibleFrameSupported
             // キャンバス平面とアイテムフレームの差 = アイテムフレームの厚さ/2
+
             val canvasOffsetZ = if (isFrameVisible) 0.07 else 0.0075
             // アイテムフレームを構築
             return FrameLocation(centerLocation, canvasYaw, canvasPitch, canvasOffsetZ)
@@ -114,25 +117,14 @@ class FrameLocation(
         }
 
         /**
-         * YawとPitchで回転する
+         * YawとPitchで回転するクォータニオンを取得する
          * @param yaw Yaw角度
          * @param pitch Pitch角度
          */
-        private fun Vec3d.rotate(yaw: Float, pitch: Float) = Vector(x, y, z)
-            // Y軸回転→X軸回転をX軸回転→Y軸回転にするために、一旦単位方向ベクトルに変換
-            .rotateAroundY(Math.toRadians(-yaw.toDouble()))
-            .rotateAroundX(Math.toRadians(pitch.toDouble()))
-            .toVec3d()
-
-        /**
-         * YawとPitchの回転を戻す
-         * @param yaw Yaw角度
-         * @param pitch Pitch角度
-         */
-        private fun Vec3d.unRotate(yaw: Float, pitch: Float) = Vector(x, y, z)
-            .rotateAroundX(Math.toRadians(-pitch.toDouble()))
-            .rotateAroundY(Math.toRadians(yaw.toDouble()))
-            .toVec3d()
+        private fun rotation(yaw: Float, pitch: Float): Quaternion3d =
+            // Y軸回転→X軸回転で回転する (逆順で回転を合成してからベクトルに適用)
+            Quaternion3d.rotateX(Math.toRadians(pitch.toDouble())) *
+                    Quaternion3d.rotateY(Math.toRadians(-yaw.toDouble()))
 
         /**
          * ブロックのUV座標->キャンバスピクセルのUV座標を計算する
