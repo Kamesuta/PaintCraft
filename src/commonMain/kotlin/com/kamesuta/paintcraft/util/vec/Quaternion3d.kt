@@ -1,6 +1,10 @@
 package com.kamesuta.paintcraft.util.vec
 
-import kotlin.math.*
+import com.kamesuta.paintcraft.util.fuzzyEq
+import kotlin.math.atan2
+import kotlin.math.cos
+import kotlin.math.sin
+import kotlin.math.sqrt
 
 /**
  * クォータニオン(四次数)回転
@@ -9,7 +13,7 @@ import kotlin.math.*
  * @param z z成分
  * @param w w成分
  */
-class Quaternion3d(val x: Double, val y: Double, val z: Double, val w: Double) {
+data class Quaternion3d(val x: Double, val y: Double, val z: Double, val w: Double) {
     /**
      * X, Y, Zの成分を取得する
      * @return X, Y, Zの成分
@@ -17,17 +21,46 @@ class Quaternion3d(val x: Double, val y: Double, val z: Double, val w: Double) {
     val complex: Vec3d get() = Vec3d(x, y, z)
 
     /**
-     * 共役クォータニオン
+     * 共役クォータニオン (回転は逆になる)
      * @return 共役クォータニオン
      */
     val conjugate get() = Quaternion3d(-x, -y, -z, w)
 
     /**
-     * 逆クォータニオンを求める
+     * 成分を反転する (回転は全く同じ)
+     * @return 成分が反転されたクォータニオン
+     */
+    val negate get() = Quaternion3d(-x, -y, -z, -w)
+
+    /**
+     * 成分を反転する (回転は全く同じ)
+     * @return 成分が反転されたクォータニオン
+     */
+    operator fun unaryMinus() = negate
+
+    /**
+     * クォータニオンの長さを求める
+     * @return クォータニオンの長さ
+     */
+    val length get() = sqrt(lengthSquared)
+
+    /**
+     * クォータニオンの長さの2乗を求める
+     * @return クォータニオンの長さの2乗
+     */
+    val lengthSquared get() = x * x + y * y + z * z + w * w
+
+    /**
+     * 正規化されたクォータニオン
+     */
+    val normalized: Quaternion3d get() = this / length
+
+    /**
+     * 逆クォータニオンを求める (回転は逆になる)
      * もし正規化されていると分かっている場合はconjugateを使うと速い
      * @return 逆クォータニオン
      */
-    val inverse get() = conjugate / length
+    val inverse: Quaternion3d get() = conjugate.normalized
 
     /**
      * 回転の合成
@@ -47,6 +80,13 @@ class Quaternion3d(val x: Double, val y: Double, val z: Double, val w: Double) {
         w * other.z + z * other.w + x * other.y - y * other.x,
         w * other.w - x * other.x - y * other.y - z * other.z
     )
+
+    /**
+     * ドット積
+     * @param other ドット積を取るクォータニオン
+     * @return ドット積
+     */
+    fun dot(other: Quaternion3d) = x * other.x + y * other.y + z * other.z + w * other.w
 
     /**
      * 成分をスカラー倍する
@@ -77,31 +117,14 @@ class Quaternion3d(val x: Double, val y: Double, val z: Double, val w: Double) {
     operator fun minus(other: Quaternion3d) = Quaternion3d(x - other.x, y - other.y, z - other.z, w - other.w)
 
     /**
-     * 成分を反転する
-     * @return 成分が反転されたクォータニオン
+     * 回転をスカラー倍する
+     * @param scale スカラー
+     * @return スカラー倍回転されたクォータニオン
      */
-    operator fun unaryMinus() = Quaternion3d(-x, -y, -z, -w)
-
-    /**
-     * クォータニオンの長さを求める
-     * @return クォータニオンの長さ
-     */
-    val length get() = sqrt(lengthSquared)
-
-    /**
-     * クォータニオンの長さの2乗を求める
-     * @return クォータニオンの長さの2乗
-     */
-    val lengthSquared get() = x * x + y * y + z * z + w * w
-
-    /**
-     * 正規化されたクォータニオン
-     */
-    val normalized: Quaternion3d
-        get() {
-            val length = sqrt(x * x + y * y + z * z + w * w)
-            return Quaternion3d(x / length, y / length, z / length, w / length)
-        }
+    fun scaleRotation(scale: Double): Quaternion3d {
+        val (axis, angle) = toAxisAngle()
+        return axisAngle(axis, angle * scale)
+    }
 
     /**
      * 座標を回転する
@@ -111,56 +134,26 @@ class Quaternion3d(val x: Double, val y: Double, val z: Double, val w: Double) {
     fun transform(vec: Vec3d) = ((this * Quaternion3d(vec.x, vec.y, vec.z, 0.0)) * conjugate).complex;
 
     /**
-     * 球面補間
-     * @param other 移動先のクォータニオン
-     * @param t 時間
-     * @return 球面補間されたクォータニオン
+     * 軸と角度に変換する
+     * @return 軸と角度
      */
-    fun slerp(other: Quaternion3d, t: Double): Quaternion3d {
-        var cosHalfTheta = w * other.w + x * other.x + y * other.y + z * other.z
-        if (cosHalfTheta < 0) {
-            cosHalfTheta = -cosHalfTheta
+    fun toAxisAngle(): Pair<Vec3d, Double> {
+        val q = (if (w > 0) this else negate).normalized
+        val axis = q.complex
+        val axisLength = axis.length
+        val outAxis = if (axisLength fuzzyEq 0.0) {
+            // 0度と360度のときはどの軸でも正しいので、X軸を返す
+            Vec3d.AxisX
+        } else {
+            axis.normalized
         }
-        if (cosHalfTheta >= 1.0) {
-            return this
-        }
-        val halfTheta = acos(cosHalfTheta)
-        var sinHalfTheta = sqrt(1.0 - cosHalfTheta * cosHalfTheta)
-        if (abs(sinHalfTheta) < 0.001) {
-            sinHalfTheta = 0.001
-        }
-        val ratioA = sin((1 - t) * halfTheta) / sinHalfTheta
-        val ratioB = sin(t * halfTheta) / sinHalfTheta
-        return Quaternion3d(
-            (x * ratioA + other.x * ratioB),
-            (y * ratioA + other.y * ratioB),
-            (z * ratioA + other.z * ratioB),
-            (w * ratioA + other.w * ratioB)
-        )
+        val outAngle = 2.0 * atan2(axisLength, q.w)
+        return outAxis to outAngle
     }
 
     companion object {
-        /**
-         * オイラー角からクォータニオンを生成する
-         * @param x X軸回転
-         * @param y Y軸回転
-         * @param z Z軸回転
-         * @return クォータニオン
-         */
-        fun euler(x: Double, y: Double, z: Double): Quaternion3d {
-            val c1 = cos(x / 2)
-            val c2 = cos(y / 2)
-            val c3 = cos(z / 2)
-            val s1 = sin(x / 2)
-            val s2 = sin(y / 2)
-            val s3 = sin(z / 2)
-            return Quaternion3d(
-                c1 * c2 * s3 + s1 * s2 * c3,
-                c1 * s2 * c3 + s1 * c2 * s3,
-                s1 * c2 * c3 - c1 * s2 * s3,
-                c1 * c2 * c3 - s1 * s2 * s3
-            )
-        }
+        /** 単位クォータニオン */
+        val Identity = Quaternion3d(0.0, 0.0, 0.0, 1.0)
 
         /**
          * 軸と角度からクォータニオンを生成する
@@ -195,5 +188,21 @@ class Quaternion3d(val x: Double, val y: Double, val z: Double, val w: Double) {
          * @return Z軸回転クォータニオン
          */
         fun rotateZ(angle: Double) = axisAngle(Vec3d.AxisZ, angle)
+
+        /**
+         * 球面補間
+         * @param a 移動元のクォータニオン
+         * @param b 移動先のクォータニオン
+         * @param t 時間
+         * @return 球面補間されたクォータニオン
+         */
+        fun slerp(a: Quaternion3d, b: Quaternion3d, t: Double): Quaternion3d {
+            if (a.dot(b) > 0.9999) {
+                // ほぼ同じ姿勢なので、線形補間をする
+                return (a * (1 - t) + b * t).normalized
+            }
+            // 球面補間
+            return (a * (a.inverse * b).scaleRotation(t))
+        }
     }
 }

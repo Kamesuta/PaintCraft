@@ -76,10 +76,20 @@ kotlin {
                 implementation("dev.kotx:flylib-reloaded:0.5.0")
             }
         }
+        val commonTest by getting {
+            dependencies {
+                implementation("io.kotest:kotest-runner-junit5-jvm:4.6.1")
+            }
+        }
     }
 }
 
 tasks {
+    // 単体テスト (kotest)
+    withType<Test> {
+        useJUnitPlatform()
+    }
+
     jar {
         // デフォルトのjarタスクを削除
         enabled = false
@@ -138,8 +148,8 @@ tasks {
     // Javadocを出力する
     val javadocJar by registering(Jar::class) {
         archiveClassifier.set("javadoc")
-        from(dokkaJavadoc)
-        dependsOn(dokkaJavadoc)
+        from(dokkaHtml)
+        dependsOn(dokkaHtml)
     }
 
     // ソースjarを生成する
