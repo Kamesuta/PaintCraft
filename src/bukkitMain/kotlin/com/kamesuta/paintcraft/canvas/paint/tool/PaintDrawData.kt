@@ -1,9 +1,9 @@
 package com.kamesuta.paintcraft.canvas.paint.tool
 
+import com.kamesuta.paintcraft.frame.FrameEntity
 import com.kamesuta.paintcraft.frame.FramePlaneTraceResult
 import com.kamesuta.paintcraft.map.DrawableMapItem
 import com.kamesuta.paintcraft.util.vec.Vec2d
-import org.bukkit.entity.ItemFrame
 
 /**
  * 線を描く情報
@@ -14,7 +14,7 @@ import org.bukkit.entity.ItemFrame
  * @param result レイキャスト結果 (同じアイテムフレーム同士の場合は線分のレイキャストしないのでnull)
  */
 class PaintDrawData(
-    val itemFrame: ItemFrame,
+    val itemFrame: FrameEntity,
     val mapItem: DrawableMapItem,
     val uvStart: Vec2d,
     val uvEnd: Vec2d,

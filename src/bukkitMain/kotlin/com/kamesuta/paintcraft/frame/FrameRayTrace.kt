@@ -3,7 +3,6 @@ package com.kamesuta.paintcraft.frame
 import com.kamesuta.paintcraft.canvas.CanvasMode
 import com.kamesuta.paintcraft.frame.FrameLocation.Companion.isUvInMap
 import com.kamesuta.paintcraft.frame.FrameLocation.Companion.transformUv
-import com.kamesuta.paintcraft.map.DrawableMapItem
 import com.kamesuta.paintcraft.util.clienttype.ClientType
 import com.kamesuta.paintcraft.util.vec.Line3d
 import com.kamesuta.paintcraft.util.vec.debug.DebugLocatables.DebugLineType.DIRECTION
@@ -71,7 +70,7 @@ class FrameRayTrace(
             // その中からアイテムフレームを取得する
             .filter { it.item.type == Material.FILLED_MAP }
             // レイを飛ばす
-            .mapNotNull { rayTraceCanvasByEntity(eyeLocation, it, false) }
+            .mapNotNull { rayTraceCanvasByEntity(eyeLocation, FrameEntityBukkit(it), false) }
             .filter { it.canvasIntersectLocation.distanceSquared(eyeLocation.origin) <= maxDistance * maxDistance }
             // 一番近いヒットしたキャンバス
             .minByOrNull {
@@ -97,14 +96,14 @@ class FrameRayTrace(
      */
     fun rayTraceCanvasByEntity(
         eyeLocation: Line3d,
-        itemFrame: ItemFrame,
+        itemFrame: FrameEntity,
         missHit: Boolean,
     ): FrameRayTraceResult? {
         // マップデータを取得、ただの地図ならばスキップ
-        val mapItem = DrawableMapItem.get(itemFrame.item)
+        val mapItem = itemFrame.toDrawableMapItem()
             ?: return null
         // フレーム平面の作成
-        val frameLocation = FrameLocation.fromItemFrame(itemFrame, clientType)
+        val frameLocation = itemFrame.toFrameLocation(clientType)
         player.debugLocation {
             // アイテムフレームの位置
             locate(DebugLocationType.CANVAS_LINE, frameLocation.normal.toDebug(SEGMENT))
@@ -115,10 +114,7 @@ class FrameRayTrace(
             .intersect(eyeLocation)
             ?: return null // レイがキャンバスと平行
         // アイテムフレーム内のマップの向き
-        val rotation = when (clientType.isLegacyRotation) {
-            false -> FrameRotation.fromRotation(itemFrame.rotation)
-            true -> FrameRotation.fromLegacyRotation(itemFrame.rotation)
-        }
+        val rotation = itemFrame.getFrameRotation(clientType)
         // UVに変換 → キャンバス内UVを計算、キャンバス範囲外ならばスキップ
         val uv = frameLocation.toBlockUv(intersectLocation)
             // キャンバス内UV(0～127)を計算、キャンバス範囲外ならばスキップ

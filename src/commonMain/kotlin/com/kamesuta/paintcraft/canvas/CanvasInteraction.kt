@@ -1,8 +1,8 @@
 package com.kamesuta.paintcraft.canvas
 
 import com.kamesuta.paintcraft.frame.FrameRayTraceResult
+import com.kamesuta.paintcraft.player.PaintPlayer
 import com.kamesuta.paintcraft.util.vec.Vec2d
-import org.bukkit.entity.Player
 
 /**
  * プレイヤーがキャンバスに描くときのインタラクション詳細。
@@ -13,5 +13,5 @@ import org.bukkit.entity.Player
 data class CanvasInteraction(
     val uv: Vec2d,
     val ray: FrameRayTraceResult,
-    val player: Player,
+    val player: PaintPlayer,
 )

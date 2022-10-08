@@ -2,7 +2,6 @@ package com.kamesuta.paintcraft.frame
 
 import com.kamesuta.paintcraft.map.DrawableMapItem
 import com.kamesuta.paintcraft.util.vec.Vec2d
-import org.bukkit.entity.ItemFrame
 
 /**
  * 平面上のヒットした位置情報
@@ -22,7 +21,7 @@ data class FramePlaneTraceResult(
      * @param uvEnd キャンバス上の終点のUV
      */
     data class EntityResult(
-        val itemFrame: ItemFrame,
+        val itemFrame: FrameEntity,
         val mapItem: DrawableMapItem,
         val frameLocation: FrameLocation,
         val uvStart: Vec2d,

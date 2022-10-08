@@ -1,9 +1,7 @@
 package com.kamesuta.paintcraft.frame
 
 import com.kamesuta.paintcraft.map.image.mapSize
-import com.kamesuta.paintcraft.util.clienttype.ClientType
 import com.kamesuta.paintcraft.util.vec.*
-import org.bukkit.entity.ItemFrame
 
 /**
  * アイテムフレームの座標、回転
@@ -74,47 +72,6 @@ class FrameLocation(
     }
 
     companion object {
-        /**
-         * キャンバスフレームの平面の座標を求める
-         * アイテムフレームの座標からキャンバス平面の座標を計算する
-         * (tpでアイテムフレームを回転したときにずれる)
-         * @param itemFrame アイテムフレーム
-         * @param clientType クライアントの種類
-         * @return キャンバスフレームの平面の座標
-         */
-        fun fromItemFrame(itemFrame: ItemFrame, clientType: ClientType): FrameLocation {
-            // キャンバスの回転を計算
-            val (canvasYaw, canvasPitch) = getCanvasRotation(itemFrame, clientType)
-            // ブロックの中心座標
-            val centerLocation = itemFrame.location.toCenterLocation().origin
-            // アイテムフレームが透明かどうか
-            val isFrameVisible = itemFrame.isVisible || !clientType.isInvisibleFrameSupported
-            // キャンバス平面とアイテムフレームの差 = アイテムフレームの厚さ/2
-
-            val canvasOffsetZ = if (isFrameVisible) 0.07 else 0.0075
-            // アイテムフレームを構築
-            return FrameLocation(centerLocation, canvasYaw, canvasPitch, canvasOffsetZ)
-        }
-
-        /**
-         * キャンバスの回転を計算
-         * @param itemFrame アイテムフレーム
-         * @param clientType クライアントの種類
-         * @return キャンバスの回転
-         */
-        private fun getCanvasRotation(itemFrame: ItemFrame, clientType: ClientType): Pair<Float, Float> {
-            return if (clientType.isPitchRotationSupported) {
-                // Java版1.13以降はYaw/Pitchの自由回転をサポートしている
-                itemFrame.location.let { it.yaw to it.pitch }
-            } else if (clientType.isFacingRotationOnly) {
-                // BE版はブロックに沿った回転のみサポートしている
-                val dir = Line3d(Vec3d.Zero, itemFrame.facing.direction.toVec3d())
-                dir.yaw to dir.pitch
-            } else {
-                // Java版1.12以前はYaw回転のみサポートしている、Pitchは常に0
-                itemFrame.location.yaw to 0.0f
-            }
-        }
 
         /**
          * YawとPitchで回転するクォータニオンを取得する

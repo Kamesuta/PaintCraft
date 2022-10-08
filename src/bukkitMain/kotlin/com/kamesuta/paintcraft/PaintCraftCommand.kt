@@ -5,7 +5,7 @@ import com.kamesuta.paintcraft.canvas.paint.PaintFill
 import com.kamesuta.paintcraft.canvas.paint.PaintLine
 import com.kamesuta.paintcraft.canvas.paint.PaintPencil
 import com.kamesuta.paintcraft.canvas.paint.PaintRect
-import com.kamesuta.paintcraft.map.DrawableMapItem
+import com.kamesuta.paintcraft.map.DrawableMapItemBukkit
 import com.kamesuta.paintcraft.map.behavior.DrawBehaviorTypes.DrawBehaviorPaintDesc
 import com.kamesuta.paintcraft.map.behavior.DrawBehaviorTypes.DrawBehaviorPaletteDesc
 import com.kamesuta.paintcraft.map.image.debug.PixelImageManualTest
@@ -45,7 +45,7 @@ class GiveCanvasCommand : Command("give") {
             executes {
                 val entities = typedArgs[0] as List<*>
                 entities.filterIsInstance<Player>().forEach {
-                    val mapDrawer = DrawableMapItem.create(it.world, DrawBehaviorPaintDesc)
+                    val mapDrawer = DrawableMapItemBukkit.create(it.world, DrawBehaviorPaintDesc)
                     it.inventory.addItem(mapDrawer.itemStack)
                 }
             }
@@ -60,7 +60,7 @@ class PaletteCanvasCommand : Command("palette") {
             executes {
                 val entities = typedArgs[0] as List<*>
                 entities.filterIsInstance<Player>().forEach {
-                    val mapDrawer = DrawableMapItem.create(it.world, DrawBehaviorPaletteDesc)
+                    val mapDrawer = DrawableMapItemBukkit.create(it.world, DrawBehaviorPaletteDesc)
                     it.inventory.addItem(mapDrawer.itemStack)
                 }
             }
@@ -233,7 +233,7 @@ class DebugPlaceCommand : Command("debug_place") {
                             // アイテムフレームを置く
                             val entity = world.spawn(center, ItemFrame::class.java)
                             // マップを作成してアイテムフレームに設定
-                            val map = DrawableMapItem.create(world, DrawBehaviorPaintDesc)
+                            val map = DrawableMapItemBukkit.create(world, DrawBehaviorPaintDesc)
                             entity.setItem(map.itemStack)
                         }
                     }

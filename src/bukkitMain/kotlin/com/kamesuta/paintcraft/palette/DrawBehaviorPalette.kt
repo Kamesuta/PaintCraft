@@ -3,6 +3,7 @@ package com.kamesuta.paintcraft.palette
 import com.kamesuta.paintcraft.canvas.CanvasDrawingActionType
 import com.kamesuta.paintcraft.canvas.CanvasMode
 import com.kamesuta.paintcraft.canvas.CanvasSession
+import com.kamesuta.paintcraft.canvas.ICanvasSession
 import com.kamesuta.paintcraft.canvas.paint.PaintEvent
 import com.kamesuta.paintcraft.map.DrawableMapRenderer
 import com.kamesuta.paintcraft.map.behavior.DrawBehavior
@@ -11,7 +12,6 @@ import com.kamesuta.paintcraft.util.color.MapColor
 import com.kamesuta.paintcraft.util.color.RGBColor.Companion.toRGB
 import com.kamesuta.paintcraft.util.color.RGBColor.MapColors.transparent
 import com.kamesuta.paintcraft.util.color.toMapColor
-import com.kamesuta.paintcraft.util.vec.origin
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.event.ClickEvent
 import net.kyori.adventure.text.event.HoverEvent
@@ -25,7 +25,10 @@ class DrawBehaviorPalette(private val renderer: DrawableMapRenderer) : DrawBehav
     /** パレットに保存されるデータ */
     private val paletteData = PaletteData()
 
-    override fun paint(session: CanvasSession, event: PaintEvent) {
+    override fun paint(session: ICanvasSession, event: PaintEvent) {
+        // TODO: キャンバスセッションを抽象化する
+        require(session is CanvasSession)
+
         // UV座標を取得
         val uv = event.interact.uv
         // クリック開始時の場合のみ調整中のモードを設定
@@ -174,10 +177,10 @@ class DrawBehaviorPalette(private val renderer: DrawableMapRenderer) : DrawBehav
                                 )
                         )
                     // チャット送信
-                    session.player.sendMessage("")
-                    session.player.sendMessage(hexColorText)
-                    session.player.sendMessage(mapColorText)
-                    session.player.sendMessage("")
+                    session.player.player.sendMessage("")
+                    session.player.player.sendMessage(hexColorText)
+                    session.player.player.sendMessage(mapColorText)
+                    session.player.player.sendMessage("")
                 }
 
                 else -> {}

@@ -8,6 +8,7 @@ import com.kamesuta.paintcraft.map.image.PixelImageLayer
 import com.kamesuta.paintcraft.map.image.PixelImageMapBuffer
 import com.kamesuta.paintcraft.map.image.PixelImageMapCanvas
 import com.kamesuta.paintcraft.map.image.drawPixelImage
+import com.kamesuta.paintcraft.player.PaintPlayer
 import com.kamesuta.paintcraft.util.vec.Vec3d
 import com.kamesuta.paintcraft.util.vec.origin
 import org.bukkit.entity.Player
@@ -19,7 +20,7 @@ import org.bukkit.map.MapView
  * 書き込み可能レンダラー
  * @param behaviorDesc 描画ツール生成情報
  */
-class DrawableMapRenderer(private val behaviorDesc: DrawBehaviorTypes.Desc) : MapRenderer() {
+class DrawableMapRendererBukkit(private val behaviorDesc: DrawBehaviorTypes.Desc) : MapRenderer(), DrawableMapRenderer {
     /** マップビュー */
     private lateinit var mapView: MapView
 
@@ -32,11 +33,10 @@ class DrawableMapRenderer(private val behaviorDesc: DrawBehaviorTypes.Desc) : Ma
     /** レイヤー書き出し先 */
     private val mapLayerCache = PixelImageMapBuffer()
 
-    /** 書き込み中のピクセルデータのレイヤー */
-    val mapLayer = PixelImageLayer<Player>(PixelImageMapBuffer())
+    override val mapLayer = PixelImageLayer<PaintPlayer>(PixelImageMapBuffer())
 
     /** 描画ツール */
-    lateinit var behavior: DrawBehavior
+    override lateinit var behavior: DrawBehavior
         private set
 
     /** キャンバス初回初期化フラグ */
@@ -93,23 +93,14 @@ class DrawableMapRenderer(private val behaviorDesc: DrawBehaviorTypes.Desc) : Ma
         dirty = false
     }
 
-    /**
-     * ベースイメージへ書き込みを行う
-     * @param draw 描画関数
-     */
-    fun drawBase(draw: Draw) {
+    override fun drawBase(draw: Draw) {
         // 描画
         draw.draw(mapLayer.base)
         // 変更フラグを設定する
         dirty = true
     }
 
-    /**
-     * 書き込みを行うオブジェクトを取得する
-     * @param player 描き込んだプレイヤー
-     * @return 書き込みを行うオブジェクト
-     */
-    fun drawer(player: Player): Drawable {
+    override fun drawer(player: PaintPlayer): Drawable {
         return Drawable { draw ->
             // 描画
             draw.draw(mapLayer[player])
@@ -122,7 +113,7 @@ class DrawableMapRenderer(private val behaviorDesc: DrawBehaviorTypes.Desc) : Ma
      * プレイヤーに更新を通知する
      * @param location アイテムフレームの位置
      */
-    fun updatePlayer(location: Vec3d) {
+    override fun updatePlayer(location: Vec3d) {
         // 更新する半径 ( TODO: 半径のコンフィグ化 )
         val radius = 10.0
         // アップデート用キャッシュ

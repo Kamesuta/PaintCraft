@@ -1,12 +1,10 @@
 package com.kamesuta.paintcraft.map
 
 import com.kamesuta.paintcraft.map.behavior.DrawBehaviorTypes
-import com.kamesuta.paintcraft.map.draw.Drawable
 import com.kamesuta.paintcraft.util.PersistentDataProperty
 import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.World
-import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.MapMeta
 import org.bukkit.map.MapView
@@ -14,23 +12,14 @@ import org.bukkit.map.MapView
 /**
  * 書き込み可能マップ
  * @param itemStack アイテム
- * @param mapView マップ
+ * @param mapId マップID
  * @param renderer レンダラー
  */
-class DrawableMapItem(
+class DrawableMapItemBukkit(
     val itemStack: ItemStack,
-    val mapView: MapView,
-    val renderer: DrawableMapRenderer,
-) {
-    /**
-     * マップに描画する
-     * @param player 描き込んだプレイヤー
-     * @param f 描画する関数
-     */
-    fun draw(player: Player, f: Drawable.() -> Unit) {
-        renderer.behavior.draw(player, f)
-    }
-
+    mapId: Int,
+    renderer: DrawableMapRenderer,
+) : DrawableMapItem(mapId, renderer) {
     companion object {
         /**
          * アイテムのビヘイビア、マップとして認識するためのキー
@@ -46,11 +35,11 @@ class DrawableMapItem(
          * 書き込み可能マップを作成する
          * @param world ワールド
          */
-        fun create(world: World, type: DrawBehaviorTypes.Desc): DrawableMapItem {
+        fun create(world: World, type: DrawBehaviorTypes.Desc): DrawableMapItemBukkit {
             // マップを作成する
             val mapView = Bukkit.getServer().createMap(world)
             // レンダラーを初期化
-            val renderer = DrawableMapRenderer(type)
+            val renderer = DrawableMapRendererBukkit(type)
             // レンダラーを設定
             mapView.setRenderer(renderer)
 
@@ -69,7 +58,7 @@ class DrawableMapItem(
             // 初回描画
             renderer.behavior.init()
             // インスタンスを作成
-            return DrawableMapItem(item, mapView, renderer)
+            return DrawableMapItemBukkit(item, mapView.id, renderer)
         }
 
         /**
@@ -77,7 +66,7 @@ class DrawableMapItem(
          * @param item アイテム
          * @return 書き込み可能マップ
          */
-        fun get(item: ItemStack): DrawableMapItem? {
+        fun get(item: ItemStack): DrawableMapItemBukkit? {
             // 地図でなければ無視
             if (item.type != Material.FILLED_MAP)
                 return null
@@ -95,7 +84,7 @@ class DrawableMapItem(
                 val type = DrawBehaviorTypes.types[PAINT_BEHAVIOR[itemMeta.persistentDataContainer]]
                     ?: return null
                 // レンダラーを初期化
-                val renderer = DrawableMapRenderer(type)
+                val renderer = DrawableMapRendererBukkit(type)
                 // レンダラーを設定
                 mapView.setRenderer(renderer)
                 // 初回描画
@@ -103,14 +92,14 @@ class DrawableMapItem(
                 renderer
             }
             // インスタンスを作成
-            return DrawableMapItem(item, mapView, renderer)
+            return DrawableMapItemBukkit(item, mapView.id, renderer)
         }
 
         /**
          * マップのレンダラーを書き込み可能レンダラー置き換える
          * @param renderer レンダラー
          */
-        private fun MapView.setRenderer(renderer: DrawableMapRenderer?) {
+        private fun MapView.setRenderer(renderer: DrawableMapRendererBukkit?) {
             // ConcurrentModificationExceptionが起きないように一度toListする
             renderers.toList().forEach { removeRenderer(it) }
             if (renderer != null) {
@@ -121,8 +110,8 @@ class DrawableMapItem(
         /**
          * 書き込み可能レンダラーを取得する
          */
-        private fun MapView.getRenderer(): DrawableMapRenderer? {
-            return renderers.filterIsInstance<DrawableMapRenderer>().firstOrNull()
+        private fun MapView.getRenderer(): DrawableMapRendererBukkit? {
+            return renderers.filterIsInstance<DrawableMapRendererBukkit>().firstOrNull()
         }
     }
 }

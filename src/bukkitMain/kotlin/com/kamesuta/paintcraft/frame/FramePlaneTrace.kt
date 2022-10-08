@@ -2,7 +2,6 @@ package com.kamesuta.paintcraft.frame
 
 import com.kamesuta.paintcraft.frame.FrameLocation.Companion.clipBlockUV
 import com.kamesuta.paintcraft.frame.FrameLocation.Companion.transformUv
-import com.kamesuta.paintcraft.map.DrawableMapItem
 import com.kamesuta.paintcraft.map.image.mapSize
 import com.kamesuta.paintcraft.util.vec.Line2d
 import com.kamesuta.paintcraft.util.vec.debug.DebugLocatables.DebugLineType.LINE
@@ -10,7 +9,6 @@ import com.kamesuta.paintcraft.util.vec.debug.DebugLocatables.DebugLineType.SEGM
 import com.kamesuta.paintcraft.util.vec.debug.DebugLocatables.toDebug
 import com.kamesuta.paintcraft.util.vec.debug.DebugLocationType
 import com.kamesuta.paintcraft.util.vec.debug.DebugLocationVisualizer.debugLocation
-import org.bukkit.entity.ItemFrame
 
 /**
  * キャンバスと面の交差判定をします
@@ -24,7 +22,7 @@ object FramePlaneTrace {
      */
     fun FrameRayTrace.planeTraceCanvas(
         plane: FramePlane,
-        entities: Collection<ItemFrame>,
+        entities: Collection<FrameEntity>,
     ): FramePlaneTraceResult {
         // 既になぞったキャンバスからヒットした位置を取得
         val results = entities
@@ -42,13 +40,13 @@ object FramePlaneTrace {
      */
     private fun FrameRayTrace.planeTraceCanvasByEntity(
         plane: FramePlane,
-        itemFrame: ItemFrame,
+        itemFrame: FrameEntity,
     ): FramePlaneTraceResult.EntityResult? {
         // マップデータを取得、ただの地図ならばスキップ
-        val mapItem = DrawableMapItem.get(itemFrame.item)
+        val mapItem = itemFrame.toDrawableMapItem()
             ?: return null
         // フレーム平面の作成
-        val frameLocation = FrameLocation.fromItemFrame(itemFrame, clientType)
+        val frameLocation = itemFrame.toFrameLocation(clientType)
 
         // 面の交線を計算
         val intersectLine = frameLocation.plane.intersect(plane.plane)
@@ -72,10 +70,7 @@ object FramePlaneTrace {
             ?.intersectSegment(segment) // 始点、終点のどちらかがキャンバス内にある場合は線分を取る
             ?: return null
         // アイテムフレーム内のマップの向き
-        val rotation = when (clientType.isLegacyRotation) {
-            false -> FrameRotation.fromRotation(itemFrame.rotation)
-            true -> FrameRotation.fromLegacyRotation(itemFrame.rotation)
-        }
+        val rotation = itemFrame.getFrameRotation(clientType)
         // キャンバス内UVを計算、キャンバス範囲外ならばスキップ
         val uvStart = clip.origin.transformUv(rotation)
         val uvEnd = clip.target.transformUv(rotation)

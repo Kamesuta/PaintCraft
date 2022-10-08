@@ -28,9 +28,9 @@ class ClientTypeUpdateListener : Listener {
         /** クライアントの種類の情報を更新する */
         private fun CanvasSession.updateClientType() {
             // クライアントのブランド
-            clientType.clientBrand = ClientTypeReflection.getClientBrand(player)
+            clientType.clientBrand = ClientTypeReflection.getClientBrand(player.player)
             // クライアントのバージョン
-            clientType.clientVersion = ClientTypeReflection.getClientVersion(player)
+            clientType.clientVersion = ClientTypeReflection.getClientVersion(player.player)
         }
     }
 }

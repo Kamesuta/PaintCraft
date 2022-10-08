@@ -1,19 +1,19 @@
 package com.kamesuta.paintcraft.canvas
 
 import com.kamesuta.paintcraft.frame.FrameRayTrace
+import com.kamesuta.paintcraft.player.PaintPlayerBukkit
 import com.kamesuta.paintcraft.util.clienttype.ClientType
-import org.bukkit.entity.Player
 
 /**
  * キャンバスのステート
  * @param player プレイヤー
  */
-class CanvasSession(val player: Player) {
+class CanvasSession(override val player: PaintPlayerBukkit) : ICanvasSession {
     /** 前回の正確な目線の位置 (補完されていない生の位置) */
-    var prevEyeLocation = player.eyeLocation
+    var prevEyeLocation = player.player.eyeLocation
 
     /** 正確な目線の位置 (補完されていない生の位置) */
-    var eyeLocation = player.eyeLocation
+    var eyeLocation = player.player.eyeLocation
 
     /** 最後のエンティティ右クリック時刻 */
     var lastInteract = 0L
@@ -37,5 +37,5 @@ class CanvasSession(val player: Player) {
     val mode = CanvasMode(this)
 
     /** レイツール */
-    val rayTrace = FrameRayTrace(player, clientType, mode)
+    val rayTrace = FrameRayTrace(player.player, clientType, mode)
 }

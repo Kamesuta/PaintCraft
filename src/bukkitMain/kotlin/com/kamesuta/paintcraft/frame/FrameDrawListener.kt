@@ -15,10 +15,8 @@ import com.kamesuta.paintcraft.util.vec.debug.DebugLocatables.DebugLineType.SEGM
 import com.kamesuta.paintcraft.util.vec.debug.DebugLocatables.toDebug
 import com.kamesuta.paintcraft.util.vec.debug.DebugLocationType
 import com.kamesuta.paintcraft.util.vec.debug.DebugLocationVisualizer.clearDebugLocation
-import com.kamesuta.paintcraft.util.vec.debug.DebugLocationVisualizer.debugLocation
 import com.kamesuta.paintcraft.util.vec.origin
 import com.kamesuta.paintcraft.util.vec.toLine
-import com.kamesuta.paintcraft.util.vec.toVec3d
 import org.bukkit.Bukkit
 import org.bukkit.GameMode
 import org.bukkit.Location
@@ -452,7 +450,7 @@ class FrameDrawListener : Listener, Runnable {
 
         // Shiftキー押したらスナップするようにする
         var ray = frameRay
-        if (player.isSneaking) {
+        if (player.isSnapMode) {
             // 始点がある場合
             session.drawing.startEvent?.let {
                 // 始点と終点を結んだ線分を取得
@@ -484,19 +482,20 @@ class FrameDrawListener : Listener, Runnable {
 
         // アイテムフレームの位置を取得
         val itemFrameLocation = ray.itemFrame.location
+        val itemFrameBlockLocation = ray.itemFrame.blockLocation
         player.debugLocation {
             // アイテムフレームの位置
             locate(
                 DebugLocationType.FRAME_LINE,
-                itemFrameLocation.toLine().toDebug(SEGMENT)
+                itemFrameLocation.toDebug(SEGMENT)
             )
             // アイテムフレームのブロック上での方向
             locate(
                 DebugLocationType.FRAME_FACING,
-                (itemFrameLocation.origin + ray.itemFrame.facing.direction.toVec3d()).toDebug()
+                (itemFrameLocation.origin + itemFrameBlockLocation.direction).toDebug()
             )
             // アイテムフレームのブロック
-            locate(DebugLocationType.FRAME_FACING_BLOCK, itemFrameLocation.toCenterLocation().origin.toDebug())
+            locate(DebugLocationType.FRAME_FACING_BLOCK, itemFrameBlockLocation.origin.toDebug())
             // ヒット位置
             locate(DebugLocationType.CANVAS_HIT_LOCATION, ray.canvasIntersectLocation.toDebug())
         }

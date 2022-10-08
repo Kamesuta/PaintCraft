@@ -1,10 +1,9 @@
 package com.kamesuta.paintcraft.canvas
 
+import com.kamesuta.paintcraft.frame.FrameEntity
 import com.kamesuta.paintcraft.map.DrawableMapItem
 import com.kamesuta.paintcraft.map.draw.DrawRollback
-import com.kamesuta.paintcraft.util.vec.origin
-import org.bukkit.entity.ItemFrame
-import org.bukkit.entity.Player
+import com.kamesuta.paintcraft.player.PaintPlayer
 
 /**
  * キャンバスのスナップショット
@@ -18,8 +17,8 @@ class CanvasMemento private constructor(private val entries: Collection<Entry.Me
      * @param mapItem マップ
      */
     private sealed class Entry(
-        val player: Player,
-        val itemFrame: ItemFrame,
+        val player: PaintPlayer,
+        val itemFrame: FrameEntity,
         val mapItem: DrawableMapItem,
     ) {
         /** 変更点をプレイヤーに送信する */
@@ -32,8 +31,8 @@ class CanvasMemento private constructor(private val entries: Collection<Entry.Me
          * @param data スナップショット
          */
         class Memento(
-            player: Player,
-            itemFrame: ItemFrame,
+            player: PaintPlayer,
+            itemFrame: FrameEntity,
             mapItem: DrawableMapItem,
             val data: DrawRollback
         ) : Entry(player, itemFrame, mapItem) {
@@ -47,8 +46,8 @@ class CanvasMemento private constructor(private val entries: Collection<Entry.Me
         }
 
         class Building(
-            player: Player,
-            itemFrame: ItemFrame,
+            player: PaintPlayer,
+            itemFrame: FrameEntity,
             mapItem: DrawableMapItem,
         ) : Entry(player, itemFrame, mapItem) {
             /** 変更を破棄する */
@@ -97,8 +96,8 @@ class CanvasMemento private constructor(private val entries: Collection<Entry.Me
          * @param itemFrame アイテムフレーム
          * @param mapItem マップ
          */
-        fun store(player: Player, itemFrame: ItemFrame, mapItem: DrawableMapItem) {
-            entries.getOrPut(mapItem.mapView.id) {
+        fun store(player: PaintPlayer, itemFrame: FrameEntity, mapItem: DrawableMapItem) {
+            entries.getOrPut(mapItem.mapId) {
                 // 新たに描いたマップアイテムのみ記憶
                 Entry.Building(player, itemFrame, mapItem)
             }

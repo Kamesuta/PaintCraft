@@ -4,7 +4,6 @@ import com.kamesuta.paintcraft.map.DrawableMapItem
 import com.kamesuta.paintcraft.util.vec.Line3d
 import com.kamesuta.paintcraft.util.vec.Vec2d
 import com.kamesuta.paintcraft.util.vec.Vec3d
-import org.bukkit.entity.ItemFrame
 
 /**
  * キャンバス上のヒットした位置情報
@@ -17,7 +16,7 @@ import org.bukkit.entity.ItemFrame
  * @param isHit レイがアイテムフレームにヒットしたか
  */
 data class FrameRayTraceResult(
-    val itemFrame: ItemFrame,
+    val itemFrame: FrameEntity,
     val mapItem: DrawableMapItem,
     val eyeLocation: Line3d,
     val frameLocation: FrameLocation,

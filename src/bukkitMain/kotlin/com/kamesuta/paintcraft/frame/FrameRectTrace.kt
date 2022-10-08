@@ -1,7 +1,6 @@
 package com.kamesuta.paintcraft.frame
 
 import com.kamesuta.paintcraft.frame.FrameLocation.Companion.transformUv
-import com.kamesuta.paintcraft.map.DrawableMapItem
 import com.kamesuta.paintcraft.util.vec.Line2d
 import com.kamesuta.paintcraft.util.vec.toVector
 import org.bukkit.Material
@@ -51,7 +50,7 @@ object FrameRectTrace {
                 }
             }
             // レイを飛ばす
-            .mapNotNull { rectTraceCanvasByEntity(plane, it) }
+            .mapNotNull { rectTraceCanvasByEntity(plane, FrameEntityBukkit(it)) }
             // 裏側のアイテムフレームは除外する
             .filter {
                 // レイ開始時または終了時どちらかの目線の位置から見えているなら除外しない
@@ -72,13 +71,13 @@ object FrameRectTrace {
      */
     private fun FrameRayTrace.rectTraceCanvasByEntity(
         plane: FramePlane,
-        itemFrame: ItemFrame,
+        itemFrame: FrameEntity,
     ): FramePlaneTraceResult.EntityResult? {
         // マップデータを取得、ただの地図ならばスキップ
-        val mapItem = DrawableMapItem.get(itemFrame.item)
+        val mapItem = itemFrame.toDrawableMapItem()
             ?: return null
         // フレーム平面の作成
-        val frameLocation = FrameLocation.fromItemFrame(itemFrame, clientType)
+        val frameLocation = itemFrame.toFrameLocation(clientType)
 
         // 長方形始点と終点
         val rectSegment = plane.segment
@@ -89,10 +88,7 @@ object FrameRectTrace {
         // 2Dの線分(未クリップ、キャンバス内の範囲に収まっていない)
         val segment = Line2d.fromPoints(rawUvOrigin, rawUvTarget)
         // アイテムフレーム内のマップの向き
-        val rotation = when (clientType.isLegacyRotation) {
-            false -> FrameRotation.fromRotation(itemFrame.rotation)
-            true -> FrameRotation.fromLegacyRotation(itemFrame.rotation)
-        }
+        val rotation = itemFrame.getFrameRotation(clientType)
         // キャンバス内UVを計算、キャンバス範囲外ならば範囲内に納める
         val uvStart = segment.origin.transformUv(rotation)
         val uvEnd = segment.target.transformUv(rotation)

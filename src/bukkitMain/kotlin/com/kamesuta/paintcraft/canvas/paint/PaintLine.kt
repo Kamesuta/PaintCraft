@@ -3,9 +3,9 @@ package com.kamesuta.paintcraft.canvas.paint
 import com.kamesuta.paintcraft.canvas.CanvasActionType
 import com.kamesuta.paintcraft.canvas.CanvasSession
 import com.kamesuta.paintcraft.canvas.paint.tool.PaintDrawTool
+import com.kamesuta.paintcraft.frame.FrameEntity
 import com.kamesuta.paintcraft.map.draw.DrawLine
 import com.kamesuta.paintcraft.util.vec.Line3d
-import org.bukkit.entity.ItemFrame
 
 /**
  * 右クリック2点で線が引けるツール
@@ -13,7 +13,7 @@ import org.bukkit.entity.ItemFrame
  */
 class PaintLine(override val session: CanvasSession) : PaintTool {
     /** 線を描き中、触れたことがあるアイテムフレーム */
-    private val entities = mutableSetOf<ItemFrame>()
+    private val entities = mutableSetOf<FrameEntity>()
 
     override fun beginPainting(event: PaintEvent) {
         // リセット

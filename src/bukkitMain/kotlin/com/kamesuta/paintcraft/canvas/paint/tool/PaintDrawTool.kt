@@ -2,6 +2,7 @@ package com.kamesuta.paintcraft.canvas.paint.tool
 
 import com.kamesuta.paintcraft.canvas.CanvasSession
 import com.kamesuta.paintcraft.canvas.paint.PaintEvent
+import com.kamesuta.paintcraft.frame.FrameEntity
 import com.kamesuta.paintcraft.frame.FrameLocation.Companion.isUvInMap
 import com.kamesuta.paintcraft.frame.FramePlane
 import com.kamesuta.paintcraft.frame.FramePlaneTrace.planeTraceCanvas
@@ -13,8 +14,6 @@ import com.kamesuta.paintcraft.util.vec.Plane3d
 import com.kamesuta.paintcraft.util.vec.debug.DebugLocatables.DebugLineType.SEGMENT
 import com.kamesuta.paintcraft.util.vec.debug.DebugLocatables.toDebug
 import com.kamesuta.paintcraft.util.vec.debug.DebugLocationType
-import com.kamesuta.paintcraft.util.vec.debug.DebugLocationVisualizer.debugLocation
-import org.bukkit.entity.ItemFrame
 
 /**
  * 複数キャンバスをまたいで線を描画するツール
@@ -32,7 +31,7 @@ object PaintDrawTool {
         session: CanvasSession,
         event: PaintEvent,
         prevEvent: PaintEvent,
-        entities: Collection<ItemFrame>,
+        entities: Collection<FrameEntity>,
         draw: PaintDrawData.() -> Unit,
     ) {
         drawRaycast(session, event, prevEvent, draw) { planeTraceCanvas(it, entities) }
