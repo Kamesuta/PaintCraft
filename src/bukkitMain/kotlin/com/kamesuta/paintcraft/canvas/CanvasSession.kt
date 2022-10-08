@@ -1,8 +1,8 @@
 package com.kamesuta.paintcraft.canvas
 
 import com.kamesuta.paintcraft.frame.FrameRayTrace
-import com.kamesuta.paintcraft.player.PaintSession
 import com.kamesuta.paintcraft.player.PaintPlayerBukkit
+import com.kamesuta.paintcraft.player.PaintSession
 import com.kamesuta.paintcraft.util.clienttype.ClientType
 
 /**
@@ -38,5 +38,5 @@ class CanvasSession(override val player: PaintPlayerBukkit) : PaintSession {
     val mode = CanvasMode(this)
 
     /** レイツール */
-    val rayTrace = FrameRayTrace(player.player, clientType, mode)
+    val rayTrace = FrameRayTrace(player, clientType, mode)
 }

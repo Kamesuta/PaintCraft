@@ -4,7 +4,6 @@ import com.kamesuta.paintcraft.util.color.RGBColor
 import com.kamesuta.paintcraft.util.color.RGBColor.MapColors.unchanged
 import com.kamesuta.paintcraft.util.color.toMapColor
 import com.kamesuta.paintcraft.util.vec.Rect2i
-import org.bukkit.map.MapFont
 import java.awt.image.BufferedImage
 import kotlin.math.ceil
 import kotlin.math.floor
@@ -109,14 +108,14 @@ fun PixelImage.drawPixelImage(image: PixelImage) {
  * @param image 描画するピクセルデータ
  */
 fun PixelImage.drawPixelImageWithResize(rect: Rect2i, image: PixelImage) {
-    val minX = rect.p1.x.coerceIn(0, width)
-    val minY = rect.p1.y.coerceIn(0, height)
-    val maxX = rect.p2.x.coerceIn(0, width)
-    val maxY = rect.p2.y.coerceIn(0, height)
+    val minX = rect.min.x.coerceIn(0, width)
+    val minY = rect.min.y.coerceIn(0, height)
+    val maxX = rect.max.x.coerceIn(0, width)
+    val maxY = rect.max.y.coerceIn(0, height)
     for (iy in minY until maxY) {
         for (ix in minX until maxX) {
-            val x = (ix - rect.p1.x) * image.width / rect.width
-            val y = (iy - rect.p1.y) * image.height / rect.height
+            val x = (ix - rect.min.x) * image.width / rect.width
+            val y = (iy - rect.min.y) * image.height / rect.height
             val color = image[x, y]
             if (color == unchanged) continue
             this[ix, iy] = color

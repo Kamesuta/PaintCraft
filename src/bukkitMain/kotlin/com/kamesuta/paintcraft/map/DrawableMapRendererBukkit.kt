@@ -147,8 +147,8 @@ class DrawableMapRendererBukkit(private val behaviorDesc: DrawBehaviorTypes.Desc
         val updateArea = buffer.dirty.rect
             ?: return
         // マップビューの更新範囲を更新する
-        DrawableMapReflection.flagDirty(mapView, updateArea.p1.x, updateArea.p1.y)
-        DrawableMapReflection.flagDirty(mapView, updateArea.p2.x, updateArea.p2.y)
+        DrawableMapReflection.flagDirty(mapView, updateArea.min.x, updateArea.min.y)
+        DrawableMapReflection.flagDirty(mapView, updateArea.max.x, updateArea.max.y)
     }
 
     /** レイヤーを合成する */

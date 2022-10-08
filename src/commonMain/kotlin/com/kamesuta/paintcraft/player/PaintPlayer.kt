@@ -9,6 +9,9 @@ interface PaintPlayer {
     /** スナップモード (スニーク状態) */
     val isSnapMode: Boolean
 
+    /** ワールド */
+    val world: PaintWorld
+
     /** デバッグ座標を更新 */
     fun debugLocation(f: DebugLocator.() -> Unit)
 }

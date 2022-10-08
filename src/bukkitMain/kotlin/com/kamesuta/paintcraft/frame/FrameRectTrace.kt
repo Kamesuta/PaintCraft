@@ -1,11 +1,9 @@
 package com.kamesuta.paintcraft.frame
 
 import com.kamesuta.paintcraft.frame.FrameLocation.Companion.transformUv
+import com.kamesuta.paintcraft.util.fuzzyEq
 import com.kamesuta.paintcraft.util.vec.Line2d
-import com.kamesuta.paintcraft.util.vec.toVector
-import org.bukkit.Material
-import org.bukkit.entity.ItemFrame
-import org.bukkit.util.BoundingBox
+import com.kamesuta.paintcraft.util.vec.Rect3d
 
 /**
  * キャンバスと長方形の交差判定をします
@@ -30,27 +28,25 @@ object FrameRectTrace {
         */
 
         // 範囲 (平面+αの範囲、αの厚み)
-        val box = BoundingBox.of(plane.segment.origin.toVector(), plane.segment.target.toVector()).expand(0.05)
-        val entities = player.world.getNearbyEntities(box.clone().expand(0.5)) { it is ItemFrame }
+        val box = Rect3d.of(plane.segment.origin, plane.segment.target).expand(0.05)
+        val entities = player.world.getFrameEntities(box.expand(0.5))
             .asSequence()
-            .mapNotNull { it as? ItemFrame }
-            // その中からアイテムフレームを取得する
-            .filter { it.item.type == Material.FILLED_MAP }
             // 垂直方向の範囲をチェックする
             .filter {
                 // 水平方向以外は無視 (垂直方向の範囲を0にする)
-                if (it.facing.modX != 0) {
-                    it.location.x in box.minX..box.maxX
-                } else if (it.facing.modY != 0) {
-                    it.location.y in box.minY..box.maxY
-                } else if (it.facing.modZ != 0) {
-                    it.location.z in box.minZ..box.maxZ
+                val blockLocation = it.blockLocation
+                if (blockLocation.direction.x fuzzyEq 0.0) {
+                    it.location.origin.x in box.min.x..box.max.x
+                } else if (blockLocation.direction.y fuzzyEq 0.0) {
+                    it.location.origin.y in box.min.y..box.max.y
+                } else if (blockLocation.direction.z fuzzyEq 0.0) {
+                    it.location.origin.z in box.min.z..box.max.z
                 } else {
                     true
                 }
             }
             // レイを飛ばす
-            .mapNotNull { rectTraceCanvasByEntity(plane, FrameEntityBukkit(it)) }
+            .mapNotNull { rectTraceCanvasByEntity(plane, it) }
             // 裏側のアイテムフレームは除外する
             .filter {
                 // レイ開始時または終了時どちらかの目線の位置から見えているなら除外しない

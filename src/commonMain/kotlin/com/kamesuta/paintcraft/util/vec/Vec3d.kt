@@ -77,6 +77,9 @@ data class Vec3d(val x: Double, val y: Double, val z: Double) {
         /** 原点 */
         val Zero = Vec3d(0.0, 0.0, 0.0)
 
+        /** (1, 1, 1) */
+        val One = Vec3d(1.0, 1.0, 1.0)
+
         /** X軸 */
         val AxisX = Vec3d(1.0, 0.0, 0.0)
 

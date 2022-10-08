@@ -3,19 +3,14 @@ package com.kamesuta.paintcraft.frame
 import com.kamesuta.paintcraft.canvas.CanvasMode
 import com.kamesuta.paintcraft.frame.FrameLocation.Companion.isUvInMap
 import com.kamesuta.paintcraft.frame.FrameLocation.Companion.transformUv
+import com.kamesuta.paintcraft.player.PaintPlayer
 import com.kamesuta.paintcraft.util.clienttype.ClientType
 import com.kamesuta.paintcraft.util.vec.Line3d
+import com.kamesuta.paintcraft.util.vec.Rect3d
 import com.kamesuta.paintcraft.util.vec.debug.DebugLocatables.DebugLineType.DIRECTION
 import com.kamesuta.paintcraft.util.vec.debug.DebugLocatables.DebugLineType.SEGMENT
 import com.kamesuta.paintcraft.util.vec.debug.DebugLocatables.toDebug
 import com.kamesuta.paintcraft.util.vec.debug.DebugLocationType
-import com.kamesuta.paintcraft.util.vec.debug.DebugLocationVisualizer.debugLocation
-import com.kamesuta.paintcraft.util.vec.toVec3d
-import com.kamesuta.paintcraft.util.vec.toVector
-import org.bukkit.Material
-import org.bukkit.entity.ItemFrame
-import org.bukkit.entity.Player
-import org.bukkit.util.BoundingBox
 
 /**
  * キャンバスと目線の交差判定をし、UVを計算します
@@ -24,7 +19,7 @@ import org.bukkit.util.BoundingBox
  * @param mode 描画時のモード
  */
 class FrameRayTrace(
-    val player: Player,
+    val player: PaintPlayer,
     val clientType: ClientType,
     val mode: CanvasMode,
 ) {
@@ -45,17 +40,12 @@ class FrameRayTrace(
         val distance = 8.0
         // 範囲を全方向にmarginずつ拡張
         val margin = 1.0
-        // エンティティを取得する範囲のバウンディングボックス
-        val box = BoundingBox.of(eyeLocation.origin.toVector(), 0.0, 0.0, 0.0)
-            .expand(eyeLocation.direction.toVector(), distance)
         // レイキャストを行い、ヒットしたブロックがあればそのブロック座標と目線の位置から範囲の中心座標とサイズを計算する
-        val blockRay = player.world.rayTraceBlocks(
-            eyeLocation.origin.toVector().toLocation(player.world),
-            eyeLocation.direction.toVector(),
+        val blockHitLocation = player.world.rayTraceBlockLocation(
+            eyeLocation.origin,
+            eyeLocation.direction,
             distance + margin
         )
-        // クリックがヒットした座標
-        val blockHitLocation = blockRay?.hitPosition?.toVec3d()
         player.debugLocation {
             locate(DebugLocationType.BLOCK_HIT_LOCATION, blockHitLocation?.toDebug())
         }
@@ -63,14 +53,13 @@ class FrameRayTrace(
         // キャンバスよりも手前にブロックがあるならば探索終了
         val maxDistance = (blockHitLocation?.distance(eyeLocation.origin) ?: distance)
 
+        // エンティティを取得する範囲のバウンディングボックス
+        val box = Rect3d.of(eyeLocation.origin, eyeLocation.origin + eyeLocation.direction.normalized * distance)
         // 範囲内にあるすべてのアイテムフレームを取得する
-        val result = player.world.getNearbyEntities(box.clone().expand(margin)) { it is ItemFrame }
+        val result = player.world.getFrameEntities(box.expand(margin))
             .asSequence()
-            .map { it as ItemFrame }
-            // その中からアイテムフレームを取得する
-            .filter { it.item.type == Material.FILLED_MAP }
             // レイを飛ばす
-            .mapNotNull { rayTraceCanvasByEntity(eyeLocation, FrameEntityBukkit(it), false) }
+            .mapNotNull { rayTraceCanvasByEntity(eyeLocation, it, false) }
             .filter { it.canvasIntersectLocation.distanceSquared(eyeLocation.origin) <= maxDistance * maxDistance }
             // 一番近いヒットしたキャンバス
             .minByOrNull {

@@ -11,6 +11,8 @@ import org.bukkit.entity.Player
 data class PaintPlayerBukkit(val player: Player) : PaintPlayer {
     override val isSnapMode get() = player.isSneaking
 
+    override val world = PaintWorldBukkit(player.world)
+
     override fun debugLocation(f: DebugLocator.() -> Unit) {
         player.debugLocation(f)
     }

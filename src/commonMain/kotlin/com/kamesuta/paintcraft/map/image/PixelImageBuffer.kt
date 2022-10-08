@@ -56,7 +56,7 @@ open class PixelImageBuffer(
         val part = PixelImageBuffer(width, height)
         for (y in 0 until height) {
             for (x in 0 until width) {
-                part[x, y] = this[dirty.p1.x + x, dirty.p1.y + y]
+                part[x, y] = this[dirty.min.x + x, dirty.min.y + y]
             }
         }
         return part

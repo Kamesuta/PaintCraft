@@ -65,8 +65,8 @@ object DrawableMapUpdater {
         packet.getSpecificModifier(mapIconArrayClass).write(0, Array.newInstance(mapIconClass, 0))
 
         // 更新する領域を設定する
-        packet.integers.write(1, dirty.p1.x)
-        packet.integers.write(2, dirty.p1.y)
+        packet.integers.write(1, dirty.min.x)
+        packet.integers.write(2, dirty.min.y)
         packet.integers.write(3, part.width)
         packet.integers.write(4, part.height)
 
