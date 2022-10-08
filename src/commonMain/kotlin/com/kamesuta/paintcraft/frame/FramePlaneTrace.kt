@@ -8,7 +8,6 @@ import com.kamesuta.paintcraft.util.vec.debug.DebugLocatables.DebugLineType.LINE
 import com.kamesuta.paintcraft.util.vec.debug.DebugLocatables.DebugLineType.SEGMENT
 import com.kamesuta.paintcraft.util.vec.debug.DebugLocatables.toDebug
 import com.kamesuta.paintcraft.util.vec.debug.DebugLocationType
-import com.kamesuta.paintcraft.util.vec.debug.DebugLocationVisualizer.debugLocation
 
 /**
  * キャンバスと面の交差判定をします

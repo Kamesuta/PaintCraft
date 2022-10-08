@@ -3,19 +3,15 @@ package com.kamesuta.paintcraft.palette
 import com.kamesuta.paintcraft.canvas.CanvasDrawingActionType
 import com.kamesuta.paintcraft.canvas.CanvasMode
 import com.kamesuta.paintcraft.canvas.CanvasSession
-import com.kamesuta.paintcraft.player.PaintSession
 import com.kamesuta.paintcraft.canvas.paint.PaintEvent
 import com.kamesuta.paintcraft.map.DrawableMapRenderer
 import com.kamesuta.paintcraft.map.behavior.DrawBehavior
 import com.kamesuta.paintcraft.palette.DrawPalette.Companion.loadPalette
+import com.kamesuta.paintcraft.player.PaintSession
 import com.kamesuta.paintcraft.util.color.MapColor
 import com.kamesuta.paintcraft.util.color.RGBColor.Companion.toRGB
 import com.kamesuta.paintcraft.util.color.RGBColor.MapColors.transparent
 import com.kamesuta.paintcraft.util.color.toMapColor
-import net.kyori.adventure.text.Component
-import net.kyori.adventure.text.event.ClickEvent
-import net.kyori.adventure.text.event.HoverEvent
-import net.kyori.adventure.text.format.TextColor
 
 /**
  * パレット
@@ -109,78 +105,8 @@ class DrawBehaviorPalette(private val renderer: DrawableMapRenderer) : DrawBehav
                     }
                     // カラーコードテキスト
                     val rgbColor = MapColor.toRGBColor(paletteData.mapColor)
-                    val hexCode = rgbColor.toHexCode()
-                    // チャット生成
-                    val hexColorText = Component.text("Color Code: ")
-                        .color(TextColor.color(0x00FFFF))
-                        .append(Component.text(hexCode).color(TextColor.color(rgbColor.toCode())))
-                        .append(Component.text(" "))
-                        .append(
-                            Component.text("[Copy]")
-                                .color(TextColor.color(0xFF7700))
-                                .hoverEvent(
-                                    HoverEvent.hoverEvent(
-                                        HoverEvent.Action.SHOW_TEXT,
-                                        Component.text("Click to copy: $hexCode")
-                                    )
-                                )
-                                .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, hexCode))
-                        )
-                        .append(Component.text(" "))
-                        .append(
-                            Component.text("[Replace]")
-                                .color(TextColor.color(0xFF7700))
-                                .hoverEvent(
-                                    HoverEvent.hoverEvent(
-                                        HoverEvent.Action.SHOW_TEXT,
-                                        Component.text("Click and type color code to use it")
-                                    )
-                                )
-                                .clickEvent(
-                                    ClickEvent.clickEvent(
-                                        ClickEvent.Action.SUGGEST_COMMAND,
-                                        "/paintcraft color @s "
-                                    )
-                                )
-                        )
                     val mapColor = paletteData.mapColor
-                    val mapColorText = Component.text("Map Color: ")
-                        .color(TextColor.color(0x00FFFF))
-                        .append(Component.text("$mapColor").color(TextColor.color(rgbColor.toCode())))
-                        .append(Component.text(" "))
-                        .append(
-                            Component.text("[Copy]")
-                                .color(TextColor.color(0xFF7700))
-                                .hoverEvent(
-                                    HoverEvent.hoverEvent(
-                                        HoverEvent.Action.SHOW_TEXT,
-                                        Component.text("Click to copy: $mapColor")
-                                    )
-                                )
-                                .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, "$mapColor"))
-                        )
-                        .append(Component.text(" "))
-                        .append(
-                            Component.text("[Replace]")
-                                .color(TextColor.color(0xFF7700))
-                                .hoverEvent(
-                                    HoverEvent.hoverEvent(
-                                        HoverEvent.Action.SHOW_TEXT,
-                                        Component.text("Click and type map color to use it")
-                                    )
-                                )
-                                .clickEvent(
-                                    ClickEvent.clickEvent(
-                                        ClickEvent.Action.SUGGEST_COMMAND,
-                                        "/paintcraft mapcolor @s "
-                                    )
-                                )
-                        )
-                    // チャット送信
-                    session.player.player.sendMessage("")
-                    session.player.player.sendMessage(hexColorText)
-                    session.player.player.sendMessage(mapColorText)
-                    session.player.player.sendMessage("")
+                    session.player.sendColorMessage(rgbColor, mapColor)
                 }
 
                 else -> {}

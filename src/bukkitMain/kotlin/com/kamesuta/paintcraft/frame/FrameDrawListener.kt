@@ -11,11 +11,11 @@ import com.kamesuta.paintcraft.canvas.paint.PaintEvent
 import com.kamesuta.paintcraft.util.LocationOperation
 import com.kamesuta.paintcraft.util.TimeWatcher
 import com.kamesuta.paintcraft.util.vec.Line3d
+import com.kamesuta.paintcraft.util.vec.Vec3d
 import com.kamesuta.paintcraft.util.vec.debug.DebugLocatables.DebugLineType.SEGMENT
 import com.kamesuta.paintcraft.util.vec.debug.DebugLocatables.toDebug
 import com.kamesuta.paintcraft.util.vec.debug.DebugLocationType
 import com.kamesuta.paintcraft.util.vec.debug.DebugLocationVisualizer.clearDebugLocation
-import com.kamesuta.paintcraft.util.vec.origin
 import com.kamesuta.paintcraft.util.vec.toLine
 import org.bukkit.Bukkit
 import org.bukkit.GameMode
@@ -47,7 +47,7 @@ class FrameDrawListener : Listener, Runnable {
 
             try {
                 // パケットを処理
-                onMovePacket(player, player.eyeLocation, LocationOperation.POSITION, true)
+                onMovePacket(player, player.eyeLocation.toLine(), LocationOperation.POSITION, true)
             } catch (e: Throwable) {
                 // スケジューラーに例外を投げないためにキャッチする
                 PaintCraft.instance.logger.log(
@@ -143,7 +143,7 @@ class FrameDrawListener : Listener, Runnable {
                     val pitch = packet.float.read(1)
 
                     // 座標構築
-                    val location = Location(player.world, x, y + player.eyeHeight, z, yaw, pitch)
+                    var location = Location(player.world, x, y + player.eyeHeight, z, yaw, pitch).toLine()
                     // 更新する部分の指定
                     val locationOperation = when (event.packetType) {
                         PacketType.Play.Client.LOOK -> LocationOperation.LOOK
@@ -154,7 +154,7 @@ class FrameDrawListener : Listener, Runnable {
                             val yOffset = player.vehicle?.let {
                                 FrameReflection.getYOffset(player) + FrameReflection.getMountedYOffset(it)
                             } ?: 0.0
-                            location.add(0.0, yOffset, 0.0)
+                            location += Vec3d(0.0, yOffset, 0.0)
                             LocationOperation.POSITION
                         }
 
@@ -196,7 +196,7 @@ class FrameDrawListener : Listener, Runnable {
      */
     private fun onMovePacket(
         player: Player,
-        eyeLocation: Location,
+        eyeLocation: Line3d,
         locationOperation: LocationOperation,
         isTickEvent: Boolean
     ) {
@@ -252,18 +252,17 @@ class FrameDrawListener : Listener, Runnable {
         player.clearDebug()
 
         // レイを飛ばしてアイテムフレームを取得
-        val eyeLocation = session.eyeLocation.toLine()
-        var ray = session.rayTrace.rayTraceCanvas(eyeLocation)
+        var ray = session.rayTrace.rayTraceCanvas(session.eyeLocation)
         if (ray == null) {
             // レイが当たらなかった場合、最後に当たったエンティティの面にレイを飛ばして取得
             val startEvent = session.drawing.lastEvent
                 ?: return
-            ray = session.rayTrace.rayTraceCanvasByEntity(eyeLocation, startEvent.interact.ray.itemFrame, true)
+            ray = session.rayTrace.rayTraceCanvasByEntity(session.eyeLocation, startEvent.interact.ray.itemFrame, true)
                 ?: return
         }
 
         // 裏からのクリックは無視
-        if (!ray.frameLocation.isCanvasFrontSide(eyeLocation.direction)) {
+        if (!ray.frameLocation.isCanvasFrontSide(session.eyeLocation.direction)) {
             return
         }
 
@@ -412,20 +411,18 @@ class FrameDrawListener : Listener, Runnable {
         session.clicking.updateClick(actionTypeRightOrLeft)
         session.drawing.updateDrawingAction(session.clicking.clickMode.isPressed)
 
-        // 目線の位置を取得
-        val eyeLocation = session.eyeLocation.toLine()
         // レイを飛ばしてアイテムフレームを取得
-        var ray = session.rayTrace.rayTraceCanvas(eyeLocation)
+        var ray = session.rayTrace.rayTraceCanvas(session.eyeLocation)
         if (ray == null) {
             // レイが当たらなかった場合、最後に当たったエンティティの面にレイを飛ばして取得
             val startEvent = session.drawing.lastEvent
                 ?: return
-            ray = session.rayTrace.rayTraceCanvasByEntity(eyeLocation, startEvent.interact.ray.itemFrame, true)
+            ray = session.rayTrace.rayTraceCanvasByEntity(session.eyeLocation, startEvent.interact.ray.itemFrame, true)
                 ?: return
         }
 
         // 裏からのクリックは無視
-        if (!ray.frameLocation.isCanvasFrontSide(eyeLocation.direction)) {
+        if (!ray.frameLocation.isCanvasFrontSide(session.eyeLocation.direction)) {
             return
         }
 
@@ -504,7 +501,7 @@ class FrameDrawListener : Listener, Runnable {
         if (!session.drawing.isDrawing) {
             val prevRay = run {
                 // 前回の目線の位置を取得
-                val prevEyeLocation = session.prevEyeLocation.toLine()
+                val prevEyeLocation = session.prevEyeLocation
 
                 // レイが当たらなかった場合、最後に当たったエンティティの面にレイを飛ばして取得
                 session.rayTrace.rayTraceCanvasByEntity(prevEyeLocation, ray.itemFrame, true)
