@@ -1,7 +1,6 @@
 package com.kamesuta.paintcraft.canvas
 
-import com.kamesuta.paintcraft.player.PaintPlayerBukkit
-import org.bukkit.entity.Player
+import com.kamesuta.paintcraft.player.PaintPlayer
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
@@ -20,7 +19,7 @@ object CanvasSessionManager {
      * @param player プレイヤー
      * @return プレイヤーのキャンバスステート
      */
-    fun getSession(player: Player): CanvasSession {
-        return sessions.getOrPut(player.uniqueId) { CanvasSession(PaintPlayerBukkit(player)) }
+    fun getSession(player: PaintPlayer): CanvasSession {
+        return sessions.getOrPut(player.uniqueId) { CanvasSession(player) }
     }
 }

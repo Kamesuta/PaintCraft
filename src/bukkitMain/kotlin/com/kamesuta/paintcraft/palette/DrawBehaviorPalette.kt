@@ -7,7 +7,6 @@ import com.kamesuta.paintcraft.canvas.paint.PaintEvent
 import com.kamesuta.paintcraft.map.DrawableMapRenderer
 import com.kamesuta.paintcraft.map.behavior.DrawBehavior
 import com.kamesuta.paintcraft.palette.DrawPalette.Companion.loadPalette
-import com.kamesuta.paintcraft.player.PaintSession
 import com.kamesuta.paintcraft.util.color.MapColor
 import com.kamesuta.paintcraft.util.color.RGBColor.Companion.toRGB
 import com.kamesuta.paintcraft.util.color.RGBColor.MapColors.transparent
@@ -21,10 +20,7 @@ class DrawBehaviorPalette(private val renderer: DrawableMapRenderer) : DrawBehav
     /** パレットに保存されるデータ */
     private val paletteData = PaletteData()
 
-    override fun paint(session: PaintSession, event: PaintEvent) {
-        // TODO: キャンバスセッションを抽象化する
-        require(session is CanvasSession)
-
+    override fun paint(session: CanvasSession, event: PaintEvent) {
         // UV座標を取得
         val uv = event.interact.uv
         // クリック開始時の場合のみ調整中のモードを設定

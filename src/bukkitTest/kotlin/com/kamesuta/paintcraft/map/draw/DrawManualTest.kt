@@ -184,7 +184,7 @@ class DrawManualTest : JFrame() {
                     // とりあえず基本色だけ判定
                     g.color = when (mapCanvas[x, y]) {
                         MapColors.white -> Color.LIGHT_GRAY
-                        MapColors.black -> Color.BLACK
+                        black -> Color.BLACK
                         MapColors.red -> Color.BLACK
                         MapColors.blue -> Color.BLACK
                         MapColors.green -> Color.RED

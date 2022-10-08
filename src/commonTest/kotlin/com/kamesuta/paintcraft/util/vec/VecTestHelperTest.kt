@@ -32,7 +32,7 @@ class VecTestHelperTest : FunSpec({
         Quaternion3d(1.0, 0.0, 0.0, EPSILON) shouldBe near(Quaternion3d.Identity)
 
         // 反対のクォータニオンはnearOrientationのみ一致することを確認
-        val q2 = Quaternion3d(3.0, 4.0, 5.0, 6.0).normalized;
+        val q2 = Quaternion3d(3.0, 4.0, 5.0, 6.0).normalized
         val q2Negated = q2.negate
         q2 shouldNotBe near(q2Negated)
         q2 shouldBe nearOrientation(q2Negated)

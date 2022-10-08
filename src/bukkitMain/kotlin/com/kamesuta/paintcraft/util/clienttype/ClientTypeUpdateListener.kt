@@ -2,6 +2,7 @@ package com.kamesuta.paintcraft.util.clienttype
 
 import com.kamesuta.paintcraft.canvas.CanvasSession
 import com.kamesuta.paintcraft.canvas.CanvasSessionManager
+import com.kamesuta.paintcraft.player.PaintPlayerBukkit
 import org.bukkit.Bukkit
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
@@ -14,13 +15,13 @@ class ClientTypeUpdateListener : Listener {
     /** ゲーム参加時に更新 */
     @EventHandler
     fun onPlayerJoin(event: PlayerJoinEvent) {
-        CanvasSessionManager.getSession(event.player).updateClientType()
+        CanvasSessionManager.getSession(PaintPlayerBukkit(event.player)).updateClientType()
     }
 
     /** 全員更新 */
     fun updateAll() {
         for (player in Bukkit.getOnlinePlayers()) {
-            CanvasSessionManager.getSession(player).updateClientType()
+            CanvasSessionManager.getSession(PaintPlayerBukkit(player)).updateClientType()
         }
     }
 

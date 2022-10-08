@@ -2,14 +2,13 @@ package com.kamesuta.paintcraft.canvas
 
 import com.kamesuta.paintcraft.frame.FrameRayTrace
 import com.kamesuta.paintcraft.player.PaintPlayer
-import com.kamesuta.paintcraft.player.PaintSession
 import com.kamesuta.paintcraft.util.clienttype.ClientType
 
 /**
  * キャンバスのステート
  * @param player プレイヤー
  */
-class CanvasSession(override val player: PaintPlayer) : PaintSession {
+class CanvasSession(val player: PaintPlayer) {
     /** 前回の正確な目線の位置 (補完されていない生の位置) */
     var prevEyeLocation = player.eyeLocation
 

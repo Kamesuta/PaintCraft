@@ -9,6 +9,7 @@ import com.kamesuta.paintcraft.map.DrawableMapItemBukkit
 import com.kamesuta.paintcraft.map.behavior.DrawBehaviorTypes.DrawBehaviorPaintDesc
 import com.kamesuta.paintcraft.map.behavior.DrawBehaviorTypes.DrawBehaviorPaletteDesc
 import com.kamesuta.paintcraft.map.image.debug.PixelImageManualTest
+import com.kamesuta.paintcraft.player.PaintPlayerBukkit
 import com.kamesuta.paintcraft.util.color.RGBColor
 import com.kamesuta.paintcraft.util.color.toMapColor
 import com.kamesuta.paintcraft.util.enumValueOrNull
@@ -124,7 +125,7 @@ class SwitchDrawModeCommand : Command("switch") {
                     return@executes
                 }
                 entities.filterIsInstance<Player>().forEach {
-                    CanvasSessionManager.getSession(it).let { session ->
+                    CanvasSessionManager.getSession(PaintPlayerBukkit(it)).let { session ->
                         session.mode.tool = when (type) {
                             DrawMode.PEN -> PaintPencil(session)
                             DrawMode.LINE -> PaintLine(session)
@@ -154,7 +155,7 @@ class ColorCommand : Command("color") {
                     return@executes
                 }
                 entities.filterIsInstance<Player>().forEach {
-                    val session = CanvasSessionManager.getSession(it)
+                    val session = CanvasSessionManager.getSession(PaintPlayerBukkit(it))
                     session.mode.mapColor = color.toMapColor()
                 }
             }
@@ -177,7 +178,7 @@ class MapColorCommand : Command("mapcolor") {
                     return@executes
                 }
                 entities.filterIsInstance<Player>().forEach {
-                    val session = CanvasSessionManager.getSession(it)
+                    val session = CanvasSessionManager.getSession(PaintPlayerBukkit(it))
                     session.mode.mapColor = color
                 }
             }
@@ -196,7 +197,7 @@ class ThicknessCommand : Command("thickness") {
                 val entities = typedArgs[0] as List<*>
                 val thickness = typedArgs[1] as Double
                 entities.filterIsInstance<Player>().forEach {
-                    val session = CanvasSessionManager.getSession(it)
+                    val session = CanvasSessionManager.getSession(PaintPlayerBukkit(it))
                     session.mode.thickness = thickness
                 }
             }

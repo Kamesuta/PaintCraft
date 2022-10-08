@@ -131,7 +131,7 @@ data class Quaternion3d(val x: Double, val y: Double, val z: Double, val w: Doub
      * @param vec 回転する座標ベクトル
      * @return 回転したベクトル
      */
-    fun transform(vec: Vec3d) = ((this * Quaternion3d(vec.x, vec.y, vec.z, 0.0)) * conjugate).complex;
+    fun transform(vec: Vec3d) = ((this * Quaternion3d(vec.x, vec.y, vec.z, 0.0)) * conjugate).complex
 
     /**
      * 軸と角度に変換する

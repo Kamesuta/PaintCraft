@@ -8,6 +8,9 @@ import com.comphenix.protocol.utility.MinecraftReflection
 import com.kamesuta.paintcraft.PaintCraft
 import com.kamesuta.paintcraft.canvas.*
 import com.kamesuta.paintcraft.canvas.paint.PaintEvent
+import com.kamesuta.paintcraft.player.PaintPlayer
+import com.kamesuta.paintcraft.player.PaintPlayerBukkit
+import com.kamesuta.paintcraft.player.PaintPlayerBukkit.Companion.isPencil
 import com.kamesuta.paintcraft.util.LocationOperation
 import com.kamesuta.paintcraft.util.TimeWatcher
 import com.kamesuta.paintcraft.util.vec.Line3d
@@ -15,19 +18,14 @@ import com.kamesuta.paintcraft.util.vec.Vec3d
 import com.kamesuta.paintcraft.util.vec.debug.DebugLocatables.DebugLineType.SEGMENT
 import com.kamesuta.paintcraft.util.vec.debug.DebugLocatables.toDebug
 import com.kamesuta.paintcraft.util.vec.debug.DebugLocationType
-import com.kamesuta.paintcraft.util.vec.debug.DebugLocationVisualizer.clearDebugLocation
 import com.kamesuta.paintcraft.util.vec.toLine
 import org.bukkit.Bukkit
-import org.bukkit.GameMode
 import org.bukkit.Location
-import org.bukkit.Material
-import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.block.Action
 import org.bukkit.event.player.PlayerDropItemEvent
 import org.bukkit.event.player.PlayerInteractEvent
-import org.bukkit.inventory.ItemStack
 import java.util.logging.Level
 
 /**
@@ -39,7 +37,9 @@ class FrameDrawListener : Listener, Runnable {
      */
     override fun run() {
         // トロッコなど乗っていた場合などの処理のためにティックイベントも動かす
-        for (player in Bukkit.getOnlinePlayers()) {
+        for (rawPlayer in Bukkit.getOnlinePlayers()) {
+            val player = PaintPlayerBukkit(rawPlayer)
+
             // プレイヤーの右手にインクがあるか
             if (!player.hasPencil()) {
                 continue
@@ -47,7 +47,7 @@ class FrameDrawListener : Listener, Runnable {
 
             try {
                 // パケットを処理
-                onMovePacket(player, player.eyeLocation.toLine(), LocationOperation.POSITION, true)
+                onMovePacket(player, player.eyeLocation, LocationOperation.POSITION, true)
             } catch (e: Throwable) {
                 // スケジューラーに例外を投げないためにキャッチする
                 PaintCraft.instance.logger.log(
@@ -71,8 +71,10 @@ class FrameDrawListener : Listener, Runnable {
             return
         }
 
+        val player = PaintPlayerBukkit(event.player)
+
         // プレイヤーの右手にインクがあるか
-        if (!event.player.hasPencil()) {
+        if (!player.hasPencil()) {
             return
         }
 
@@ -83,8 +85,8 @@ class FrameDrawListener : Listener, Runnable {
     @EventHandler
     fun onItemDrop(event: PlayerDropItemEvent) {
         // プレイヤーの右手にインクがある、または空だったら
-        val player = event.player
-        if (!player.hasPencil() && player.inventory.itemInMainHand.type != Material.AIR) {
+        val player = PaintPlayerBukkit(event.player)
+        if (player.shouldNotDrop()) {
             return
         }
 
@@ -124,7 +126,7 @@ class FrameDrawListener : Listener, Runnable {
             /** 受信 (クライアント→サーバー) */
             override fun onPacketReceiving(event: PacketEvent) {
                 // プレイヤーがいなければ無視
-                val player = event.player
+                val player = event.player?.let { PaintPlayerBukkit(it) }
                     ?: return
 
                 try {
@@ -143,7 +145,7 @@ class FrameDrawListener : Listener, Runnable {
                     val pitch = packet.float.read(1)
 
                     // 座標構築
-                    var location = Location(player.world, x, y + player.eyeHeight, z, yaw, pitch).toLine()
+                    var location = Location(player.player.world, x, y + player.player.eyeHeight, z, yaw, pitch).toLine()
                     // 更新する部分の指定
                     val locationOperation = when (event.packetType) {
                         PacketType.Play.Client.LOOK -> LocationOperation.LOOK
@@ -151,8 +153,8 @@ class FrameDrawListener : Listener, Runnable {
                         PacketType.Play.Client.POSITION_LOOK -> LocationOperation.POSITION_LOOK
                         PacketType.Play.Client.VEHICLE_MOVE -> {
                             // 乗り物のyOffset
-                            val yOffset = player.vehicle?.let {
-                                FrameReflection.getYOffset(player) + FrameReflection.getMountedYOffset(it)
+                            val yOffset = player.player.vehicle?.let {
+                                FrameReflection.getYOffset(player.player) + FrameReflection.getMountedYOffset(it)
                             } ?: 0.0
                             location += Vec3d(0.0, yOffset, 0.0)
                             LocationOperation.POSITION
@@ -195,7 +197,7 @@ class FrameDrawListener : Listener, Runnable {
      * @param isTickEvent ティックイベントか
      */
     private fun onMovePacket(
-        player: Player,
+        player: PaintPlayerBukkit,
         eyeLocation: Line3d,
         locationOperation: LocationOperation,
         isTickEvent: Boolean
@@ -206,7 +208,7 @@ class FrameDrawListener : Listener, Runnable {
         // ティックイベントかどうか
         if (isTickEvent) {
             // ティックイベントの場合、乗り物に乗っていないときは無視
-            if (!player.isInsideVehicle) {
+            if (!player.player.isInsideVehicle) {
                 return
             }
 
@@ -216,7 +218,7 @@ class FrameDrawListener : Listener, Runnable {
             }
         } else {
             // パケット受信時の場合
-            if (player.isInsideVehicle) {
+            if (player.player.isInsideVehicle) {
                 // 乗り物に乗っている場合かつ移動パケットがある場合 (馬やボートなど)
                 if (locationOperation == LocationOperation.POSITION || locationOperation == LocationOperation.POSITION_LOOK) {
                     // 最後の移動時刻を取得
@@ -300,7 +302,7 @@ class FrameDrawListener : Listener, Runnable {
             /** 受信 (クライアント→サーバー) */
             override fun onPacketReceiving(event: PacketEvent) {
                 // プレイヤーがいなければ無視
-                val player = event.player
+                val player: PaintPlayer = event.player?.let { PaintPlayerBukkit(it) }
                     ?: return
 
                 try {
@@ -371,7 +373,7 @@ class FrameDrawListener : Listener, Runnable {
      * @param actionType クリックの種類
      * @return キャンセルしたかどうか
      */
-    private fun onClickPacket(player: Player, actionType: CanvasActionType?) {
+    private fun onClickPacket(player: PaintPlayer, actionType: CanvasActionType?) {
         // デバッグ座標を初期化
         player.clearDebug()
 
@@ -528,28 +530,5 @@ class FrameDrawListener : Listener, Runnable {
 
         // 変更箇所をプレイヤーに送信
         session.drawing.edited.updatePlayer()
-    }
-
-    companion object {
-        /**
-         * デバッグ座標を初期化
-         * @receiver プレイヤー
-         */
-        private fun Player.clearDebug() = clearDebugLocation(DebugLocationType.DebugLocationGroup.CANVAS_DRAW)
-
-        /**
-         * これはペンかどうか
-         * @receiver アイテム
-         * @return ペンならtrue
-         */
-        private fun ItemStack.isPencil() = type == Material.INK_SAC
-
-        /**
-         * プレイヤーがペンを持っているかどうかを確認する
-         * @receiver プレイヤー
-         * @return ペンを持っているかどうか
-         */
-        private fun Player.hasPencil() =
-            gameMode != GameMode.SPECTATOR && inventory.itemInMainHand.isPencil()
     }
 }
