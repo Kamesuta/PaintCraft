@@ -3,7 +3,7 @@ package com.kamesuta.paintcraft.palette
 import com.kamesuta.paintcraft.canvas.CanvasDrawingActionType
 import com.kamesuta.paintcraft.canvas.CanvasMode
 import com.kamesuta.paintcraft.canvas.CanvasSession
-import com.kamesuta.paintcraft.canvas.ICanvasSession
+import com.kamesuta.paintcraft.player.PaintSession
 import com.kamesuta.paintcraft.canvas.paint.PaintEvent
 import com.kamesuta.paintcraft.map.DrawableMapRenderer
 import com.kamesuta.paintcraft.map.behavior.DrawBehavior
@@ -25,7 +25,7 @@ class DrawBehaviorPalette(private val renderer: DrawableMapRenderer) : DrawBehav
     /** パレットに保存されるデータ */
     private val paletteData = PaletteData()
 
-    override fun paint(session: ICanvasSession, event: PaintEvent) {
+    override fun paint(session: PaintSession, event: PaintEvent) {
         // TODO: キャンバスセッションを抽象化する
         require(session is CanvasSession)
 

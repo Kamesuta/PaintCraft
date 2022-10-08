@@ -1,6 +1,6 @@
 package com.kamesuta.paintcraft.map.behavior
 
-import com.kamesuta.paintcraft.canvas.ICanvasSession
+import com.kamesuta.paintcraft.player.PaintSession
 import com.kamesuta.paintcraft.canvas.paint.PaintEvent
 import com.kamesuta.paintcraft.map.draw.Drawable
 import com.kamesuta.paintcraft.player.PaintPlayer
@@ -14,7 +14,7 @@ interface DrawBehavior {
      * @param session キャンバスセッション
      * @param event 描きこみイベント
      */
-    fun paint(session: ICanvasSession, event: PaintEvent) {}
+    fun paint(session: PaintSession, event: PaintEvent) {}
 
     /**
      * マップの描きこみを行う

@@ -1,6 +1,7 @@
 package com.kamesuta.paintcraft.canvas
 
 import com.kamesuta.paintcraft.frame.FrameRayTrace
+import com.kamesuta.paintcraft.player.PaintSession
 import com.kamesuta.paintcraft.player.PaintPlayerBukkit
 import com.kamesuta.paintcraft.util.clienttype.ClientType
 
@@ -8,7 +9,7 @@ import com.kamesuta.paintcraft.util.clienttype.ClientType
  * キャンバスのステート
  * @param player プレイヤー
  */
-class CanvasSession(override val player: PaintPlayerBukkit) : ICanvasSession {
+class CanvasSession(override val player: PaintPlayerBukkit) : PaintSession {
     /** 前回の正確な目線の位置 (補完されていない生の位置) */
     var prevEyeLocation = player.player.eyeLocation
 
