@@ -139,3 +139,20 @@ fun PixelImage.maskPixelImage(mask: PixelImage) {
         }
     }
 }
+
+/**
+ * テキストの幅を取得する
+ * @receiver 描画先のピクセルデータ
+ */
+expect fun PixelImage.getWidth(text: String): Int
+
+/**
+ * テキストを描画する
+ * CraftMapCanvasの実装からカラーコードの処理を簡略化してある
+ * @receiver 描画先のピクセルデータ
+ * @param x 描画するX座標 (左上の座標)
+ * @param y 描画するY座標 (左上の座標)
+ * @param color テキストの色
+ * @param text 描画するテキスト
+ */
+expect fun PixelImage.drawText(x: Double, y: Double, color: Byte, text: String)

@@ -1,10 +1,7 @@
 package com.kamesuta.paintcraft.palette
 
 import com.kamesuta.paintcraft.map.draw.Draw
-import com.kamesuta.paintcraft.map.image.PixelImage
-import com.kamesuta.paintcraft.map.image.PixelImageMapBuffer
-import com.kamesuta.paintcraft.map.image.drawText
-import com.kamesuta.paintcraft.map.image.mapSize
+import com.kamesuta.paintcraft.map.image.*
 import com.kamesuta.paintcraft.util.color.HSBColor
 import com.kamesuta.paintcraft.util.color.MapColor
 import com.kamesuta.paintcraft.util.color.RGBColor.Companion.toRGB
@@ -13,7 +10,6 @@ import com.kamesuta.paintcraft.util.color.RGBColor.MapColors.transparent
 import com.kamesuta.paintcraft.util.color.RGBColor.MapColors.white
 import com.kamesuta.paintcraft.util.color.toMapColor
 import com.kamesuta.paintcraft.util.vec.Vec2d
-import org.bukkit.map.MinecraftFont
 import kotlin.math.*
 
 /**
@@ -193,11 +189,10 @@ class DrawPalette(
 
             // カラーコードを描画する
             val hexCode = rgbColor.toHexCode()
-            val textWidth = MinecraftFont.Font.getWidth(hexCode)
+            val textWidth = canvas.getWidth(hexCode)
             canvas.drawText(
                 colorCodePosition.x - textWidth / 2,
                 colorCodePosition.y - colorCodeSize.y / 2,
-                MinecraftFont.Font,
                 color,
                 hexCode,
             )

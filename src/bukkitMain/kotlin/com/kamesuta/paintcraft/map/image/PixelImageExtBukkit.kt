@@ -1,19 +1,14 @@
 package com.kamesuta.paintcraft.map.image
 
-import org.bukkit.map.MapFont
+import org.bukkit.map.MinecraftFont
 import kotlin.math.roundToInt
 
-/**
- * テキストを描画する
- * CraftMapCanvasの実装からカラーコードの処理を簡略化してある
- * @receiver 描画先のピクセルデータ
- * @param x 描画するX座標 (左上の座標)
- * @param y 描画するY座標 (左上の座標)
- * @param font フォント
- * @param color テキストの色
- * @param text 描画するテキスト
- */
-fun PixelImage.drawText(x: Double, y: Double, font: MapFont, color: Byte, text: String) {
+actual fun PixelImage.getWidth(text: String) = MinecraftFont.Font.getWidth(text)
+
+actual fun PixelImage.drawText(x: Double, y: Double, color: Byte, text: String) {
+    // フォント
+    val font = MinecraftFont.Font
+
     // 現在の位置
     var ix = x.roundToInt()
     var iy = y.roundToInt()
