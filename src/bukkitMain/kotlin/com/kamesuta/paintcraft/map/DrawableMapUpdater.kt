@@ -1,14 +1,14 @@
 package com.kamesuta.paintcraft.map
 
 import com.comphenix.protocol.PacketType
-import com.comphenix.protocol.events.PacketContainer
-import com.comphenix.protocol.utility.MinecraftReflection
+import com.comphenix.protocol.injector.netty.WirePacket
 import com.kamesuta.paintcraft.PaintCraft
 import com.kamesuta.paintcraft.map.image.PixelImageBuffer
+import com.kamesuta.paintcraft.map.image.PixelImageCacheBuffer
 import com.kamesuta.paintcraft.util.vec.Rect2i
+import io.netty.buffer.ByteBuf
 import org.bukkit.entity.Player
 import org.bukkit.map.MapView
-import java.lang.reflect.Array
 
 /**
  * 地図の更新をクライアントに送信するためのクラス
@@ -18,8 +18,7 @@ class DrawableMapUpdater {
     private val canvasCache = PixelImageCacheBuffer()
 
     /** 送信するパケット */
-    private var canvasPacket: PacketContainer? = null
-
+    private var canvasPacket: WirePacket? = null
 
     /**
      * プレイヤーにマップを送信する
@@ -27,7 +26,10 @@ class DrawableMapUpdater {
      */
     fun sendMap(player: Player) {
         if (canvasPacket != null) {
-            PaintCraft.instance.protocolManager.sendServerPacket(player, canvasPacket)
+            PaintCraft.instance.protocolManager.sendWirePacket(
+                player,
+                canvasPacket
+            )
         }
     }
 
@@ -46,42 +48,42 @@ class DrawableMapUpdater {
         canvasCache.subImage(buffer, dirty)
 
         // パケットを作成する
-        val packet = PaintCraft.instance.protocolManager.createPacket(PacketType.Play.Server.MAP)
+        canvasPacket = object : WirePacket(PacketType.Play.Server.MAP, ByteArray(0)) {
+            override fun writeFully(buf: ByteBuf) {
+                // パケットID
+                writeVarInt(buf, packetPlayOutMapId)
 
-        // マップID
-        packet.integers.write(0, mapView.id)
-        // マップスケール
-        @Suppress("DEPRECATION")
-        packet.bytes.write(0, mapView.scale.value)
-        // 位置を追跡するか (trackingPosition)
-        packet.booleans.write(0, true)
-        // 地図がロックされているか
-        packet.booleans.write(1, mapView.isLocked)
+                // マップID
+                writeVarInt(buf, mapView.id)
+                // マップスケール
+                @Suppress("DEPRECATION")
+                buf.writeByte(mapView.scale.value.toInt())
+                // 位置を追跡するか (trackingPosition)
+                buf.writeBoolean(true)
+                // 地図がロックされているか
+                buf.writeBoolean(mapView.isLocked)
 
-        // アイコンの配列
-        packet.getSpecificModifier(mapIconArrayClass).write(0, Array.newInstance(mapIconClass, 0))
+                // アイコンの配列 (0個)
+                writeVarInt(buf, 0)
 
-        // 更新する領域を設定する
-        packet.integers.write(1, dirty.min.x)
-        packet.integers.write(2, dirty.min.y)
-        packet.integers.write(3, dirty.width)
-        packet.integers.write(4, dirty.height)
+                // 更新する領域を設定する
+                val width = dirty.width
+                buf.writeByte(width)
+                if (width > 0) {
+                    buf.writeByte(dirty.height)
+                    buf.writeByte(dirty.min.x)
+                    buf.writeByte(dirty.min.y)
 
-        // 更新する領域のピクセルデータ
-        packet.byteArrays.write(0, canvasCache.pixels.copyOf(dirty.width * dirty.height))
-
-        canvasPacket = packet
+                    // 更新する領域のピクセルデータ
+                    writeVarInt(buf, dirty.width * dirty.height)
+                    buf.writeBytes(canvasCache.pixels, 0, dirty.width * dirty.height)
+                }
+            }
+        }
     }
 
-
-        // 更新する領域のピクセルデータ
-
     companion object {
-        private val mapIconClass = MinecraftReflection.getMinecraftClass("MapIcon")
-
-        @Suppress("UNCHECKED_CAST")
-        private val mapIconArrayClass = MinecraftReflection.getArrayClass(mapIconClass) as Class<Any>
-
-        return packet
+        /** マップのパケットID */
+        val packetPlayOutMapId = DrawableMapReflection.getPacketPlayOutMapId()
     }
 }

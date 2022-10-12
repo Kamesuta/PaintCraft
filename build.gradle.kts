@@ -74,6 +74,8 @@ kotlin {
                 compileOnly("com.comphenix.protocol:ProtocolLib:4.6.0")
                 // FlyLib (コマンド用, 廃止予定)
                 implementation("dev.kotx:flylib-reloaded:0.5.0")
+                // Netty (WirePacket用)
+                compileOnly("io.netty:netty-all:4.0.23.Final")
             }
         }
         val commonTest by getting {

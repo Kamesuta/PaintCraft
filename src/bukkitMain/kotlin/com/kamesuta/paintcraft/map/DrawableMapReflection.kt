@@ -21,6 +21,10 @@ object DrawableMapReflection {
         val worldMap: Class<*> = MinecraftReflection.getMinecraftClass("WorldMap")
         val craftMapCanvas: Class<*> = MinecraftReflection.getCraftBukkitClass("map.CraftMapCanvas")
         val craftMapView: Class<*> = MinecraftReflection.getCraftBukkitClass("map.CraftMapView")
+        val enumProtocol: Class<*> = MinecraftReflection.getEnumProtocolClass()
+        val enumProtocolPacketList: Class<*> = enumProtocol.declaredClasses.first { it.simpleName == "a" }
+        val enumProtocolDirection: Class<*> = MinecraftReflection.getMinecraftClass("EnumProtocolDirection")
+        val packetPlayOutMap: Class<*> = MinecraftReflection.getMinecraftClass("PacketPlayOutMap")
 
         // NMS関数/フィールド
         val craftMapCanvasBuffer: Field = craftMapCanvas.getDeclaredField("buffer").apply { isAccessible = true }
@@ -36,6 +40,12 @@ object DrawableMapReflection {
         val worldMapFlagDirty: Method =
             worldMap.getDeclaredMethod("flagDirty", Int::class.java, Int::class.java).apply { isAccessible = true }
         val worldMapHumans: Field = worldMap.getDeclaredField("humans").apply { isAccessible = true }
+        val enumProtocolPlay: Field = enumProtocol.getDeclaredField("PLAY").apply { isAccessible = true }
+        val enumProtocolPacketDirectionMap: Field = enumProtocol.getDeclaredField("h").apply { isAccessible = true }
+        val enumProtocolPacketListGetPacketId: Method =
+            enumProtocolPacketList.getDeclaredMethod("a", Class::class.java).apply { isAccessible = true }
+        val enumProtocolDirectionClientBound: Field =
+            enumProtocolDirection.getDeclaredField("CLIENTBOUND").apply { isAccessible = true }
     }
 
     /**
@@ -116,5 +126,21 @@ object DrawableMapReflection {
         }.onFailure {
             PaintCraft.instance.logger.warning("Failed to get map tracking players")
         }.getOrNull()
+    }
+
+    /**
+     * PacketPlayOutMapのパケットIDを取得します
+     * @return パケットID
+     */
+    fun getPacketPlayOutMapId(): Int {
+        return runCatching {
+            val playEnum = Accessor.enumProtocolPlay[null]
+            val directionClientBound = Accessor.enumProtocolDirectionClientBound[null]
+            val directionMap = Accessor.enumProtocolPacketDirectionMap[playEnum] as Map<*, *>
+            val packetList = directionMap[directionClientBound]
+            Accessor.enumProtocolPacketListGetPacketId(packetList, Accessor.packetPlayOutMap) as Int
+        }.onFailure {
+            PaintCraft.instance.logger.warning("Failed to get packet id")
+        }.getOrNull() ?: -1
     }
 }
