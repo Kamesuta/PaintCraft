@@ -13,40 +13,37 @@ import java.lang.reflect.Array
 /**
  * 地図の更新をクライアントに送信するためのクラス
  */
-object DrawableMapUpdater {
-    private val mapIconClass = MinecraftReflection.getMinecraftClass("MapIcon")
+class DrawableMapUpdater {
+    /** キャンバス更新のキャッシュ */
+    private val canvasCache = PixelImageCacheBuffer()
 
-    @Suppress("UNCHECKED_CAST")
-    private val mapIconArrayClass = MinecraftReflection.getArrayClass(mapIconClass) as Class<Any>
+    /** 送信するパケット */
+    private var canvasPacket: PacketContainer? = null
+
 
     /**
      * プレイヤーにマップを送信する
      * @param player プレイヤー
-     * @param mapView マップ
-     * @param part マップの更新範囲のみのバッファー
-     * @param dirty 更新領域
      */
-    fun sendMap(player: Player, mapView: MapView, part: PixelImageBuffer, dirty: Rect2i) {
-        require(part.width == dirty.width && part.height == dirty.height) { "part and dirty must be same size" }
-        val packet = createPacket(mapView, part, dirty)
-        PaintCraft.instance.protocolManager.sendServerPacket(player, packet)
+    fun sendMap(player: Player) {
+        if (canvasPacket != null) {
+            PaintCraft.instance.protocolManager.sendServerPacket(player, canvasPacket)
+        }
     }
 
     /**
      * マップを更新するためのパケットを作成する
      * @param mapView マップビュー
-     * @param part 更新する領域を切り抜いたマップのピクセルデータ
+     * @param buffer ピクセルデータ
      * @param dirty 更新する領域
      */
-    private fun createPacket(
+    fun createPacket(
         mapView: MapView,
-        part: PixelImageBuffer,
+        buffer: PixelImageBuffer,
         dirty: Rect2i,
-    ): PacketContainer {
-        // 更新する領域とピクセルデータのサイズは同じである必要がある
-        require(dirty.width == part.width && dirty.height == part.height) {
-            "dirty and part must have same size"
-        }
+    ) {
+        // 更新する領域を切り出す
+        canvasCache.subImage(buffer, dirty)
 
         // パケットを作成する
         val packet = PaintCraft.instance.protocolManager.createPacket(PacketType.Play.Server.MAP)
@@ -67,11 +64,23 @@ object DrawableMapUpdater {
         // 更新する領域を設定する
         packet.integers.write(1, dirty.min.x)
         packet.integers.write(2, dirty.min.y)
-        packet.integers.write(3, part.width)
-        packet.integers.write(4, part.height)
+        packet.integers.write(3, dirty.width)
+        packet.integers.write(4, dirty.height)
 
         // 更新する領域のピクセルデータ
-        packet.byteArrays.write(0, part.pixels)
+        packet.byteArrays.write(0, canvasCache.pixels.copyOf(dirty.width * dirty.height))
+
+        canvasPacket = packet
+    }
+
+
+        // 更新する領域のピクセルデータ
+
+    companion object {
+        private val mapIconClass = MinecraftReflection.getMinecraftClass("MapIcon")
+
+        @Suppress("UNCHECKED_CAST")
+        private val mapIconArrayClass = MinecraftReflection.getArrayClass(mapIconClass) as Class<Any>
 
         return packet
     }

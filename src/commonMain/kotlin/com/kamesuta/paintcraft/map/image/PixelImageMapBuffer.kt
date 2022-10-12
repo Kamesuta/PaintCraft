@@ -8,7 +8,7 @@ import com.kamesuta.paintcraft.util.color.RGBColor.MapColors.unchanged
  * マイクラのマップ用、変更された範囲を保持する
  * @param pixels ピクセルデータ
  */
-open class PixelImageMapBuffer(pixels: ByteArray) : Cloneable, PixelImageBuffer(mapSize, mapSize, pixels) {
+open class PixelImageMapBuffer(pixels: ByteArray) : PixelImageBuffer(mapSize, mapSize, pixels) {
     /**
      * 128x128のピクセルを取得する
      */
@@ -39,14 +39,6 @@ open class PixelImageMapBuffer(pixels: ByteArray) : Cloneable, PixelImageBuffer(
      */
     fun copyTo(destination: PixelImageMapBuffer) {
         System.arraycopy(pixels, 0, destination.pixels, 0, destination.pixels.size)
-    }
-
-    /**
-     * ピクセルを全てコピーして新しいインスタンスを作成する
-     * @return コピーしたインスタンス
-     */
-    override fun clone(): PixelImageMapBuffer {
-        return PixelImageMapBuffer(pixels.clone())
     }
 
     /**

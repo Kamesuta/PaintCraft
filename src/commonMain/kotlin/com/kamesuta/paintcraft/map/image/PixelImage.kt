@@ -3,7 +3,7 @@ package com.kamesuta.paintcraft.map.image
 /**
  * マップピクセルデータ
  */
-interface PixelImage : Cloneable {
+interface PixelImage {
     /** マップの幅 */
     val width: Int
 
@@ -28,10 +28,4 @@ interface PixelImage : Cloneable {
      * @return ピクセル値
      */
     operator fun get(x: Int, y: Int): Byte
-
-    /**
-     * ピクセルデータをコピーする
-     * @return コピーしたピクセルデータ
-     */
-    public override fun clone(): PixelImage
 }

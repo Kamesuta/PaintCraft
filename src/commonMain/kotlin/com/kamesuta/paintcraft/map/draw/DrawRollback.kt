@@ -1,6 +1,7 @@
 package com.kamesuta.paintcraft.map.draw
 
 import com.kamesuta.paintcraft.map.image.PixelImage
+import com.kamesuta.paintcraft.map.image.PixelImageBuffer
 import com.kamesuta.paintcraft.map.image.drawPixelImage
 import com.kamesuta.paintcraft.map.image.maskPixelImage
 
@@ -10,12 +11,14 @@ import com.kamesuta.paintcraft.map.image.maskPixelImage
  * @param mask マスク (unchangedの部分は復元しない)
  */
 class DrawRollback(prev: PixelImage, mask: PixelImage) : Draw {
-    /** 前の状態のピクセルデータ */
-    private val masked: PixelImage
+    /**
+     * 前の状態のピクセルデータ
+     * キャンバスからバッファーをコピーしマスクする
+     */
+    private val masked = PixelImageBuffer(prev.width, prev.height, prev.pixels.clone())
 
     init {
-        // キャンバスからバッファーをコピーしマスクする
-        masked = prev.clone()
+        // マスクでピクセルデータを切り抜く
         masked.maskPixelImage(mask)
     }
 

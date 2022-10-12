@@ -1,7 +1,5 @@
 package com.kamesuta.paintcraft.map.image
 
-import com.kamesuta.paintcraft.util.vec.Rect2i
-
 /**
  * マップピクセルデータ
  * @param width マップの幅
@@ -12,7 +10,7 @@ open class PixelImageBuffer(
     final override val width: Int,
     final override val height: Int,
     final override val pixels: ByteArray
-) : Cloneable, PixelImage {
+) : PixelImage {
     /**
      * 配列のサイズをチェックする
      */
@@ -21,7 +19,7 @@ open class PixelImageBuffer(
     }
 
     /**
-     * 128x128のピクセルを取得する
+     * ピクセルデータを作成する
      * @param width マップの幅
      * @param height マップの高さ
      */
@@ -43,30 +41,5 @@ open class PixelImageBuffer(
         }
 
         return pixels[x + y * width]
-    }
-
-    /**
-     * 更新する領域を切り抜く
-     * @param dirty 更新する領域
-     * @return 切り抜かれたピクセルデータ配列
-     */
-    fun createSubImage(dirty: Rect2i): PixelImageBuffer {
-        val width = dirty.width
-        val height = dirty.height
-        val part = PixelImageBuffer(width, height)
-        for (y in 0 until height) {
-            for (x in 0 until width) {
-                part[x, y] = this[dirty.min.x + x, dirty.min.y + y]
-            }
-        }
-        return part
-    }
-
-    /**
-     * ピクセルを全てコピーして新しいインスタンスを作成する
-     * @return コピーしたインスタンス
-     */
-    override fun clone(): PixelImageBuffer {
-        return PixelImageBuffer(width, height, pixels.clone())
     }
 }

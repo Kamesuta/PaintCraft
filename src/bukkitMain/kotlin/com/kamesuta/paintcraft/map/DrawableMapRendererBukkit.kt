@@ -42,8 +42,14 @@ class DrawableMapRendererBukkit(private val behaviorDesc: DrawBehaviorTypes.Desc
     /** キャンバス初回初期化フラグ */
     private var canvasInitialized = false
 
+    /** キャンバスのピクセルイメージのキャッシュ */
+    private var canvasBuffer: PixelImageMapCanvas? = null
+
     /** 変更フラグ */
     private var dirty = true
+
+    /** マップの更新通知 */
+    private val canvasUpdater = DrawableMapUpdater()
 
     /**
      * addRenderer() された時に呼ばれるため、必ず使えるはず
@@ -76,10 +82,15 @@ class DrawableMapRendererBukkit(private val behaviorDesc: DrawBehaviorTypes.Desc
             saveToMapView()
         }
 
+        // 初回はキャンバスをラップする
+        if (!canvasInitialized) {
+            canvasBuffer = PixelImageMapCanvas.wrap(canvas)
+        }
+
         // 初回または変更がある場合は永続化されたマップビューのデータをキャンバスに書き込む
         if (dirty || !canvasInitialized) {
             // データをキャンバスにコピーする
-            PixelImageMapCanvas.wrap(canvas)?.let {
+            canvasBuffer?.let {
                 // 永続化バッファー
                 val buffer = mapViewBuffer ?: return@let
                 // 永続化バッファー→キャンバスにコピー
@@ -127,12 +138,12 @@ class DrawableMapRendererBukkit(private val behaviorDesc: DrawBehaviorTypes.Desc
         val players = DrawableMapReflection.getMapTrackingPlayers(mapView)
             ?: return
         // 更新領域のみのピクセルデータを作成する
-        val part = buffer.createSubImage(updateArea)
+        canvasUpdater.createPacket(mapView, buffer, updateArea)
         for (player in players) {
             // 近くのプレイヤーのみに通知する
             if (player.location.origin.distanceSquared(location) < radius * radius) {
                 // プレイヤーに地図を送信する
-                DrawableMapUpdater.sendMap(player, mapView, part, updateArea)
+                canvasUpdater.sendMap(player)
             }
         }
     }
