@@ -9,6 +9,36 @@ import io.kotest.matchers.doubles.plusOrMinus
 fun near(value: Double) = value plusOrMinus EPSILON
 
 /** 誤差を考慮してベクトルが同一 */
+fun near(value: Vec2d) = Matcher<Vec2d> {
+    return@Matcher MatcherResult(
+        near(value.x).test(it.x).passed() &&
+                near(value.y).test(it.y).passed(),
+        "Vec2d $it should be near $value",
+        "Vec2d $it should not be near $value"
+    )
+}
+
+/** 誤差を考慮して線分の数値が同一 */
+fun near(value: Line2d) = Matcher<Line2d> {
+    return@Matcher MatcherResult(
+        near(value.origin).test(it.origin).passed() &&
+                near(value.direction).test(it.direction).passed(),
+        "Line2d $it should be near $value",
+        "Line2d $it should not be near $value"
+    )
+}
+
+/** 誤差を考慮して半直線の位置と向きが同一 */
+fun nearDirection(value: Line2d) = Matcher<Line2d> {
+    return@Matcher MatcherResult(
+        near(value.origin).test(it.origin).passed() &&
+                near(value.direction.normalized).test(it.direction.normalized).passed(),
+        "Line2d $it should be near $value",
+        "Line2d $it should not be near $value"
+    )
+}
+
+/** 誤差を考慮してベクトルが同一 */
 fun near(value: Vec3d) = Matcher<Vec3d> {
     return@Matcher MatcherResult(
         near(value.x).test(it.x).passed() &&

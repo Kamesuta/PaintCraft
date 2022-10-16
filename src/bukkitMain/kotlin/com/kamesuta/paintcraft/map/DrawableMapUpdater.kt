@@ -48,7 +48,7 @@ class DrawableMapUpdater {
         canvasCache.subImage(buffer, dirty)
 
         // パケットを作成する
-        canvasPacket = object : WirePacket(PacketType.Play.Server.MAP, ByteArray(0)) {
+        canvasPacket = object : WirePacket(PacketType.Play.Server.MAP, ZeroByte) {
             override fun writeFully(buf: ByteBuf) {
                 // パケットID
                 writeVarInt(buf, packetPlayOutMapId)
@@ -85,5 +85,8 @@ class DrawableMapUpdater {
     companion object {
         /** マップのパケットID */
         val packetPlayOutMapId = DrawableMapReflection.getPacketPlayOutMapId()
+
+        /** 空の配列 */
+        private val ZeroByte = ByteArray(0)
     }
 }

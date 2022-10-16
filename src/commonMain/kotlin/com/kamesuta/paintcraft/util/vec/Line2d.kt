@@ -42,9 +42,7 @@ data class Line2d(val origin: Vec2d, val direction: Vec2d) {
         val intersect = (s0 in t0..t1) || (s1 in t0..t1) || (t0 in u0..u1) || (t1 in u0..u1)
         if (!intersect) return null // 交差していない
         // ソートし、内側の2点から線分を作る
-        val intersects = arrayOf(t0, t1, s0, s1)
-        intersects.sort()
-        return fromPoints(origin + dir * intersects[1], origin + dir * intersects[2])
+        return fromPoints(origin + dir * max(t0, u0), origin + dir * min(t1, u1))
     }
 
     companion object {
