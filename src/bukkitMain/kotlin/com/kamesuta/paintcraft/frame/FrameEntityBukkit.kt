@@ -7,7 +7,7 @@ import com.kamesuta.paintcraft.util.vec.*
 import org.bukkit.Rotation
 import org.bukkit.entity.ItemFrame
 
-class FrameEntityBukkit(val itemFrame: ItemFrame) : FrameEntity {
+data class FrameEntityBukkit(val itemFrame: ItemFrame) : FrameEntity {
     override val location: Line3d get() = itemFrame.location.toLine()
 
     override val blockLocation: Line3d
@@ -47,9 +47,14 @@ class FrameEntityBukkit(val itemFrame: ItemFrame) : FrameEntity {
         }
     }
 
-    override fun toDrawableMapItem(): DrawableMapItem? = DrawableMapItemBukkit.get(itemFrame.item)
+    override fun toDrawableMapItem(): DrawableMapItem? =
+        // TODO: 額縁内のアイテムが更新されたときに更新する
+        cacheFrameItem.getOrPut(itemFrame) { DrawableMapItemBukkit.get(itemFrame.item) }
 
     companion object {
+        /** アイテムフレームのキャッシュ */
+        val cacheFrameItem = mutableMapOf<ItemFrame, DrawableMapItemBukkit?>()
+
         /**
          * BukkitのRotationから対応するFrameRotationを取得
          * @receiver BukkitのRotation
