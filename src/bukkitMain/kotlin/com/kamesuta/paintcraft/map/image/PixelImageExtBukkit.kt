@@ -3,7 +3,7 @@ package com.kamesuta.paintcraft.map.image
 import org.bukkit.map.MinecraftFont
 import kotlin.math.roundToInt
 
-actual fun PixelImage.getWidth(text: String) = MinecraftFont.Font.getWidth(text)
+actual fun PixelImage.getTextWidth(text: String) = MinecraftFont.Font.getWidth(text)
 
 actual fun PixelImage.drawText(x: Double, y: Double, color: Byte, text: String) {
     // フォント

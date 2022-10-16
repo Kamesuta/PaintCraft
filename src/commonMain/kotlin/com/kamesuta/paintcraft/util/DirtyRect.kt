@@ -40,8 +40,10 @@ class DirtyRect {
      * @param rect 更新領域
      */
     fun flagDirty(rect: DirtyRect) {
-        flagDirty(rect.minX, rect.minY)
-        flagDirty(rect.maxX, rect.maxY)
+        if (rect.isDirty) {
+            flagDirty(rect.minX, rect.minY)
+            flagDirty(rect.maxX, rect.maxY)
+        }
     }
 
     /** 更新領域をリセットする */

@@ -189,7 +189,7 @@ class DrawPalette(
 
             // カラーコードを描画する
             val hexCode = rgbColor.toHexCode()
-            val textWidth = canvas.getWidth(hexCode)
+            val textWidth = canvas.getTextWidth(hexCode)
             canvas.drawText(
                 colorCodePosition.x - textWidth / 2,
                 colorCodePosition.y - colorCodeSize.y / 2,

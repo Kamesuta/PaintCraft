@@ -38,30 +38,6 @@ fun PixelImage.drawCircle(x: Double, y: Double, radius: Double, color: Byte) {
 }
 
 /**
- * 画像を描画する
- * この関数は重いので毎フレーム呼ぶのは非推奨
- * 画像を描画するときは一旦この関数でピクセルデータに変換し、キャッシュした上でdrawPixelImageで描画する
- * @receiver 描画先のピクセルデータ
- * @param x 描画するX座標 (左上の座標)
- * @param y 描画するY座標 (左上の座標)
- * @param image 描画する画像
- */
-fun PixelImage.drawImage(x: Double, y: Double, image: BufferedImage) {
-    val x0 = x.roundToInt()
-    val y0 = y.roundToInt()
-    val minX = x0.coerceIn(0, width)
-    val minY = y0.coerceIn(0, height)
-    val maxX = (x0 + image.width).coerceIn(0, width)
-    val maxY = (y0 + image.height).coerceIn(0, height)
-    for (iy in minY until maxY) {
-        for (ix in minX until maxX) {
-            val color = RGBColor.fromCodeWithAlpha(image.getRGB(ix - x0, iy - y0))
-            this[ix, iy] = color.toMapColor()
-        }
-    }
-}
-
-/**
  * ピクセルデータを描画する
  * @receiver 描画先のピクセルデータ
  * @param x 描画するX座標 (左上の座標)
@@ -124,6 +100,26 @@ fun PixelImage.drawPixelImageWithResize(rect: Rect2i, image: PixelImage) {
 }
 
 /**
+ * ピクセルデータを切り抜いて描画する
+ * @receiver 描画先のピクセルデータ
+ * @param rect くり抜く範囲
+ * @param image 描画するピクセルデータ
+ */
+fun PixelImage.drawPixelImageCrop(rect: Rect2i, image: PixelImage) {
+    val minX = rect.min.x.coerceIn(0, width)
+    val minY = rect.min.y.coerceIn(0, height)
+    val maxX = rect.max.x.coerceIn(0, width)
+    val maxY = rect.max.y.coerceIn(0, height)
+    for (iy in minY until maxY) {
+        for (ix in minX until maxX) {
+            val color = image[ix, iy]
+            if (color == unchanged) continue
+            this[ix, iy] = color
+        }
+    }
+}
+
+/**
  * マスクでピクセルデータを切り抜く (マスクがunchangedのピクセルはunchangedになる)
  * @receiver 切り抜かれる前のピクセルデータ
  * @param mask 切り抜くマスク (unchanged: 切り抜かない, それ以外: 切り抜く)
@@ -141,10 +137,51 @@ fun PixelImage.maskPixelImage(mask: PixelImage) {
 }
 
 /**
+ * 変更がない状態で埋める
+ * @receiver 描画先のピクセルデータ
+ * @param rect 埋める範囲
+ */
+fun PixelImage.fillUnchanged(rect: Rect2i) {
+    val minX = rect.min.x.coerceIn(0, width)
+    val minY = rect.min.y.coerceIn(0, height)
+    val maxX = rect.max.x.coerceIn(0, width)
+    val maxY = rect.max.y.coerceIn(0, height)
+    for (iy in minY until maxY) {
+        for (ix in minX until maxX) {
+            this[ix, iy] = unchanged
+        }
+    }
+}
+
+/**
+ * 画像を描画する
+ * この関数は重いので毎フレーム呼ぶのは非推奨
+ * 画像を描画するときは一旦この関数でピクセルデータに変換し、キャッシュした上でdrawPixelImageで描画する
+ * @receiver 描画先のピクセルデータ
+ * @param x 描画するX座標 (左上の座標)
+ * @param y 描画するY座標 (左上の座標)
+ * @param image 描画する画像
+ */
+fun PixelImage.drawImage(x: Double, y: Double, image: BufferedImage) {
+    val x0 = x.roundToInt()
+    val y0 = y.roundToInt()
+    val minX = x0.coerceIn(0, width)
+    val minY = y0.coerceIn(0, height)
+    val maxX = (x0 + image.width).coerceIn(0, width)
+    val maxY = (y0 + image.height).coerceIn(0, height)
+    for (iy in minY until maxY) {
+        for (ix in minX until maxX) {
+            val color = RGBColor.fromCodeWithAlpha(image.getRGB(ix - x0, iy - y0))
+            this[ix, iy] = color.toMapColor()
+        }
+    }
+}
+
+/**
  * テキストの幅を取得する
  * @receiver 描画先のピクセルデータ
  */
-expect fun PixelImage.getWidth(text: String): Int
+expect fun PixelImage.getTextWidth(text: String): Int
 
 /**
  * テキストを描画する
