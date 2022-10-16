@@ -143,7 +143,7 @@ class Quaternion3dTest : FunSpec({
 
     test("transform axis") {
         val angle = Math.toRadians(45.0)
-        val q = Quaternion3d.axisAngle(Vec3d(1.0, 1.0, 1.0), angle)
+        val q = Quaternion3d.axisAngle(Vec3d(1.0, 1.0, 1.0).normalized, angle)
         val v = Vec3d(5.0, 6.0, 7.0)
         q.transform(v) shouldBe near(Vec3d(5.701141509277316, 5.183503419072273, 7.115355071650411))
     }

@@ -34,12 +34,13 @@ class DrawableMapItemBukkit(
         /**
          * 書き込み可能マップを作成する
          * @param world ワールド
+         * @param type ビヘイビア
          */
         fun create(world: World, type: DrawBehaviorTypes.Desc): DrawableMapItemBukkit {
             // マップを作成する
             val mapView = Bukkit.getServer().createMap(world)
             // レンダラーを初期化
-            val renderer = DrawableMapRendererBukkit(type)
+            val renderer = createRenderer(type)
             // レンダラーを設定
             mapView.setRenderer(renderer)
 
@@ -84,7 +85,7 @@ class DrawableMapItemBukkit(
                 val type = DrawBehaviorTypes.types[PAINT_BEHAVIOR[itemMeta.persistentDataContainer]]
                     ?: return null
                 // レンダラーを初期化
-                val renderer = DrawableMapRendererBukkit(type)
+                val renderer = createRenderer(type)
                 // レンダラーを設定
                 mapView.setRenderer(renderer)
                 // 初回描画
@@ -94,6 +95,13 @@ class DrawableMapItemBukkit(
             // インスタンスを作成
             return DrawableMapItemBukkit(item, mapView.id, renderer)
         }
+
+        /**
+         * レンダラーを作成する
+         * @param type ビヘイビア
+         * @return レンダラー
+         */
+        private fun createRenderer(type: DrawBehaviorTypes.Desc) = DrawableMapRendererBukkit(type)
 
         /**
          * マップのレンダラーを書き込み可能レンダラー置き換える

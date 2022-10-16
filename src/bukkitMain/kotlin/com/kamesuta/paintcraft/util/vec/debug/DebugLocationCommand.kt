@@ -21,6 +21,7 @@ class DebugLocationCommand : Command("debug_location") {
                         .filter { it.dataType == Void::class.java }
                         .map { it.name.lowercase() })
             )
+
             executes {
                 if (!DebugLocationType.ENABLE_DEBUG) {
                     sender.sendMessage("Debug location is disabled.")

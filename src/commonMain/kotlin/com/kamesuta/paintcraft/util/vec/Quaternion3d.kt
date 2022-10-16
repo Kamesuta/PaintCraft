@@ -157,15 +157,19 @@ data class Quaternion3d(val x: Double, val y: Double, val z: Double, val w: Doub
 
         /**
          * 軸と角度からクォータニオンを生成する
-         * @param axis 軸
+         * @param axis 正規化された軸
          * @param angle 角度
          * @return クォータニオン
          */
-        fun axisAngle(axis: Vec3d, angle: Double): Quaternion3d {
-            val vn = axis.normalized
+        fun axisAngle(axisNormalized: Vec3d, angle: Double): Quaternion3d {
             val sinAngle = sin(angle / 2)
             val cosAngle = cos(angle / 2)
-            return Quaternion3d(vn.x * sinAngle, vn.y * sinAngle, vn.z * sinAngle, cosAngle)
+            return Quaternion3d(
+                axisNormalized.x * sinAngle,
+                axisNormalized.y * sinAngle,
+                axisNormalized.z * sinAngle,
+                cosAngle
+            )
         }
 
         /**
