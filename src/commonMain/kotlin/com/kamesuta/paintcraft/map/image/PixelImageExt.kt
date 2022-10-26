@@ -24,10 +24,10 @@ const val mapSize = 128
  * @param color 色
  */
 fun PixelImage.drawCircle(x: Double, y: Double, radius: Double, color: Byte) {
-    val minX = floor(x - radius).toInt().coerceIn(0, width - 1)
-    val minY = floor(y - radius).toInt().coerceIn(0, height - 1)
-    val maxX = ceil(x + radius).toInt().coerceIn(0, width - 1)
-    val maxY = ceil(y + radius).toInt().coerceIn(0, height - 1)
+    val minX = floor(x - radius).toInt().coerceIn(0 until width)
+    val minY = floor(y - radius).toInt().coerceIn(0 until height)
+    val maxX = ceil(x + radius).toInt().coerceIn(0 until width)
+    val maxY = ceil(y + radius).toInt().coerceIn(0 until height)
     for (iy in minY..maxY) {
         for (ix in minX..maxX) {
             if ((ix - x) * (ix - x) + (iy - y) * (iy - y) < radius * radius) {
@@ -47,12 +47,12 @@ fun PixelImage.drawCircle(x: Double, y: Double, radius: Double, color: Byte) {
 fun PixelImage.drawPixelImage(x: Double, y: Double, image: PixelImage) {
     val x0 = x.roundToInt()
     val y0 = y.roundToInt()
-    val minX = x0.coerceIn(0, width)
-    val minY = y0.coerceIn(0, height)
-    val maxX = (x0 + image.width).coerceIn(0, width)
-    val maxY = (y0 + image.height).coerceIn(0, height)
-    for (iy in minY until maxY) {
-        for (ix in minX until maxX) {
+    val minX = x0.coerceIn(0 until width)
+    val minY = y0.coerceIn(0 until height)
+    val maxX = (x0 + image.width - 1).coerceIn(0 until width)
+    val maxY = (y0 + image.height - 1).coerceIn(0 until height)
+    for (iy in minY..maxY) {
+        for (ix in minX..maxX) {
             val color = image[ix - x0, iy - y0]
             if (color == unchanged) continue
             this[ix, iy] = color
@@ -84,12 +84,12 @@ fun PixelImage.drawPixelImage(image: PixelImage) {
  * @param image 描画するピクセルデータ
  */
 fun PixelImage.drawPixelImageWithResize(rect: Rect2i, image: PixelImage) {
-    val minX = rect.min.x.coerceIn(0, width)
-    val minY = rect.min.y.coerceIn(0, height)
-    val maxX = rect.max.x.coerceIn(0, width)
-    val maxY = rect.max.y.coerceIn(0, height)
-    for (iy in minY until maxY) {
-        for (ix in minX until maxX) {
+    val minX = rect.min.x.coerceIn(0 until width)
+    val minY = rect.min.y.coerceIn(0 until height)
+    val maxX = rect.max.x.coerceIn(0 until width)
+    val maxY = rect.max.y.coerceIn(0 until height)
+    for (iy in minY..maxY) {
+        for (ix in minX..maxX) {
             val x = (ix - rect.min.x) * image.width / rect.width
             val y = (iy - rect.min.y) * image.height / rect.height
             val color = image[x, y]
@@ -106,12 +106,12 @@ fun PixelImage.drawPixelImageWithResize(rect: Rect2i, image: PixelImage) {
  * @param image 描画するピクセルデータ
  */
 fun PixelImage.drawPixelImageCrop(rect: Rect2i, image: PixelImage) {
-    val minX = rect.min.x.coerceIn(0, width)
-    val minY = rect.min.y.coerceIn(0, height)
-    val maxX = rect.max.x.coerceIn(0, width)
-    val maxY = rect.max.y.coerceIn(0, height)
-    for (iy in minY until maxY) {
-        for (ix in minX until maxX) {
+    val minX = rect.min.x.coerceIn(0 until width)
+    val minY = rect.min.y.coerceIn(0 until height)
+    val maxX = rect.max.x.coerceIn(0 until width)
+    val maxY = rect.max.y.coerceIn(0 until height)
+    for (iy in minY..maxY) {
+        for (ix in minX..maxX) {
             val color = image[ix, iy]
             if (color == unchanged) continue
             this[ix, iy] = color
@@ -142,12 +142,12 @@ fun PixelImage.maskPixelImage(mask: PixelImage) {
  * @param rect 埋める範囲
  */
 fun PixelImage.fillUnchanged(rect: Rect2i) {
-    val minX = rect.min.x.coerceIn(0, width)
-    val minY = rect.min.y.coerceIn(0, height)
-    val maxX = rect.max.x.coerceIn(0, width)
-    val maxY = rect.max.y.coerceIn(0, height)
-    for (iy in minY until maxY) {
-        for (ix in minX until maxX) {
+    val minX = rect.min.x.coerceIn(0 until width)
+    val minY = rect.min.y.coerceIn(0 until height)
+    val maxX = rect.max.x.coerceIn(0 until width)
+    val maxY = rect.max.y.coerceIn(0 until height)
+    for (iy in minY..maxY) {
+        for (ix in minX..maxX) {
             this[ix, iy] = unchanged
         }
     }
@@ -165,12 +165,12 @@ fun PixelImage.fillUnchanged(rect: Rect2i) {
 fun PixelImage.drawImage(x: Double, y: Double, image: BufferedImage) {
     val x0 = x.roundToInt()
     val y0 = y.roundToInt()
-    val minX = x0.coerceIn(0, width)
-    val minY = y0.coerceIn(0, height)
-    val maxX = (x0 + image.width).coerceIn(0, width)
-    val maxY = (y0 + image.height).coerceIn(0, height)
-    for (iy in minY until maxY) {
-        for (ix in minX until maxX) {
+    val minX = x0.coerceIn(0 until width)
+    val minY = y0.coerceIn(0 until height)
+    val maxX = (x0 + image.width - 1).coerceIn(0 until width)
+    val maxY = (y0 + image.height - 1).coerceIn(0 until height)
+    for (iy in minY..maxY) {
+        for (ix in minX..maxX) {
             val color = RGBColor.fromCodeWithAlpha(image.getRGB(ix - x0, iy - y0))
             this[ix, iy] = color.toMapColor()
         }

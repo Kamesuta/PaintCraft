@@ -84,7 +84,7 @@ class DrawableMapUpdater {
 
     companion object {
         /** マップのパケットID */
-        val packetPlayOutMapId = DrawableMapReflection.getPacketPlayOutMapId()
+        private val packetPlayOutMapId = DrawableMapReflection.getPacketPlayOutMapId()
 
         /** 空の配列 */
         private val ZeroByte = ByteArray(0)

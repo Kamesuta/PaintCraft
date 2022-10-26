@@ -45,7 +45,13 @@ open class PixelImageMapBuffer(pixels: ByteArray) : PixelImageBuffer(mapSize, ma
      * 変更がない状態で初期化
      * @return 初期化されたインスタンス
      */
-    fun clearToUnchanged() {
-        pixels.fill(unchanged)
+    fun clearToUnchanged(force: Boolean = false) {
+        if (force) {
+            // ピクセルを全て変更なしにする
+            pixels.fill(unchanged)
+        } else {
+            // 変更された場所だけ変更なしにする
+            dirty.rect?.let { fillUnchanged(it) }
+        }
     }
 }

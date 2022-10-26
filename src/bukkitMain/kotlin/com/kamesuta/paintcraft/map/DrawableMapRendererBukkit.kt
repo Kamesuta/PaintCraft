@@ -7,8 +7,9 @@ import com.kamesuta.paintcraft.map.draw.Drawable
 import com.kamesuta.paintcraft.map.image.PixelImageLayer
 import com.kamesuta.paintcraft.map.image.PixelImageMapBuffer
 import com.kamesuta.paintcraft.map.image.PixelImageMapCanvas
-import com.kamesuta.paintcraft.map.image.drawPixelImage
+import com.kamesuta.paintcraft.map.image.drawPixelImageCrop
 import com.kamesuta.paintcraft.player.PaintPlayer
+import com.kamesuta.paintcraft.util.DirtyRect
 import com.kamesuta.paintcraft.util.vec.Vec3d
 import com.kamesuta.paintcraft.util.vec.origin
 import org.bukkit.entity.Player
@@ -30,10 +31,7 @@ class DrawableMapRendererBukkit(private val behaviorDesc: DrawBehaviorTypes.Desc
     /** マップピクセルデータ */
     private val updateCache = PixelImageMapBuffer()
 
-    /** レイヤー書き出し先 */
-    private val mapLayerCache = PixelImageMapBuffer()
-
-    override val mapLayer = PixelImageLayer<PaintPlayer>(PixelImageMapBuffer())
+    override val mapLayer = PixelImageLayer<PaintPlayer>()
 
     /** 描画ツール */
     override lateinit var behavior: DrawBehavior
@@ -165,10 +163,19 @@ class DrawableMapRendererBukkit(private val behaviorDesc: DrawBehaviorTypes.Desc
     /** レイヤーを合成する */
     private fun composeLayer(cache: PixelImageMapBuffer) {
         // レイヤーを合成する
-        mapLayer.compose(mapLayerCache)
+        mapLayer.compose()
+        // 前回の変更箇所と今回の変更箇所をマージする
+        val dirtyArea = DirtyRect().apply {
+            flagDirty(cache.dirty)
+            flagDirty(mapLayer.output.dirty)
+        }
         // 変更箇所をクリアする
         cache.dirty.clear()
-        // レイヤーを更新する
-        cache.drawPixelImage(mapLayerCache)
+        // 変更箇所のみレイヤーを更新する
+        val dirty = dirtyArea.rect
+            ?: return
+        cache.drawPixelImageCrop(dirty, mapLayer.output)
+        // 変更箇所をマークする
+        cache.dirty.flagDirty(mapLayer.output.dirty)
     }
 }
