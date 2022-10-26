@@ -101,14 +101,14 @@ class PixelImageLayer<T> {
      * @return 合成したレイヤー
      */
     fun compose() {
-        // まずコピーする
-        base.copyTo(output)
         // コピーした後に変更フラグをリセット
         output.dirty.clear()
         // 変更点を取得
         val dirtyRect = dirtyArea.apply { flagDirty(clearedArea) }
         val dirty = dirtyRect.rect
             ?: return
+        // まずコピーする
+        output.drawPixelImageCrop(dirty, base)
         // 差分を適用
         layers.forEach { (_, layer) ->
             // 変更されている部分のみ適用
