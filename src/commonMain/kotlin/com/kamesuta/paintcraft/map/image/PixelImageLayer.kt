@@ -19,9 +19,6 @@ class PixelImageLayer<T> {
     /** プレイヤー->レイヤーのマップ */
     private val layerMap = mutableMapOf<T, PixelImageMapBuffer>()
 
-    /** 削除したレイヤーの変更箇所 */
-    private val clearedArea = DirtyRect()
-
     /**
      * レイヤーを取得または作成して初期化する
      * @return レイヤー
@@ -60,7 +57,7 @@ class PixelImageLayer<T> {
         val layer = layerMap.remove(key)
             ?: return
         // 消したレイヤーの変更箇所を記録
-        clearedArea.flagDirty(layer.dirty)
+        base.dirty.flagDirty(layer.dirty)
         // マップから削除
         layers.removeIf { it.first == key }
         // 変更があった場所だけベースレイヤーに適用
@@ -76,7 +73,7 @@ class PixelImageLayer<T> {
         val layer = layerMap.remove(key)
             ?: return
         // 消したレイヤーの変更箇所を記録
-        clearedArea.flagDirty(layer.dirty)
+        base.dirty.flagDirty(layer.dirty)
         // マップから削除
         layers.removeIf { it.first == key }
     }
@@ -90,7 +87,7 @@ class PixelImageLayer<T> {
         val layer = layerMap[key]
             ?: return
         // 消したレイヤーの変更箇所を記録
-        clearedArea.flagDirty(layer.dirty)
+        base.dirty.flagDirty(layer.dirty)
         // クリア
         layer.clearToUnchanged()
     }
@@ -104,7 +101,7 @@ class PixelImageLayer<T> {
         // コピーした後に変更フラグをリセット
         output.dirty.clear()
         // 変更点を取得
-        val dirtyRect = dirtyArea.apply { flagDirty(clearedArea) }
+        val dirtyRect = dirtyArea.apply { flagDirty(base.dirty) }
         val dirty = dirtyRect.rect
             ?: return
         // まずコピーする
@@ -115,6 +112,6 @@ class PixelImageLayer<T> {
             output.drawPixelImageCrop(dirty, layer)
         }
         // クリア箇所をクリア
-        clearedArea.clear()
+        base.dirty.clear()
     }
 }
