@@ -90,11 +90,11 @@ class PixelImageLayer<T> {
         base.dirty.flagDirty(layer.dirty)
         // クリア
         layer.clearToUnchanged()
+        layer.dirty.clear()
     }
 
     /**
      * レイヤーを合成する
-     * @param prevDirty 前回変更があった場所
      * @return 合成したレイヤー
      */
     fun compose() {
