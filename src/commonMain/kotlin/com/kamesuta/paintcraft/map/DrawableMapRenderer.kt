@@ -32,7 +32,8 @@ interface DrawableMapRenderer {
 
     /**
      * プレイヤーに更新を通知する
+     * @param player プレイヤー
      * @param location アイテムフレームの位置
      */
-    fun updatePlayer(location: Vec3d)
+    fun updatePlayer(player: PaintPlayer, location: Vec3d)
 }

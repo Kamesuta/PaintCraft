@@ -23,7 +23,7 @@ class CanvasMemento private constructor(private val entries: Collection<Entry.Me
     ) {
         /** 変更点をプレイヤーに送信する */
         fun updatePlayer() {
-            mapItem.renderer.updatePlayer(itemFrame.location.origin)
+            mapItem.renderer.updatePlayer(player, itemFrame.location.origin)
         }
 
         /**

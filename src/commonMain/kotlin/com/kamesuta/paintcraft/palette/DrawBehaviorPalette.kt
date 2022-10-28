@@ -149,7 +149,7 @@ class DrawBehaviorPalette(private val renderer: DrawableMapRenderer) : DrawBehav
         event.mapItem.renderer.drawBase(DrawPalette(paletteData))
 
         // 更新をプレイヤーに送信
-        renderer.updatePlayer(event.interact.ray.itemFrame.location.origin)
+        renderer.updatePlayer(event.interact.player, event.interact.ray.itemFrame.location.origin)
     }
 
     /**

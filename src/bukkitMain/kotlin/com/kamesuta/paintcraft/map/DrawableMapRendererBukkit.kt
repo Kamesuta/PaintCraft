@@ -9,9 +9,11 @@ import com.kamesuta.paintcraft.map.image.PixelImageMapBuffer
 import com.kamesuta.paintcraft.map.image.PixelImageMapCanvas
 import com.kamesuta.paintcraft.map.image.drawPixelImageCrop
 import com.kamesuta.paintcraft.player.PaintPlayer
+import com.kamesuta.paintcraft.player.PaintPlayerBukkit
 import com.kamesuta.paintcraft.util.DirtyRect
 import com.kamesuta.paintcraft.util.vec.Vec3d
 import com.kamesuta.paintcraft.util.vec.origin
+import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import org.bukkit.map.MapCanvas
 import org.bukkit.map.MapRenderer
@@ -48,6 +50,9 @@ class DrawableMapRendererBukkit(private val behaviorDesc: DrawBehaviorTypes.Desc
 
     /** マップの更新通知 */
     private val canvasUpdater = DrawableMapUpdater()
+
+    /** マップの更新通知をしたチック */
+    private var lastUpdateTick = 0
 
     /**
      * addRenderer() された時に呼ばれるため、必ず使えるはず
@@ -118,13 +123,9 @@ class DrawableMapRendererBukkit(private val behaviorDesc: DrawBehaviorTypes.Desc
         }
     }
 
-    /**
-     * プレイヤーに更新を通知する
-     * @param location アイテムフレームの位置
-     */
-    override fun updatePlayer(location: Vec3d) {
-        // 更新する半径 ( TODO: 半径のコンフィグ化 )
-        val radius = 10.0
+    override fun updatePlayer(player: PaintPlayer, location: Vec3d) {
+        // プレイヤーがBukkitのプレイヤーかチェック
+        if (player !is PaintPlayerBukkit) return
         // アップデート用キャッシュ
         val buffer = updateCache
         // レイヤーを更新する
@@ -133,17 +134,29 @@ class DrawableMapRendererBukkit(private val behaviorDesc: DrawBehaviorTypes.Desc
         val updateArea = buffer.dirty.rect
             ?: return // 変更箇所がなければ何もしない
         // 更新があるプレイヤーに通知する
-        val players = DrawableMapReflection.getMapTrackingPlayers(mapView)
+        val trackingPlayers = DrawableMapReflection.getMapTrackingPlayers(mapView)
             ?: return
         // 更新領域のみのピクセルデータを作成する
         canvasUpdater.createPacket(mapView, buffer, updateArea)
-        for (player in players) {
+        // 描いたプレイヤーに通知する
+        canvasUpdater.sendMap(player.player)
+
+        // 1チックに1回以下のみ更新する
+        val tick = Bukkit.getCurrentTick()
+        if (tick <= lastUpdateTick) return
+        lastUpdateTick = tick
+
+        // 更新する半径 ( TODO: 半径のコンフィグ化 )
+        val radius = 10.0
+        // 周りのプレイヤーに通知する
+        trackingPlayers
+            .asSequence()
+            // 描いたプレイヤーは通知済みなので除外する
+            .filter { it != player.player }
             // 近くのプレイヤーのみに通知する
-            if (player.location.origin.distanceSquared(location) < radius * radius) {
-                // プレイヤーに地図を送信する
-                canvasUpdater.sendMap(player)
-            }
-        }
+            .filter { it.location.origin.distanceSquared(location) < radius * radius }
+            // プレイヤーに地図を送信する
+            .forEach { canvasUpdater.sendMap(it) }
     }
 
     /** ピクセルデータの内容をマップビューに保存し永続化する */
