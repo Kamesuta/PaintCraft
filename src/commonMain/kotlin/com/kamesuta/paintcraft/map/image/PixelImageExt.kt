@@ -4,6 +4,7 @@ import com.kamesuta.paintcraft.util.color.RGBColor
 import com.kamesuta.paintcraft.util.color.RGBColor.MapColors.unchanged
 import com.kamesuta.paintcraft.util.color.toMapColor
 import com.kamesuta.paintcraft.util.vec.Rect2i
+import com.kamesuta.paintcraft.util.vec.Vec2i
 import java.awt.image.BufferedImage
 import kotlin.math.ceil
 import kotlin.math.floor
@@ -14,6 +15,9 @@ import kotlin.math.roundToInt
  * 地図のピクセルサイズ
  */
 const val mapSize = 128
+
+/** ピクセルデータの矩形範囲 */
+val PixelImage.rect: Rect2i get() = Rect2i(Vec2i(0, 0), Vec2i(width - 1, height - 1))
 
 /**
  * 円を描画する

@@ -16,7 +16,7 @@ class DirtyRect {
     var maxY = 0
 
     /**
-     * 更新領域を追加する
+     * 指定された点を更新領域としてマークする
      * @param x x座標
      * @param y y座標
      */
@@ -36,7 +36,7 @@ class DirtyRect {
     }
 
     /**
-     * 更新領域を追加する
+     * 指定された領域を更新領域としてマーク
      * @param rect 更新領域
      */
     fun flagDirty(rect: DirtyRect) {
@@ -44,6 +44,15 @@ class DirtyRect {
             flagDirty(rect.minX, rect.minY)
             flagDirty(rect.maxX, rect.maxY)
         }
+    }
+
+    /**
+     * 指定された領域を更新領域としてマーク
+     * @param rect 更新領域
+     */
+    fun flagDirty(rect: Rect2i) {
+        flagDirty(rect.min.x, rect.min.y)
+        flagDirty(rect.max.x, rect.max.y)
     }
 
     /** 更新領域をリセットする */

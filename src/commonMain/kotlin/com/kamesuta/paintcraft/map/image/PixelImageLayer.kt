@@ -8,7 +8,7 @@ import com.kamesuta.paintcraft.util.DirtyRect
  */
 class PixelImageLayer<T> {
     /** レイヤーのベース */
-    val base = PixelImageMapBuffer()
+    val base = PixelImageMapBuffer().apply { dirty.flagDirty(rect) }
 
     /** レイヤーの出力 */
     val output = PixelImageMapBuffer()
