@@ -1,5 +1,6 @@
 package com.kamesuta.paintcraft.map.image
 
+import com.kamesuta.paintcraft.util.DirtyRect
 import com.kamesuta.paintcraft.util.vec.Rect2i
 
 /**
@@ -22,17 +23,8 @@ open class PixelImageCacheBuffer(
      */
     constructor() : this(ByteArray(mapSize * mapSize))
 
-    /**
-     * ピクセルデータをリサイズする
-     * @param newWidth マップの幅
-     * @param newHeight マップの高さ
-     */
-    fun resize(newWidth: Int, newHeight: Int) {
-        // 配列のサイズをチェックする
-        require(pixels.size >= newWidth * newHeight) { "Invalid map size" }
-        width = newWidth
-        height = newHeight
-    }
+    /** 更新領域 */
+    val dirty = DirtyRect()
 
     override operator fun set(x: Int, y: Int, color: Byte) {
         // マップの範囲外なら無視
@@ -40,6 +32,13 @@ open class PixelImageCacheBuffer(
             return
         }
 
+        // 変更がない場合は何もしない
+        if (pixels[x + y * width] == color) return
+
+        // 変更があった場合は更新領域を拡大
+        dirty.flagDirty(x, y)
+
+        // ピクセルを更新
         pixels[x + y * width] = color
     }
 
@@ -56,15 +55,28 @@ open class PixelImageCacheBuffer(
      * 更新する領域を切り抜く
      * くり抜いた領域をこのインスタンスにコピーする
      * @param src ピクセルデータ
-     * @param dirty 更新する領域
+     * @param dirtyRect 更新する領域
      */
-    fun subImage(src: PixelImage, dirty: Rect2i) {
-        width = dirty.width
-        height = dirty.height
+    fun subImage(src: PixelImage, dirtyRect: Rect2i) {
+        width = dirtyRect.width
+        height = dirtyRect.height
         for (y in 0 until height) {
             for (x in 0 until width) {
-                this[x, y] = src[dirty.min.x + x, dirty.min.y + y]
+                this[x, y] = src[dirtyRect.min.x + x, dirtyRect.min.y + y]
             }
+        }
+        dirty.clear()
+        dirty.flagDirty(dirtyRect)
+    }
+
+    companion object {
+        /**
+         * マップピクセルデータの差分を適用する
+         * @receiver 適用先マップピクセルデータ
+         * @param src マップピクセルデータ差分
+         */
+        fun PixelImage.applyImage(src: PixelImageCacheBuffer) {
+            drawPixelImage(src.dirty.minX.toDouble(), src.dirty.minY.toDouble(), src)
         }
     }
 }

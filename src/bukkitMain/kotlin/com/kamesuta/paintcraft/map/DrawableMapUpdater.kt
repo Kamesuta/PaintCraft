@@ -3,9 +3,7 @@ package com.kamesuta.paintcraft.map
 import com.comphenix.protocol.PacketType
 import com.comphenix.protocol.injector.netty.WirePacket
 import com.kamesuta.paintcraft.PaintCraft
-import com.kamesuta.paintcraft.map.image.PixelImageBuffer
 import com.kamesuta.paintcraft.map.image.PixelImageCacheBuffer
-import com.kamesuta.paintcraft.util.vec.Rect2i
 import io.netty.buffer.ByteBuf
 import org.bukkit.entity.Player
 import org.bukkit.map.MapView
@@ -17,11 +15,8 @@ class DrawableMapUpdater {
     /** 更新するマップビュー */
     private var canvasMapView: MapView? = null
 
-    /** 更新する領域 */
-    private var canvasDirty: Rect2i? = null
-
     /** キャンバス更新のキャッシュ */
-    private val canvasCache = PixelImageCacheBuffer()
+    private var canvasCache: PixelImageCacheBuffer? = null
 
     /** 送信するパケット */
     private var canvasPacket: WirePacket = object : WirePacket(PacketType.Play.Server.MAP, ZeroByte) {
@@ -29,7 +24,9 @@ class DrawableMapUpdater {
             // マップビューと更新領域がある場合のみ送信
             val mapView = canvasMapView
                 ?: return
-            val dirty = canvasDirty
+            val cache = canvasCache
+                ?: return
+            val dirty = cache.dirty.rect
                 ?: return
 
             // パケットID
@@ -58,7 +55,7 @@ class DrawableMapUpdater {
 
                 // 更新する領域のピクセルデータ
                 writeVarInt(buf, dirty.width * dirty.height)
-                buf.writeBytes(canvasCache.pixels, 0, dirty.width * dirty.height)
+                buf.writeBytes(cache.pixels, 0, dirty.width * dirty.height)
             }
         }
     }
@@ -70,7 +67,7 @@ class DrawableMapUpdater {
     fun sendMap(player: Player) {
         // マップビューと更新領域がある場合のみ送信
         canvasMapView ?: return
-        canvasDirty ?: return
+        canvasCache ?: return
 
         // パケットを送信する
         PaintCraft.instance.protocolManager.sendWirePacket(
@@ -83,19 +80,14 @@ class DrawableMapUpdater {
      * マップを更新するためのパケットを作成する
      * @param mapView マップビュー
      * @param buffer ピクセルデータ
-     * @param dirty 更新する領域
      */
     fun createPacket(
         mapView: MapView,
-        buffer: PixelImageBuffer,
-        dirty: Rect2i,
+        buffer: PixelImageCacheBuffer,
     ) {
-        // 更新する領域を切り出す
-        canvasCache.subImage(buffer, dirty)
-
         // パケットを作成する
         canvasMapView = mapView
-        canvasDirty = dirty
+        canvasCache = buffer
     }
 
     companion object {
