@@ -49,13 +49,13 @@ class DrawableMapRendererBukkit(private val behaviorDesc: DrawBehaviorTypes.Desc
     /** マップの更新通知 */
     private val canvasUpdater = DrawableMapUpdater()
 
-    /** マップピクセルデータ */
+    /** マップピクセルデータ (保存用) */
     private val saveCache = PixelImageCacheBuffer()
 
-    /** マップピクセルデータ */
+    /** マップピクセルデータ (描いた人更新用) */
     private val updateDrawerCache = PixelImageCacheBuffer()
 
-    /** マップピクセルデータ */
+    /** マップピクセルデータ (周りの人更新用) */
     private val updateAroundCache = PixelImageCacheBuffer()
 
     /** マップの更新通知をしたチック */
@@ -148,26 +148,27 @@ class DrawableMapRendererBukkit(private val behaviorDesc: DrawBehaviorTypes.Desc
             Bukkit.getCurrentTick().let { tick -> tick > lastUpdateTick.also { lastUpdateTick = tick } }
         if (!shouldUpdateAround) return
 
+        // 更新する半径 ( TODO: 半径のコンフィグ化 )
+        val radius = 10.0
+        // 更新があるプレイヤーに通知する
+        val trackingPlayers = (DrawableMapReflection.getMapTrackingPlayers(mapView) ?: return)
+            .asSequence()
+            // 描いたプレイヤーは通知済みなので除外する
+            .filter { it != player.player }
+            // 近くのプレイヤーのみに通知する
+            .filter { it.location.origin.distanceSquared(location) < radius * radius }
+            .toList()
+        // 周りにプレイヤーがいない場合は通知しない
+        if (trackingPlayers.isEmpty()) return
+
         // レイヤーを更新する
         composeLayer(updateAroundCache)
         // 変更箇所がなければ何もしない
         updateAroundCache.dirty.rect ?: return
         // 更新領域のみのピクセルデータを作成する
         canvasUpdater.createPacket(mapView, updateAroundCache)
-        // 更新する半径 ( TODO: 半径のコンフィグ化 )
-        val radius = 10.0
-        // 更新があるプレイヤーに通知する
-        val trackingPlayers = DrawableMapReflection.getMapTrackingPlayers(mapView)
-            ?: return
-        // 周りのプレイヤーに通知する
-        trackingPlayers
-            // 描いたプレイヤーは通知済みなので除外する
-            .filter { it != player.player }
-            .asSequence()
-            // 近くのプレイヤーのみに通知する
-            .filter { it.location.origin.distanceSquared(location) < radius * radius }
-            // プレイヤーに地図を送信する
-            .forEach { canvasUpdater.sendMap(it) }
+        // 周りのプレイヤーに地図を送信する
+        trackingPlayers.forEach { canvasUpdater.sendMap(it) }
     }
 
     /** ピクセルデータの内容をマップビューに保存し永続化する */
