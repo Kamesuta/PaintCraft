@@ -57,14 +57,15 @@ open class PixelImageCacheBuffer(
      * @param src ピクセルデータ
      * @param dirtyRect 更新する領域
      */
-    fun subImage(src: PixelImage, dirtyRect: Rect2i) {
+    fun subImage(src: PixelImageBuffer, dirtyRect: Rect2i) {
+        // バッファーサイズを超えていないかチェック
+        require(dirtyRect.width * dirtyRect.height <= pixels.size) { "Invalid map size" }
+        // サイズを更新
         width = dirtyRect.width
         height = dirtyRect.height
-        for (y in 0 until height) {
-            for (x in 0 until width) {
-                this[x, y] = src[dirtyRect.min.x + x, dirtyRect.min.y + y]
-            }
-        }
+        // ピクセルデータをコピー
+        drawPixelImageFast(dirtyRect.min.x, dirtyRect.min.y, src)
+        // 更新領域をセット
         dirty.clear()
         dirty.flagDirty(dirtyRect)
     }
@@ -77,6 +78,25 @@ open class PixelImageCacheBuffer(
          */
         fun PixelImage.applyImage(src: PixelImageCacheBuffer) {
             drawPixelImage(src.dirty.minX.toDouble(), src.dirty.minY.toDouble(), src)
+        }
+
+        /**
+         * 高速にピクセルデータを描画する
+         * このメソッドはピクセルデータの範囲チェックを行わない
+         * @receiver 描画先のピクセルデータ
+         * @param x 描画するX座標 (左上の座標)
+         * @param y 描画するY座標 (左上の座標)
+         * @param src 描画するピクセルデータ
+         */
+        private fun PixelImage.drawPixelImageFast(x: Int, y: Int, src: PixelImage) {
+            val dstPixels = pixels
+            val dstWidth = width
+            val dstHeight = height
+            val srcPixels = src.pixels
+            val srcWidth = src.width
+            for (iy in 0 until dstHeight) {
+                System.arraycopy(srcPixels, (x + (y + iy) * srcWidth), dstPixels, iy * dstWidth, dstWidth)
+            }
         }
     }
 }
