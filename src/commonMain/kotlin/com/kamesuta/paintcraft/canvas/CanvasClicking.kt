@@ -22,6 +22,15 @@ class CanvasClicking(private val clientType: ClientType) {
     /** 描くのを止める */
     private var pauseClick = false
 
+    /** クリック状態を固定する */
+    var isFreeze = false
+
+    /** クリック状態を設定して固定する */
+    fun setClickAndFreeze(clickMode: CanvasActionType) {
+        this.clickMode = clickMode
+        this.isFreeze = true
+    }
+
     /** クリックボタンを離すまで、クリックを離した状態にする */
     fun stopClicking() {
         // 離すまで描画を止める
@@ -36,6 +45,9 @@ class CanvasClicking(private val clientType: ClientType) {
      * @param actionType クリック状態
      */
     fun updateClick(actionType: CanvasActionType) {
+        // 固定されている場合は何もしない
+        if (isFreeze) return
+
         if (actionType == CanvasActionType.MOUSE_MOVE) {
             // 動いたときは時間を見てとめる
             if (!isInClickingTime) {

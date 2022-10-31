@@ -1,16 +1,21 @@
 package com.kamesuta.paintcraft
 
+import com.kamesuta.paintcraft.canvas.CanvasActionType
 import com.kamesuta.paintcraft.canvas.CanvasSessionManager
 import com.kamesuta.paintcraft.canvas.paint.PaintFill
 import com.kamesuta.paintcraft.canvas.paint.PaintLine
 import com.kamesuta.paintcraft.canvas.paint.PaintPencil
 import com.kamesuta.paintcraft.canvas.paint.PaintRect
+import com.kamesuta.paintcraft.frame.FrameEntityBukkit
 import com.kamesuta.paintcraft.map.DrawableMapItemBukkit
 import com.kamesuta.paintcraft.map.behavior.DrawBehaviorTypes.DrawBehaviorPaintDesc
 import com.kamesuta.paintcraft.map.behavior.DrawBehaviorTypes.DrawBehaviorPaletteDesc
+import com.kamesuta.paintcraft.map.draw.DrawRect
 import com.kamesuta.paintcraft.map.image.debug.PixelImageManualTest
+import com.kamesuta.paintcraft.map.image.mapSize
 import com.kamesuta.paintcraft.player.PaintPlayerBukkit
 import com.kamesuta.paintcraft.util.color.RGBColor
+import com.kamesuta.paintcraft.util.color.RGBColor.MapColors.white
 import com.kamesuta.paintcraft.util.color.toMapColor
 import com.kamesuta.paintcraft.util.enumValueOrNull
 import com.kamesuta.paintcraft.util.vec.debug.DebugLocationCommand
@@ -35,6 +40,8 @@ class PaintCraftCommand : Command("paintcraft") {
             ThicknessCommand(),
             DebugPlaceCommand(),
             DebugImageVisualizerCommand(),
+            DebugDrawFlagCommand(),
+            DebugClearCommand(),
         )
     }
 }
@@ -247,5 +254,54 @@ class DebugPlaceCommand : Command("debug_place") {
 class DebugImageVisualizerCommand : Command("debug_image_visualizer") {
     override fun CommandContext.execute() {
         PixelImageManualTest.startTool()
+    }
+}
+
+class DebugDrawFlagCommand : Command("debug_draw_flag") {
+    init {
+        usage {
+            // 設定対象のプレイヤー
+            entityArgument("player")
+            // 描画中かどうか
+            booleanArgument("isDrawing")
+            executes {
+                val entities = typedArgs[0] as List<*>
+                val isDrawing = typedArgs[1] as Boolean
+                entities.filterIsInstance<Player>().forEach {
+                    val session = CanvasSessionManager.getSession(PaintPlayerBukkit(it))
+                    if (isDrawing) {
+                        session.clicking.setClickAndFreeze(CanvasActionType.RIGHT_CLICK)
+                    } else {
+                        session.clicking.isFreeze = false
+                    }
+                }
+            }
+        }
+    }
+}
+
+class DebugClearCommand : Command("debug_clear") {
+    init {
+        usage {
+            // 設定対象のプレイヤー
+            entityArgument("player")
+            // 範囲
+            integerArgument("radius")
+            executes {
+                val entities = typedArgs[0] as List<*>
+                val radius = typedArgs[1] as Int
+                if (radius < 0) {
+                    sender.sendMessage("Invalid radius: $radius")
+                    return@executes
+                }
+                entities.filterIsInstance<Player>().forEach { player ->
+                    player.location.getNearbyEntitiesByType(ItemFrame::class.java, radius.toDouble()).forEach {
+                        FrameEntityBukkit(it).toDrawableMapItem()?.draw(PaintPlayerBukkit(player)) {
+                            g(DrawRect(0.0, 0.0, mapSize - 1.0, mapSize - 1.0, white, true, 0.0))
+                        }
+                    }
+                }
+            }
+        }
     }
 }
