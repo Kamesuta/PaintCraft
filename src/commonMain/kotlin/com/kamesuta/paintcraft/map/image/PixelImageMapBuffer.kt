@@ -9,9 +9,7 @@ import com.kamesuta.paintcraft.util.color.RGBColor.MapColors.unchanged
  * @param pixels ピクセルデータ
  */
 open class PixelImageMapBuffer(pixels: ByteArray) : PixelImageBuffer(mapSize, mapSize, pixels) {
-    /**
-     * 128x128のピクセルを取得する
-     */
+    /** 128x128のピクセルを取得する */
     constructor() : this(ByteArray(mapSize * mapSize))
 
     /** 更新領域 */

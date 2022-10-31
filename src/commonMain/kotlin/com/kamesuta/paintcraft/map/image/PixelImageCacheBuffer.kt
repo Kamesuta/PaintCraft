@@ -77,7 +77,7 @@ open class PixelImageCacheBuffer(
          * @param src マップピクセルデータ差分
          */
         fun PixelImage.applyImage(src: PixelImageCacheBuffer) {
-            drawPixelImage(src.dirty.minX.toDouble(), src.dirty.minY.toDouble(), src)
+            drawPixelImage(src.dirty.minX, src.dirty.minY, src)
         }
 
         /**

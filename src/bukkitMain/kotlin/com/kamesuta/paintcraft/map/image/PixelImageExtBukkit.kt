@@ -1,17 +1,16 @@
 package com.kamesuta.paintcraft.map.image
 
 import org.bukkit.map.MinecraftFont
-import kotlin.math.roundToInt
 
 actual fun PixelImage.getTextWidth(text: String) = MinecraftFont.Font.getWidth(text)
 
-actual fun PixelImage.drawText(x: Double, y: Double, color: Byte, text: String) {
+actual fun PixelImage.drawText(x: Int, y: Int, color: Byte, text: String) {
     // フォント
     val font = MinecraftFont.Font
 
     // 現在の位置
-    var ix = x.roundToInt()
-    var iy = y.roundToInt()
+    var ix = x
+    var iy = y
     // X座標のスタート地点
     val xStart = ix
     // テキストの文字数分ループ

@@ -99,7 +99,7 @@ object ClientTypeReflection {
         return runCatching {
             val api = viaAccessor.viaGetApi(null)
                 ?: return@runCatching null
-            val version = viaAccessor.viaApiGetPlayerVersion.invoke(api, player.uniqueId) as Int
+            val version = viaAccessor.viaApiGetPlayerVersion(api, player.uniqueId) as Int
             version
         }.onFailure {
             PaintCraft.instance.logger.warning("Failed to get client version (ViaVersion)")

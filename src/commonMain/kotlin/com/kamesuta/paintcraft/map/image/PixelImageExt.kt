@@ -9,7 +9,6 @@ import java.awt.image.BufferedImage
 import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.min
-import kotlin.math.roundToInt
 
 /**
  * 地図のピクセルサイズ
@@ -48,16 +47,14 @@ fun PixelImage.drawCircle(x: Double, y: Double, radius: Double, color: Byte) {
  * @param y 描画するY座標 (左上の座標)
  * @param image 描画するピクセルデータ
  */
-fun PixelImage.drawPixelImage(x: Double, y: Double, image: PixelImage) {
-    val x0 = x.roundToInt()
-    val y0 = y.roundToInt()
-    val minX = x0.coerceIn(0 until width)
-    val minY = y0.coerceIn(0 until height)
-    val maxX = (x0 + image.width - 1).coerceIn(0 until width)
-    val maxY = (y0 + image.height - 1).coerceIn(0 until height)
+fun PixelImage.drawPixelImage(x: Int, y: Int, image: PixelImage) {
+    val minX = x.coerceIn(0 until width)
+    val minY = y.coerceIn(0 until height)
+    val maxX = (x + image.width - 1).coerceIn(0 until width)
+    val maxY = (y + image.height - 1).coerceIn(0 until height)
     for (iy in minY..maxY) {
         for (ix in minX..maxX) {
-            val color = image[ix - x0, iy - y0]
+            val color = image[ix - x, iy - y]
             if (color == unchanged) continue
             this[ix, iy] = color
         }
@@ -166,16 +163,14 @@ fun PixelImage.fillUnchanged(rect: Rect2i) {
  * @param y 描画するY座標 (左上の座標)
  * @param image 描画する画像
  */
-fun PixelImage.drawImage(x: Double, y: Double, image: BufferedImage) {
-    val x0 = x.roundToInt()
-    val y0 = y.roundToInt()
-    val minX = x0.coerceIn(0 until width)
-    val minY = y0.coerceIn(0 until height)
-    val maxX = (x0 + image.width - 1).coerceIn(0 until width)
-    val maxY = (y0 + image.height - 1).coerceIn(0 until height)
+fun PixelImage.drawImage(x: Int, y: Int, image: BufferedImage) {
+    val minX = x.coerceIn(0 until width)
+    val minY = y.coerceIn(0 until height)
+    val maxX = (x + image.width - 1).coerceIn(0 until width)
+    val maxY = (y + image.height - 1).coerceIn(0 until height)
     for (iy in minY..maxY) {
         for (ix in minX..maxX) {
-            val color = RGBColor.fromCodeWithAlpha(image.getRGB(ix - x0, iy - y0))
+            val color = RGBColor.fromCodeWithAlpha(image.getRGB(ix - x, iy - y))
             this[ix, iy] = color.toMapColor()
         }
     }
@@ -196,4 +191,4 @@ expect fun PixelImage.getTextWidth(text: String): Int
  * @param color テキストの色
  * @param text 描画するテキスト
  */
-expect fun PixelImage.drawText(x: Double, y: Double, color: Byte, text: String)
+expect fun PixelImage.drawText(x: Int, y: Int, color: Byte, text: String)
