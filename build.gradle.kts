@@ -13,6 +13,9 @@ plugins {
     id("com.github.johnrengelman.shadow") version "6.0.0"
     // Gitに応じた自動バージョニングを行うためのプラグイン
     id("org.ajoberstar.grgit") version "4.1.1"
+    // ベンチマーク
+    id("org.jetbrains.kotlin.plugin.allopen") version "1.7.0"
+    id("org.jetbrains.kotlinx.benchmark") version "0.4.4"
 }
 
 // グループ定義
@@ -45,6 +48,11 @@ repositories {
     maven("https://oss.sonatype.org/content/groups/public/")
     // ProtocolLibの依存リポジトリ
     maven("https://repo.dmulloy2.net/repository/public/")
+}
+
+// 特定のsourceSetのみにallOpenを適用する方法がわからないので全てに適用
+allOpen {
+    annotation("org.openjdk.jmh.annotations.State")
 }
 
 kotlin {
@@ -80,14 +88,34 @@ kotlin {
         }
         val commonTest by getting {
             dependencies {
+                // Kotest
                 implementation("io.kotest:kotest-runner-junit5-jvm:4.6.1")
+                // Kotlinx Benchmark
+                implementation("org.jetbrains.kotlinx:kotlinx-benchmark-runtime:0.4.5")
             }
         }
     }
 }
 
+benchmark {
+    // ベンチマーク設定
+    configurations {
+        // main構成(sourceSetのmainとは別物)を設定
+        val main by getting {
+            // 15秒間実行する
+            iterationTime = 15
+            iterationTimeUnit = "sec"
+        }
+    }
+
+    targets {
+        // bukkitTest構成(sourceSetのもの)を設定
+        register("bukkitTest")
+    }
+}
+
 tasks {
-    // 単体テスト (kotest)
+    // 単体テスト (Kotest)
     withType<Test> {
         useJUnitPlatform()
     }
