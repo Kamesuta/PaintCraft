@@ -89,13 +89,8 @@ open class PixelImageCacheBuffer(
          * @param src 描画するピクセルデータ
          */
         private fun PixelImage.drawPixelImageFast(x: Int, y: Int, src: PixelImage) {
-            val dstPixels = pixels
-            val dstWidth = width
-            val dstHeight = height
-            val srcPixels = src.pixels
-            val srcWidth = src.width
-            for (iy in 0 until dstHeight) {
-                System.arraycopy(srcPixels, (x + (y + iy) * srcWidth), dstPixels, iy * dstWidth, dstWidth)
+            for (iy in 0 until height) {
+                System.arraycopy(src.pixels, (x + (y + iy) * src.width), pixels, iy * width, width)
             }
         }
     }

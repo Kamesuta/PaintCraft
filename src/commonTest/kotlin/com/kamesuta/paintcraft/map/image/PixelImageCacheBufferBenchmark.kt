@@ -8,7 +8,7 @@ import java.util.concurrent.TimeUnit
 @State(Scope.Benchmark)
 @Warmup(iterations = 1)
 @Measurement(iterations = 3, time = 1, timeUnit = TimeUnit.SECONDS)
-class PixelImageCacheBufferTest {
+class PixelImageCacheBufferBenchmark {
     private lateinit var base: PixelImageMapBuffer
     private lateinit var buffer: PixelImageMapBuffer
 
