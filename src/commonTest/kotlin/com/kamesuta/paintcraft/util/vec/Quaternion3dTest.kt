@@ -109,11 +109,11 @@ class Quaternion3dTest : FunSpec({
         )
 
         // 回転が2倍
-        val axis = Vec3d(1.0, 2.0, 3.0)
+        val axis = Vec3d(1.0, 2.0, 3.0).normalized
         val angle = Math.toRadians(30.0)
         val q2 = Quaternion3d.axisAngle(axis, angle)
         val (axis2, angle2) = q2.scaleRotation(2.0).toAxisAngle()
-        axis2 shouldBe near(axis.normalized)
+        axis2 shouldBe near(axis)
         angle2 shouldBe near(angle * 2.0)
     }
 
@@ -126,12 +126,12 @@ class Quaternion3dTest : FunSpec({
     }
 
     test("axisAngle") {
-        val axis = Vec3d(1.0, 2.0, 3.0)
+        val axis = Vec3d(1.0, 2.0, 3.0).normalized
         val angle = Math.toRadians(30.0)
         val q = Quaternion3d.axisAngle(axis, angle)
         q shouldBe near(Quaternion3d(0.06917229942468747, 0.13834459884937494, 0.20751689827406242, 0.9659258262890683))
         val (axis2, angle2) = q.toAxisAngle()
-        axis2 shouldBe near(axis.normalized)
+        axis2 shouldBe near(axis)
         angle2 shouldBe near(angle)
     }
 

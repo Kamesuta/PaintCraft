@@ -29,7 +29,7 @@ class VecTestHelperTest : FunSpec({
 
     test("近似値比較テスト (Quaternion3d)") {
         // 誤差を考慮して線分の位置と向きが同一
-        Quaternion3d(1.0, 0.0, 0.0, EPSILON) shouldBe near(Quaternion3d.Identity)
+        Quaternion3d(EPSILON, 0.0, 0.0, 1.0) shouldBe near(Quaternion3d.Identity)
 
         // 反対のクォータニオンはnearOrientationのみ一致することを確認
         val q2 = Quaternion3d(3.0, 4.0, 5.0, 6.0).normalized
