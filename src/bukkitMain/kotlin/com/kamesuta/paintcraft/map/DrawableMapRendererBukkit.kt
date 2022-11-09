@@ -61,6 +61,9 @@ class DrawableMapRendererBukkit(private val behaviorDesc: DrawBehaviorTypes.Desc
     /** マップの更新通知をしたチック */
     private var lastUpdateTick = 0
 
+    /** マップの更新通知をしたプレイヤー */
+    private var lastUpdatePlayer: PaintPlayer? = null
+
     /**
      * addRenderer() された時に呼ばれるため、必ず使えるはず
      * @param map マップビュー
@@ -134,19 +137,26 @@ class DrawableMapRendererBukkit(private val behaviorDesc: DrawBehaviorTypes.Desc
         // プレイヤーがBukkitのプレイヤーかチェック
         if (player !is PaintPlayerBukkit) return
 
-        // レイヤーを更新する
-        composeLayer(updateDrawerCache)
+        // 最後に更新したプレイヤーなら
+        if (lastUpdatePlayer == player) {
+            // レイヤーを更新する
+            composeLayer(updateDrawerCache)
+        }
         // 変更箇所がなければ何もしない
-        updateDrawerCache.dirty.rect ?: return
-        // 更新領域のみのピクセルデータを作成する
-        canvasUpdater.createPacket(mapView, updateDrawerCache)
-        // 描いたプレイヤーに通知する
-        canvasUpdater.sendMap(player.player)
+        if (updateDrawerCache.dirty.rect != null) {
+            // 更新領域のみのピクセルデータを作成する
+            canvasUpdater.createPacket(mapView, updateDrawerCache)
+            // 描いたプレイヤーに通知する
+            canvasUpdater.sendMap(player.player)
+        }
 
         // 1チックに1回以下のみ更新する
         val shouldUpdateAround =
             Bukkit.getCurrentTick().let { tick -> tick > lastUpdateTick.also { lastUpdateTick = tick } }
         if (!shouldUpdateAround) return
+
+        // 最後に更新したプレイヤーを更新
+        lastUpdatePlayer = player
 
         // 更新する半径 ( TODO: 半径のコンフィグ化 )
         val radius = 10.0
@@ -164,11 +174,12 @@ class DrawableMapRendererBukkit(private val behaviorDesc: DrawBehaviorTypes.Desc
         // レイヤーを更新する
         composeLayer(updateAroundCache)
         // 変更箇所がなければ何もしない
-        updateAroundCache.dirty.rect ?: return
-        // 更新領域のみのピクセルデータを作成する
-        canvasUpdater.createPacket(mapView, updateAroundCache)
-        // 周りのプレイヤーに地図を送信する
-        trackingPlayers.forEach { canvasUpdater.sendMap(it) }
+        if (updateAroundCache.dirty.rect != null) {
+            // 更新領域のみのピクセルデータを作成する
+            canvasUpdater.createPacket(mapView, updateAroundCache)
+            // 周りのプレイヤーに地図を送信する
+            trackingPlayers.forEach { canvasUpdater.sendMap(it) }
+        }
     }
 
     /** ピクセルデータの内容をマップビューに保存し永続化する */
