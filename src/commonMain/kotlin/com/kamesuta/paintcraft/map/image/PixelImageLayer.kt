@@ -42,7 +42,7 @@ class PixelImageLayer<T> {
     private val dirtyArea: DirtyRect
         get() {
             val dirtyRect = DirtyRect()
-            layers.forEach { (_, layer) ->
+            for ((_, layer) in layers) {
                 dirtyRect.flagDirty(layer.dirty)
             }
             return dirtyRect
@@ -107,7 +107,7 @@ class PixelImageLayer<T> {
         // まずコピーする
         output.drawPixelImageCrop(dirty, base)
         // 差分を適用
-        layers.forEach { (_, layer) ->
+        for ((_, layer) in layers) {
             // 変更されている部分のみ適用
             output.drawPixelImageCrop(dirty, layer)
         }
