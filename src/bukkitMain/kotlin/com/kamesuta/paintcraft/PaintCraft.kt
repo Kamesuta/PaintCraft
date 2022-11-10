@@ -5,6 +5,7 @@ import com.comphenix.protocol.ProtocolManager
 import com.kamesuta.paintcraft.frame.FrameDrawListener
 import com.kamesuta.paintcraft.frame.FrameReflection
 import com.kamesuta.paintcraft.map.DrawableMapReflection
+import com.kamesuta.paintcraft.map.DrawableMapUpdaterReflection
 import com.kamesuta.paintcraft.palette.DrawPalette
 import com.kamesuta.paintcraft.util.clienttype.ClientTypeReflection
 import com.kamesuta.paintcraft.util.clienttype.ClientTypeUpdateListener
@@ -36,6 +37,7 @@ class PaintCraft : JavaPlugin() {
             FrameReflection.checkReflection()
             // Map系クラスのチェック
             DrawableMapReflection.checkReflection()
+            DrawableMapUpdaterReflection.checkReflection()
             // クライアントのブランドクラスのチェック
             ClientTypeReflection.checkReflection()
             // ViaVersionがあればViaAPIを初期化

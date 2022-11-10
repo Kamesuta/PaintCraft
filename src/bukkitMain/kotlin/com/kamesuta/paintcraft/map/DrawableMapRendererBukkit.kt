@@ -147,7 +147,7 @@ class DrawableMapRendererBukkit(private val behaviorDesc: DrawBehaviorTypes.Desc
             // 更新領域のみのピクセルデータを作成する
             canvasUpdater.createPacket(mapView, updateDrawerCache)
             // 描いたプレイヤーに通知する
-            canvasUpdater.sendMap(player.player)
+            canvasUpdater.sendMap(player.player, true)
         }
 
         // 1チックに1回以下のみ更新する

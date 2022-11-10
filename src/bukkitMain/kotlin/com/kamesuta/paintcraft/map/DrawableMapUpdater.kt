@@ -64,10 +64,21 @@ class DrawableMapUpdater {
      * プレイヤーにマップを送信する
      * @param player プレイヤー
      */
-    fun sendMap(player: Player) {
+    fun sendMap(player: Player, isPriority: Boolean = false) {
         // マップビューと更新領域がある場合のみ送信
         canvasMapView ?: return
         canvasCache ?: return
+
+        // 高頻度でパケットを送信するとパイプが詰まってマイクラのパケットが遅延するので、キューが空のときのみ送信することで回避する。
+        // 優先度が高い場合はキューが空でなくても送信する。
+        if (!isPriority) {
+            // イベントループにキューが溜まっている場合は送信しない
+            val eventLoop = DrawableMapUpdaterReflection.getEventLoop(player)
+            if (eventLoop != null && eventLoop.pendingTasks() > 1) {
+                //PaintCraft.instance.logger.warning("skip: ${player.name}, pendingTasks: ${eventLoop.pendingTasks()}")
+                return
+            }
+        }
 
         // パケットを送信する
         PaintCraft.instance.protocolManager.sendWirePacket(
