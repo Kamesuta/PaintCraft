@@ -53,6 +53,28 @@ class DrawPalette(
             }
         }
 
+        // パレットを描画する
+        run {
+            // 一番左のスロットの位置
+            val start = mapSize / 2 - (storedPaletteSize * (PaletteData.MAP_PALETTE_SIZE - 1)) / 2
+            // 全スロットを描画する
+            palette.storedPalettes.forEachIndexed { index, color ->
+                val y = start + index * storedPaletteSize
+                canvas.drawCursor(storedPalettePositionX, y, color, color, storedPaletteSize / 2 - 1)
+            }
+            // 透明が選択されていないときのみカーソルを描画
+            if (palette.mapColor != transparent) {
+                // 選択中のスロットを描画する
+                val y = start + palette.selectedPaletteIndex * storedPaletteSize
+                val color = palette.storedPalettes.getOrNull(palette.selectedPaletteIndex)
+                    ?: return@run
+                if (palette.mapColor == color) {
+                    val oppositeColor = MapColor.toRGBColor(color).toOpposite().toMapColor()
+                    canvas.drawCursor(storedPalettePositionX, y, color, oppositeColor, storedPaletteSize / 2)
+                }
+            }
+        }
+
         // ボタンカラー (黒色: -49)
         val buttonColor: Byte = black
 
@@ -73,7 +95,7 @@ class DrawPalette(
             val x0 = transparentButtonPosition.x.roundToInt()
             val y0 = transparentButtonPosition.y.roundToInt()
             val size0 = (buttonSize / 2.0).toInt()
-            for (i in -size0 until size0) {
+            for (i in -size0..size0) {
                 canvas[x0 - i, y0 + i] = buttonColor
             }
         }
@@ -103,7 +125,7 @@ class DrawPalette(
             val x0 = colorPickerButtonPosition.x.roundToInt()
             val y0 = colorPickerButtonPosition.y.roundToInt()
             val size0 = (buttonSize / 2.0).toInt()
-            for (i in -size0 until size0) {
+            for (i in -size0..size0) {
                 canvas[x0 + i, y0] = buttonColor
                 canvas[x0, y0 + i] = buttonColor
             }
@@ -239,6 +261,12 @@ class DrawPalette(
         /** 太さスライダーのサイズ */
         private val thicknessSliderSize = Vec2d(6.0, mapSize - 30.0)
 
+        /** ツールボタンの位置 */
+        private val toolButtonPosition = Vec2d(mapSize / 2.0, mapSize - 30.0)
+
+        /** ツールボタンの位置 */
+        private val toolButtonSize = Vec2d(mapSize / 2.0, 9.0)
+
         /** 色相ごとのパレットを事前に計算しておく */
         val cachedPalette = (0..255).associateWith { hue ->
             val map = PixelImageMapBuffer()
@@ -288,6 +316,13 @@ class DrawPalette(
                 && y - colorCodePosition.y in -colorCodeSize.y / 2..colorCodeSize.y / 2
             ) {
                 return PaletteAdjustingType.COLOR_CODE
+            }
+
+            // ツールボタンの位置
+            if (x - toolButtonPosition.x in -toolButtonSize.x / 2..toolButtonSize.x / 2
+                && y - toolButtonPosition.y in -toolButtonSize.y / 2..toolButtonSize.y / 2
+            ) {
+                return PaletteAdjustingType.TOOL
             }
 
             // 太さスライダーの位置

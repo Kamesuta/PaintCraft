@@ -25,4 +25,7 @@ enum class PaletteAdjustingType {
 
     /** ペンの太さ */
     THICKNESS,
+
+    /** ツール */
+    TOOL,
 }
